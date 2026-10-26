@@ -1,0 +1,144 @@
+{
+  "products": [
+    {
+      "data": {
+        "cinv": "187931",
+        "code": "00060229",
+        "codewz": "60229",
+        "name": "Gazirana pijača, Coca Cola, 1 l",
+        "unit_quantity": "1",
+        "invoice_unit": "Kos",
+        "invoice_unit_type": "1",
+        "average_weight": 0,
+        "normal_price": "1.69",
+        "current_price": "1.45",
+        "pc30_price": "1.69",
+        "price_per_unit": 1.45,
+        "price_per_unit_base": "1l",
+        "eko": "0",
+        "has_recipes": "0",
+        "brand_name": "COCA COLA",
+        "gtins": [
+          {
+            "gtin": "5449000054227"
+          }
+        ],
+        "discounts": [
+          {
+            "discount_id": "33530",
+            "group_type": "discount",
+            "value": "",
+            "marker_code": "102",
+            "valid_from": "20261022235150",
+            "valid_to": "20261102235150",
+            "discount_price": 0,
+            "clubs": "",
+            "clubs_array": null,
+            "coupon": "",
+            "hover_text": "VEZAN NAK.COMB.PIŠČ.+COCAC.1L",
+            "sort": "60.0000"
+          },
+          {
+            "discount_id": "37074",
+            "group_type": "pika_discount",
+            "value": "-14",
+            "marker_code": "104",
+            "valid_from": "20261022235149",
+            "valid_to": "20261102235149",
+            "discount_price": 1.45,
+            "clubs": "",
+            "clubs_array": null,
+            "coupon": "",
+            "hover_text": "Za imetnike Pika kartice 14% ceneje.",
+            "sort": "110.0000"
+          }
+        ],
+        "ratings_sum": "15",
+        "ratings_num": "4",
+        "rating": 3.75,
+        "package": 12,
+        "offer_expires_on": "1970-01-01",
+        "category1": "PIJAČE",
+        "category2": "GAZIRANE PIJAČE",
+        "category3": "GAZIRANE PIJAČE Z OKUSOM COLE",
+        "analyticsObject": "{\"item_id\":\"187931\",\"item_name\":\"Gazirana pija\\u010da, Coca Cola, 1 l\",\"currency\":\"EUR\",\"item_brand\":\"COCA COLA\",\"item_category\":\"PIJA\\u010cE\",\"item_category2\":\"GAZIRANE PIJA\\u010cE\",\"item_category3\":\"GAZIRANE PIJA\\u010cE Z OKUSOM COLE\",\"item_rating\":3,\"price\":1.69,\"promo_price\":1.45,\"discount\":0.24}",
+        "personal_offer_recommendation_id": 0
+      },
+      "itemId": "187931",
+      "className": "size11",
+      "type": "product",
+      "mainImageSrc": "https://mercatoronline.si/img/cache/products/4307/product_small_image/00060229.jpg",
+      "_meta": {
+        "es_score": 2164.7834,
+        "mc_score": "0"
+      },
+      "url": "/izdelek/187931/gazirana-pijaca-coca-cola-1-l",
+      "short_name": "Gazirana pijača, Coca Cola, 1 l",
+      "total": 12,
+      "ordNum": 139
+    },
+    {
+      "data": {
+        "cinv": "39483",
+        "code": "00004387",
+        "codewz": "4387",
+        "name": "Bonboni Rum Kokos, Casali, 300 g",
+        "unit_quantity": "300",
+        "invoice_unit": "Kos",
+        "invoice_unit_type": "1",
+        "average_weight": 0,
+        "normal_price": "6.99",
+        "current_price": "4.89",
+        "pc30_price": "0.00",
+        "price_per_unit": 16.3,
+        "price_per_unit_base": "1kg",
+        "eko": "0",
+        "has_recipes": "0",
+        "brand_name": "CASALI",
+        "gtins": [
+          {
+            "gtin": "9000332813782"
+          }
+        ],
+        "discounts": [
+          {
+            "discount_id": "35595",
+            "group_type": "discount",
+            "value": "-30",
+            "marker_code": "115",
+            "valid_from": "20260726235525",
+            "valid_to": "20260806235525",
+            "discount_price": 4.89,
+            "clubs": "",
+            "clubs_array": null,
+            "coupon": "",
+            "hover_text": "Ugodno",
+            "sort": "100.0000"
+          }
+        ],
+        "ratings_sum": "4",
+        "ratings_num": "1",
+        "rating": 4,
+        "package": 0,
+        "offer_expires_on": "1970-01-01",
+        "category1": "ČOKOLADA IN DRUGI SLADKI PROGRAM",
+        "category2": "BONBONI",
+        "category3": "BONBONI",
+        "analyticsObject": "{\"item_id\":\"39483\",\"item_name\":\"Bonboni Rum Kokos, Casali, 300 g\",\"currency\":\"EUR\",\"item_brand\":\"CASALI\",\"item_category\":\"\\u010cOKOLADA IN DRUGI SLADKI PROGRAM\",\"item_category2\":\"BONBONI\",\"item_category3\":\"BONBONI\",\"item_rating\":4,\"price\":6.99,\"promo_price\":4.89,\"discount\":2.1}",
+        "personal_offer_recommendation_id": 0
+      },
+      "itemId": "39483",
+      "className": "size11",
+      "type": "product",
+      "mainImageSrc": "https://mercatoronline.si/img/cache/products/4622/product_small_image/00004387.jpg",
+      "_meta": {
+        "es_score": 1953.3892,
+        "mc_score": "0"
+      },
+      "url": "/izdelek/39483/bonboni-rum-kokos-casali-300-g",
+      "short_name": "Bonboni Rum Kokos, Casali, 300 g",
+      "total": 12,
+      "ordNum": 143
+    }
+  ]
+}

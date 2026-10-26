@@ -1,0 +1,637 @@
+{
+  "products": [
+    {
+      "data": {
+        "cinv": "13836240",
+        "code": "00825500",
+        "codewz": "825500",
+        "name": "Toaletni papir Premium, Violeta, 3-slojni, 10 rolic",
+        "unit_quantity": "10",
+        "invoice_unit": "Kos",
+        "invoice_unit_type": "1",
+        "average_weight": 0,
+        "normal_price": "6.89",
+        "current_price": "4.99",
+        "pc30_price": "0.00",
+        "price_per_unit": 0.49900000000000005,
+        "price_per_unit_base": "kos",
+        "eko": "0",
+        "has_recipes": "0",
+        "brand_name": "VIOLETA",
+        "gtins": [
+          {
+            "gtin": "3859892288044"
+          }
+        ],
+        "discounts": [
+          {
+            "discount_id": "22692",
+            "group_type": "other",
+            "value": "-27",
+            "marker_code": "11",
+            "valid_from": "20261025002834",
+            "valid_to": "20261105002834",
+            "discount_price": 0,
+            "clubs": "",
+            "clubs_array": null,
+            "coupon": "",
+            "hover_text": "Znižano",
+            "sort": "135.0000"
+          }
+        ],
+        "ratings_sum": "14",
+        "ratings_num": "4",
+        "rating": 3.5,
+        "package": 0,
+        "offer_expires_on": "2026-11-11",
+        "category1": "HIGIENA IN LEPOTA",
+        "category2": "HIGIENSKI IZDELKI IN TOALETNI PAPIR",
+        "category3": "TOALETNI PAPIR",
+        "analyticsObject": "{\"item_id\":\"13836240\",\"item_name\":\"Toaletni papir Premium, Violeta, 3-slojni, 10 rolic\",\"currency\":\"EUR\",\"item_brand\":\"VIOLETA\",\"item_category\":\"HIGIENA IN LEPOTA\",\"item_category2\":\"HIGIENSKI IZDELKI IN TOALETNI PAPIR\",\"item_category3\":\"TOALETNI PAPIR\",\"item_rating\":3,\"price\":6.89,\"promo_price\":4.99,\"discount\":1.9}",
+        "personal_offer_recommendation_id": 0
+      },
+      "itemId": "13836240",
+      "className": "size11",
+      "type": "product",
+      "mainImageSrc": "https://mercatoronline.si/img/cache/products/5262/product_small_image/00825500.jpg",
+      "_meta": {
+        "es_score": 10346.688,
+        "mc_score": "0"
+      },
+      "url": "/izdelek/13836240/toaletni-papir-premium-violeta-3-slojni-10-rolic",
+      "short_name": "Toaletni papir Premium, Violeta, 3-slojni, 10 rolic",
+      "total": 12,
+      "ordNum": 6
+    },
+    {
+      "data": {
+        "cinv": "17812950",
+        "code": "00253430",
+        "codewz": "253430",
+        "name": "Vlažni toaletni papir Ognjič, Violeta, 60 kosov",
+        "unit_quantity": "60",
+        "invoice_unit": "Kos",
+        "invoice_unit_type": "1",
+        "average_weight": 0,
+        "normal_price": "2.29",
+        "current_price": "1.75",
+        "pc30_price": "0.00",
+        "price_per_unit": 0.029166666666666667,
+        "price_per_unit_base": "kos",
+        "eko": "0",
+        "has_recipes": "0",
+        "brand_name": "VIOLETA",
+        "gtins": [
+          {
+            "gtin": "3870128001664"
+          }
+        ],
+        "discounts": [
+          {
+            "discount_id": "22692",
+            "group_type": "other",
+            "value": "-23",
+            "marker_code": "11",
+            "valid_from": "20261025002834",
+            "valid_to": "20261105002834",
+            "discount_price": 0,
+            "clubs": "",
+            "clubs_array": null,
+            "coupon": "",
+            "hover_text": "Znižano",
+            "sort": "135.0000"
+          }
+        ],
+        "ratings_sum": "3",
+        "ratings_num": "1",
+        "rating": 3,
+        "package": 0,
+        "offer_expires_on": "2027-01-13",
+        "category1": "HIGIENA IN LEPOTA",
+        "category2": "HIGIENSKI IZDELKI IN TOALETNI PAPIR",
+        "category3": "TOALETNI PAPIR",
+        "analyticsObject": "{\"item_id\":\"17812950\",\"item_name\":\"Vla\\u017eni toaletni papir Ognji\\u010d, Violeta, 60 kosov\",\"currency\":\"EUR\",\"item_brand\":\"VIOLETA\",\"item_category\":\"HIGIENA IN LEPOTA\",\"item_category2\":\"HIGIENSKI IZDELKI IN TOALETNI PAPIR\",\"item_category3\":\"TOALETNI PAPIR\",\"item_rating\":3,\"price\":2.29,\"promo_price\":1.75,\"discount\":0.54}",
+        "personal_offer_recommendation_id": 0
+      },
+      "itemId": "17812950",
+      "className": "size11",
+      "type": "product",
+      "mainImageSrc": "https://mercatoronline.si/img/cache/products/5262/product_small_image/00253430.jpg",
+      "_meta": {
+        "es_score": 6272.689,
+        "mc_score": "0"
+      },
+      "url": "/izdelek/17812950/vlazni-toaletni-papir-ognjic-violeta-60-kosov",
+      "short_name": "Vlažni toaletni papir Ognjič, Violeta, 60 kosov",
+      "total": 12,
+      "ordNum": 7
+    },
+    {
+      "data": {
+        "cinv": "1436803",
+        "code": "00840391",
+        "codewz": "840391",
+        "name": "Sončnično olje, Zvijezda, 1 l",
+        "unit_quantity": "1",
+        "invoice_unit": "Kos",
+        "invoice_unit_type": "1",
+        "average_weight": 0,
+        "normal_price": "2.99",
+        "current_price": "1.85",
+        "pc30_price": "2.99",
+        "price_per_unit": 1.85,
+        "price_per_unit_base": "1l",
+        "eko": "0",
+        "has_recipes": "1",
+        "brand_name": "ZVIJEZDA",
+        "gtins": [
+          {
+            "gtin": "3858882210010"
+          },
+          {
+            "gtin": "3858882212410"
+          }
+        ],
+        "discounts": [
+          {
+            "discount_id": "36978",
+            "group_type": "discount",
+            "value": "-38",
+            "marker_code": "3",
+            "valid_from": "20261023233752",
+            "valid_to": "20261103233752",
+            "discount_price": 1.85,
+            "clubs": "",
+            "clubs_array": null,
+            "coupon": "",
+            "hover_text": "Ugodno",
+            "sort": "109.0000"
+          }
+        ],
+        "ratings_sum": "10",
+        "ratings_num": "5",
+        "rating": 2,
+        "package": 0,
+        "offer_expires_on": "1970-01-01",
+        "category1": "OSNOVNA ŽIVILA / SHRAMBA",
+        "category2": "OLJE",
+        "category3": "SONČNIČNO OLJE",
+        "analyticsObject": "{\"item_id\":\"1436803\",\"item_name\":\"Son\\u010dni\\u010dno olje, Zvijezda, 1 l\",\"currency\":\"EUR\",\"item_brand\":\"ZVIJEZDA\",\"item_category\":\"OSNOVNA \\u017dIVILA \\/ SHRAMBA\",\"item_category2\":\"OLJE\",\"item_category3\":\"SON\\u010cNI\\u010cNO OLJE\",\"item_rating\":2,\"price\":2.99,\"promo_price\":1.85,\"discount\":1.14}",
+        "personal_offer_recommendation_id": 0
+      },
+      "itemId": "1436803",
+      "className": "size11",
+      "type": "product",
+      "mainImageSrc": "https://mercatoronline.si/img/cache/products/4909/product_small_image/00840391.jpg",
+      "_meta": {
+        "es_score": 17630.842,
+        "mc_score": "0"
+      },
+      "url": "/izdelek/1436803/soncnicno-olje-zvijezda-1-l",
+      "short_name": "Sončnično olje, Zvijezda, 1 l",
+      "total": 12,
+      "ordNum": 1
+    },
+    {
+      "data": {
+        "cinv": "14689885",
+        "code": "00426731",
+        "codewz": "426731",
+        "name": "Leskovački čevapčiči, Ave Grill, pakirano, 480 g",
+        "unit_quantity": "480",
+        "invoice_unit": "Kos",
+        "invoice_unit_type": "1",
+        "average_weight": 0,
+        "normal_price": "7.99",
+        "current_price": "5.99",
+        "pc30_price": "0.00",
+        "price_per_unit": 12.479166666666668,
+        "price_per_unit_base": "1kg",
+        "eko": "0",
+        "has_recipes": "0",
+        "brand_name": "AVE GRILL",
+        "gtins": [
+          {
+            "gtin": "3831020345966"
+          }
+        ],
+        "discounts": [
+          {
+            "discount_id": "36963",
+            "group_type": "discount",
+            "value": "-25",
+            "marker_code": "3",
+            "valid_from": "20261021232658",
+            "valid_to": "20261101232658",
+            "discount_price": 5.99,
+            "clubs": "",
+            "clubs_array": null,
+            "coupon": "",
+            "hover_text": "Ugodno",
+            "sort": "109.0000"
+          }
+        ],
+        "ratings_sum": "19",
+        "ratings_num": "6",
+        "rating": 3.17,
+        "package": 0,
+        "offer_expires_on": "1970-01-01",
+        "category1": "MESO, MESNI IZDELKI IN RIBE",
+        "category2": "SVEŽE MESO",
+        "category3": "MLETO MESO",
+        "analyticsObject": "{\"item_id\":\"14689885\",\"item_name\":\"Leskova\\u010dki \\u010devap\\u010di\\u010di, Ave Grill, pakirano, 480 g\",\"currency\":\"EUR\",\"item_brand\":\"AVE GRILL\",\"item_category\":\"MESO, MESNI IZDELKI IN RIBE\",\"item_category2\":\"SVE\\u017dE MESO\",\"item_category3\":\"MLETO MESO\",\"item_rating\":3,\"price\":7.99,\"promo_price\":5.99,\"discount\":2}",
+        "personal_offer_recommendation_id": 0
+      },
+      "itemId": "14689885",
+      "className": "size11",
+      "type": "product",
+      "mainImageSrc": "https://mercatoronline.si/img/cache/products/4947/product_small_image/00426731.jpg",
+      "_meta": {
+        "es_score": 5861.8413,
+        "mc_score": "0"
+      },
+      "url": "/izdelek/14689885/leskovacki-cevapcici-ave-grill-pakirano-480-g",
+      "short_name": "Leskovački čevapčiči, Ave Grill, pakirano, 480 g",
+      "total": 12,
+      "ordNum": 39
+    },
+    {
+      "data": {
+        "cinv": "17249589",
+        "code": "00506903",
+        "codewz": "506903",
+        "name": "Toaletni papir, Violeta, 3-slojni, 16/1",
+        "unit_quantity": "16",
+        "invoice_unit": "Kos",
+        "invoice_unit_type": "1",
+        "average_weight": 0,
+        "normal_price": "8.69",
+        "current_price": "4.99",
+        "pc30_price": "8.69",
+        "price_per_unit": 0.311875,
+        "price_per_unit_base": "kos",
+        "eko": "0",
+        "has_recipes": "0",
+        "brand_name": "VIOLETA",
+        "gtins": [
+          {
+            "gtin": "3859892288075"
+          }
+        ],
+        "discounts": [
+          {
+            "discount_id": "37074",
+            "group_type": "pika_discount",
+            "value": "-42",
+            "marker_code": "104",
+            "valid_from": "20261025002839",
+            "valid_to": "20261105002839",
+            "discount_price": 4.99,
+            "clubs": "",
+            "clubs_array": null,
+            "coupon": "",
+            "hover_text": "Za imetnike Pika kartice 42% ceneje.",
+            "sort": "110.0000"
+          }
+        ],
+        "ratings_sum": "0",
+        "ratings_num": "0",
+        "rating": 0,
+        "package": 0,
+        "offer_expires_on": "2025-06-30",
+        "category1": "HIGIENA IN LEPOTA",
+        "category2": "HIGIENSKI IZDELKI IN TOALETNI PAPIR",
+        "category3": "TOALETNI PAPIR",
+        "analyticsObject": "{\"item_id\":\"17249589\",\"item_name\":\"Toaletni papir, Violeta, 3-slojni, 16\\/1\",\"currency\":\"EUR\",\"item_brand\":\"VIOLETA\",\"item_category\":\"HIGIENA IN LEPOTA\",\"item_category2\":\"HIGIENSKI IZDELKI IN TOALETNI PAPIR\",\"item_category3\":\"TOALETNI PAPIR\",\"item_rating\":0,\"price\":8.69,\"promo_price\":4.99,\"discount\":3.7}",
+        "personal_offer_recommendation_id": 0
+      },
+      "itemId": "17249589",
+      "className": "size11",
+      "type": "product",
+      "mainImageSrc": "https://mercatoronline.si/img/cache/products/5262/product_small_image/00506903.jpg",
+      "_meta": {
+        "es_score": 4214.7915,
+        "mc_score": "0"
+      },
+      "url": "/izdelek/17249589/toaletni-papir-violeta-3-slojni-16-1",
+      "short_name": "Toaletni papir, Violeta, 3-slojni, 16/1",
+      "total": 12,
+      "ordNum": 8
+    },
+    {
+      "data": {
+        "cinv": "37043",
+        "code": "00003943",
+        "codewz": "3943",
+        "name": "Papirnate brisače Multi Fun, Paloma, 2-slojne, 2/1",
+        "unit_quantity": "2",
+        "invoice_unit": "Kos",
+        "invoice_unit_type": "1",
+        "average_weight": 0,
+        "normal_price": "3.69",
+        "current_price": "2.19",
+        "pc30_price": "3.69",
+        "price_per_unit": 1.095,
+        "price_per_unit_base": "kos",
+        "eko": "0",
+        "has_recipes": "0",
+        "brand_name": "PALOMA",
+        "gtins": [
+          {
+            "gtin": "3838952014656"
+          }
+        ],
+        "discounts": [
+          {
+            "discount_id": "37074",
+            "group_type": "pika_discount",
+            "value": "-40",
+            "marker_code": "104",
+            "valid_from": "20261025002839",
+            "valid_to": "20261105002839",
+            "discount_price": 2.19,
+            "clubs": "",
+            "clubs_array": null,
+            "coupon": "",
+            "hover_text": "Za imetnike Pika kartice 40% ceneje.",
+            "sort": "110.0000"
+          }
+        ],
+        "ratings_sum": "0",
+        "ratings_num": "0",
+        "rating": 0,
+        "package": 12,
+        "offer_expires_on": "1970-01-01",
+        "category1": "VSE ZA DOM IN GOSPODINJSTVO",
+        "category2": "PAPIRNA, PVC GALANTERIJA - PRIPOMOČKI V KUHINJI",
+        "category3": "PAPIRNATE BRISAČE",
+        "analyticsObject": "{\"item_id\":\"37043\",\"item_name\":\"Papirnate brisa\\u010de Multi Fun, Paloma, 2-slojne, 2\\/1\",\"currency\":\"EUR\",\"item_brand\":\"PALOMA\",\"item_category\":\"VSE ZA DOM IN GOSPODINJSTVO\",\"item_category2\":\"PAPIRNA, PVC GALANTERIJA - PRIPOMO\\u010cKI V KUHINJI\",\"item_category3\":\"PAPIRNATE BRISA\\u010cE\",\"item_rating\":0,\"price\":3.69,\"promo_price\":2.19,\"discount\":1.5}",
+        "personal_offer_recommendation_id": 0
+      },
+      "itemId": "37043",
+      "className": "size11",
+      "type": "product",
+      "mainImageSrc": "https://mercatoronline.si/img/cache/products/4441/product_small_image/00003943.jpg",
+      "_meta": {
+        "es_score": 6674.7915,
+        "mc_score": "0"
+      },
+      "url": "/izdelek/37043/papirnate-brisace-multi-fun-paloma-2-slojne-2-1",
+      "short_name": "Papirnate brisače Multi Fun, Paloma, 2-slojne, 2/1",
+      "total": 12,
+      "ordNum": 18
+    },
+    {
+      "data": {
+        "cinv": "1231447",
+        "code": "00724256",
+        "codewz": "724256",
+        "name": "Naravna gazirana voda, Jamnica, 1,5 l",
+        "unit_quantity": "1.5",
+        "invoice_unit": "Kos",
+        "invoice_unit_type": "1",
+        "average_weight": 0,
+        "normal_price": 0,
+        "current_price": "0.89",
+        "pc30_price": "0.00",
+        "price_per_unit": 0.5933333333333333,
+        "price_per_unit_base": "1l",
+        "eko": "0",
+        "has_recipes": "0",
+        "brand_name": "JAMNICA",
+        "gtins": [
+          {
+            "gtin": "3859888152045"
+          }
+        ],
+        "discounts": [
+          {
+            "discount_id": "37034",
+            "group_type": "discount",
+            "value": "",
+            "marker_code": "100",
+            "valid_from": "20261021232701",
+            "valid_to": "20261101232701",
+            "discount_price": 0,
+            "clubs": "",
+            "clubs_array": null,
+            "coupon": "",
+            "hover_text": "Ob nakupu 2 izdelkov ali več je vsak 33% ceneje.",
+            "sort": "50.0000"
+          }
+        ],
+        "ratings_sum": "15",
+        "ratings_num": "3",
+        "rating": 5,
+        "package": 6,
+        "offer_expires_on": "1970-01-01",
+        "category1": "PIJAČE",
+        "category2": "VODE",
+        "category3": "GAZIRANE VODE",
+        "analyticsObject": "{\"item_id\":\"1231447\",\"item_name\":\"Naravna gazirana voda, Jamnica, 1,5 l\",\"currency\":\"EUR\",\"item_brand\":\"JAMNICA\",\"item_category\":\"PIJA\\u010cE\",\"item_category2\":\"VODE\",\"item_category3\":\"GAZIRANE VODE\",\"item_rating\":5,\"price\":0.89}",
+        "personal_offer_recommendation_id": 0
+      },
+      "itemId": "1231447",
+      "className": "size11",
+      "type": "product",
+      "mainImageSrc": "https://mercatoronline.si/img/cache/products/4837/product_small_image/00724256.jpg",
+      "_meta": {
+        "es_score": 8836.004,
+        "mc_score": "0"
+      },
+      "url": "/izdelek/1231447/naravna-gazirana-voda-jamnica-1-5-l",
+      "short_name": "Naravna gazirana voda, Jamnica, 1,5 l",
+      "total": 12,
+      "ordNum": 2
+    },
+    {
+      "data": {
+        "cinv": "1395879",
+        "code": "00811426",
+        "codewz": "811426",
+        "name": "Mleta kava Classic, Barcaffe, 200 g",
+        "unit_quantity": "200",
+        "invoice_unit": "Kos",
+        "invoice_unit_type": "1",
+        "average_weight": 0,
+        "normal_price": 0,
+        "current_price": "4.79",
+        "pc30_price": "0.00",
+        "price_per_unit": 23.95,
+        "price_per_unit_base": "1kg",
+        "eko": "0",
+        "has_recipes": "0",
+        "brand_name": "BARCAFFE",
+        "gtins": [
+          {
+            "gtin": "3838975531314"
+          }
+        ],
+        "discounts": [
+          {
+            "discount_id": "37095",
+            "group_type": "discount",
+            "value": "",
+            "marker_code": "100",
+            "valid_from": "20261025002837",
+            "valid_to": "20261105002837",
+            "discount_price": 0,
+            "clubs": "",
+            "clubs_array": null,
+            "coupon": "",
+            "hover_text": "Ob nakupu 2 izdelkov ali več je vsak 25% ceneje.",
+            "sort": "50.0000"
+          }
+        ],
+        "ratings_sum": "32",
+        "ratings_num": "8",
+        "rating": 4,
+        "package": 0,
+        "offer_expires_on": "1970-01-01",
+        "category1": "VSE ZA ZAJTRK",
+        "category2": "KAVA",
+        "category3": "KLASIČNA TURŠKA KAVA",
+        "analyticsObject": "{\"item_id\":\"1395879\",\"item_name\":\"Mleta kava Classic, Barcaffe, 200 g\",\"currency\":\"EUR\",\"item_brand\":\"BARCAFFE\",\"item_category\":\"VSE ZA ZAJTRK\",\"item_category2\":\"KAVA\",\"item_category3\":\"KLASI\\u010cNA TUR\\u0160KA KAVA\",\"item_rating\":4,\"price\":4.79}",
+        "personal_offer_recommendation_id": 0
+      },
+      "itemId": "1395879",
+      "className": "size11",
+      "type": "product",
+      "mainImageSrc": "https://mercatoronline.si/img/cache/products/4808/product_small_image/00811426.jpg",
+      "_meta": {
+        "es_score": 36753.004,
+        "mc_score": "0"
+      },
+      "url": "/izdelek/1395879/mleta-kava-classic-barcaffe-200-g",
+      "short_name": "Mleta kava Classic, Barcaffe, 200 g",
+      "total": 12,
+      "ordNum": 0
+    },
+    {
+      "data": {
+        "cinv": "18487819",
+        "code": "00006668",
+        "codewz": "6668",
+        "name": "Toaletni papir Exclusive Plus, tiskan in parfumiran, 3-slojni, Paloma, 10/1",
+        "unit_quantity": "10",
+        "invoice_unit": "Kos",
+        "invoice_unit_type": "1",
+        "average_weight": 0,
+        "normal_price": 0,
+        "current_price": "5.79",
+        "pc30_price": "0.00",
+        "price_per_unit": 0.5790000000000001,
+        "price_per_unit_base": "kos",
+        "eko": "0",
+        "has_recipes": "0",
+        "brand_name": "PALOMA EXCLUSIVE",
+        "gtins": [
+          {
+            "gtin": "3838952027717"
+          }
+        ],
+        "discounts": [
+          {
+            "discount_id": "36989",
+            "group_type": "discount",
+            "value": "",
+            "marker_code": "100",
+            "valid_from": "20261021232700",
+            "valid_to": "20261101232700",
+            "discount_price": 0,
+            "clubs": "",
+            "clubs_array": null,
+            "coupon": "",
+            "hover_text": "Ob nakupu 2 izdelkov ali več je vsak 50% ceneje.",
+            "sort": "50.0000"
+          }
+        ],
+        "ratings_sum": "10",
+        "ratings_num": "4",
+        "rating": 2.5,
+        "package": 0,
+        "offer_expires_on": "1970-01-01",
+        "category1": "HIGIENA IN LEPOTA",
+        "category2": "HIGIENSKI IZDELKI IN TOALETNI PAPIR",
+        "category3": "TOALETNI PAPIR",
+        "analyticsObject": "{\"item_id\":\"18487819\",\"item_name\":\"Toaletni papir Exclusive Plus, tiskan in parfumiran, 3-slojni, Paloma, 10\\/1\",\"currency\":\"EUR\",\"item_brand\":\"PALOMA EXCLUSIVE\",\"item_category\":\"HIGIENA IN LEPOTA\",\"item_category2\":\"HIGIENSKI IZDELKI IN TOALETNI PAPIR\",\"item_category3\":\"TOALETNI PAPIR\",\"item_rating\":2,\"price\":5.79}",
+        "personal_offer_recommendation_id": 0
+      },
+      "itemId": "18487819",
+      "className": "size11",
+      "type": "product",
+      "mainImageSrc": "https://mercatoronline.si/img/cache/products/4442/product_small_image/00006668.jpg",
+      "_meta": {
+        "es_score": 11719.004,
+        "mc_score": "0"
+      },
+      "url": "/izdelek/18487819/toaletni-papir-exclusive-plus-tiskan-in-parfumiran-3-slojni-paloma-10-1",
+      "short_name": "Toaletni papir Exclusive Plus, tiskan in parfumiran, 3-slojni, Paloma, 10/1",
+      "total": 12,
+      "ordNum": 5
+    },
+    {
+      "data": {
+        "cinv": "313163",
+        "code": "00146488",
+        "codewz": "146488",
+        "name": "Pivo Union, 4,9 % alkohola, 6 x 0,5 l",
+        "unit_quantity": "3",
+        "invoice_unit": "Kos",
+        "invoice_unit_type": "1",
+        "average_weight": 0,
+        "normal_price": 0,
+        "current_price": "6.69",
+        "pc30_price": "0.00",
+        "price_per_unit": 2.23,
+        "price_per_unit_base": "1l",
+        "eko": "0",
+        "has_recipes": "0",
+        "brand_name": "UNION SVETLO",
+        "gtins": [
+          {
+            "gtin": "3838999750012"
+          }
+        ],
+        "discounts": [
+          {
+            "discount_id": "36976",
+            "group_type": "action",
+            "value": "",
+            "marker_code": "10",
+            "valid_from": "20261021232658",
+            "valid_to": "20261101232658",
+            "discount_price": 0,
+            "clubs": "",
+            "clubs_array": null,
+            "coupon": "",
+            "hover_text": "",
+            "sort": "128.0000"
+          }
+        ],
+        "ratings_sum": "8",
+        "ratings_num": "2",
+        "rating": 4,
+        "package": 4,
+        "offer_expires_on": "1970-01-01",
+        "category1": "PIJAČE",
+        "category2": "PIVO",
+        "category3": "PIVO",
+        "analyticsObject": "{\"item_id\":\"313163\",\"item_name\":\"Pivo Union, 4,9 % alkohola, 6 x 0,5 l\",\"currency\":\"EUR\",\"item_brand\":\"UNION SVETLO\",\"item_category\":\"PIJA\\u010cE\",\"item_category2\":\"PIVO\",\"item_category3\":\"PIVO\",\"item_rating\":4,\"price\":6.69}",
+        "personal_offer_recommendation_id": 0
+      },
+      "itemId": "313163",
+      "className": "size11",
+      "type": "product",
+      "mainImageSrc": "https://mercatoronline.si/img/cache/products/8987/product_small_image/00146488.jpg",
+      "_meta": {
+        "es_score": 2916.7954,
+        "mc_score": "0"
+      },
+      "url": "/izdelek/313163/pivo-union-4-9-alkohola-6-x-0-5-l",
+      "short_name": "Pivo Union, 4,9 % alkohola, 6 x 0,5 l",
+      "total": 12,
+      "ordNum": 83
+    }
+  ]
+}
