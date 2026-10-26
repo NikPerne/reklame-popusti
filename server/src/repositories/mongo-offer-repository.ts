@@ -42,13 +42,26 @@ export function buildTextFilter(text: string): QueryFilter<Offer> {
 
 type SortSpec = Record<string, 1 | -1 | { $meta: 'searchScore' }>;
 
+/** Ascending sorts put missing values first in MongoDB; this field sorts them last instead. */
+const SORT_KEY = '_sortKey';
+const LAST = 1e12;
+
+/** Optional fields used for ascending sorts, mapped to a `$addFields` stage that fills gaps. */
+function sortKeyStage(query: OfferQuery): PipelineStage.AddFields | undefined {
+  const field = { unitPrice: '$unitPrice.amount', validTo: '$validTo' }[query.sort as string];
+  if (!field) return undefined;
+  const fallback = query.sort === 'validTo' ? new Date(LAST * 1000) : LAST;
+  return { $addFields: { [SORT_KEY]: { $ifNull: [field, fallback] } } };
+}
+
 export function buildSort(query: OfferQuery, mode: SearchMode): SortSpec {
   const tiebreak = { _id: 1 } as const;
   switch (query.sort) {
     case 'price':
       return { price: 1, ...tiebreak };
+    case 'unitPrice':
     case 'validTo':
-      return { validTo: 1, ...tiebreak };
+      return { [SORT_KEY]: 1, ...tiebreak };
     case 'relevance':
       if (query.text && mode === 'atlas') return { score: { $meta: 'searchScore' }, ...tiebreak };
       return { discountPercent: -1, ...tiebreak };
@@ -78,12 +91,15 @@ export function buildPipeline(query: OfferQuery, mode: SearchMode): PipelineStag
     }
   }
 
-  pipeline.push({ $match: match }, { $sort: buildSort(query, mode) } as PipelineStage.Sort, {
+  pipeline.push({ $match: match });
+  const sortKey = sortKeyStage(query);
+  if (sortKey) pipeline.push(sortKey);
+  pipeline.push({ $sort: buildSort(query, mode) } as PipelineStage.Sort, {
     $facet: {
       items: [
         { $skip: (query.page - 1) * query.pageSize },
         { $limit: query.pageSize },
-        { $project: { searchText: 0, expiresAt: 0 } },
+        { $project: { searchText: 0, expiresAt: 0, [SORT_KEY]: 0 } },
       ],
       total: [{ $count: 'count' }],
     },

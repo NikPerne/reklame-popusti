@@ -1,6 +1,17 @@
 import { z } from 'zod';
 import { CATEGORY_IDS } from './categories.js';
-import { STORE_IDS } from './stores.js';
+import type { StoreId } from './stores.js';
+
+/** Units that unit prices are normalized to (€/kg, €/l, €/piece), so offers can be compared. */
+export const UNIT_PRICE_UNITS = ['kg', 'l', 'piece'] as const;
+export type UnitPriceUnit = (typeof UNIT_PRICE_UNITS)[number];
+
+/**
+ * What the shopper must do to get `price`. The owner has every store's loyalty card, so
+ * card prices are treated as the real price and the condition is shown as a badge.
+ */
+export const CONDITION_KINDS = ['loyalty-card', 'multi-buy', 'coupon', 'other'] as const;
+export type ConditionKind = (typeof CONDITION_KINDS)[number];
 
 /** Offers without a known end date are dropped this long after they were last seen. */
 const UNDATED_OFFER_LIFETIME_DAYS = 7;
@@ -19,13 +30,17 @@ export const scrapedOfferSchema = z
     brand: z.string().trim().min(1).optional(),
     category: z.enum(CATEGORY_IDS),
     sourceCategory: z.string().trim().min(1).optional(),
-    /** Current (discounted) price in EUR. */
+    /** Offer price in EUR (per item, when `condition` is met). */
     price: z.number().positive(),
     /** Regular price in EUR, if the store publishes it. */
     regularPrice: z.number().positive().optional(),
     discountPercent: z.number().min(0).max(100).optional(),
+    /** Price per kg, l or piece at the offer price. */
     unitPrice: z
-      .object({ amount: z.number().positive(), unit: z.string().trim().min(1) })
+      .object({ amount: z.number().positive(), unit: z.enum(UNIT_PRICE_UNITS) })
+      .optional(),
+    condition: z
+      .object({ kind: z.enum(CONDITION_KINDS), text: z.string().trim().min(1) })
       .optional(),
     validFrom: z.date().optional(),
     validTo: z.date().optional(),
@@ -44,7 +59,7 @@ export const scrapedOfferSchema = z
 export type ScrapedOffer = z.infer<typeof scrapedOfferSchema>;
 
 export type Offer = ScrapedOffer & {
-  store: (typeof STORE_IDS)[number];
+  store: StoreId;
   scrapedAt: Date;
   /** Lowercase, diacritic-free name + brand + category, for the basic search mode. */
   searchText: string;

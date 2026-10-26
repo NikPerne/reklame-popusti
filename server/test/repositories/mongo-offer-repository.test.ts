@@ -52,6 +52,24 @@ describe('buildPipeline', () => {
     });
   });
 
+  it('sorts by unit price with offers lacking one placed last', () => {
+    const pipeline = buildPipeline({ ...base, sort: 'unitPrice' }, 'atlas');
+
+    expect(pipeline).toContainEqual({
+      $addFields: { _sortKey: { $ifNull: ['$unitPrice.amount', 1e12] } },
+    });
+    expect(pipeline).toContainEqual({ $sort: { _sortKey: 1, _id: 1 } });
+    expect(pipeline.at(-1)).toHaveProperty('$facet.items.2.$project._sortKey', 0);
+  });
+
+  it('sorts undated offers last when sorting by expiry', () => {
+    const pipeline = buildPipeline({ ...base, sort: 'validTo' }, 'atlas');
+
+    expect(pipeline).toContainEqual({
+      $addFields: { _sortKey: { $ifNull: ['$validTo', new Date(1e15)] } },
+    });
+  });
+
   it('paginates inside the facet', () => {
     const pipeline = buildPipeline({ ...base, page: 3, pageSize: 10 }, 'atlas');
 

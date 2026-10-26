@@ -2,7 +2,7 @@ import type { CategoryId } from '../domain/categories.js';
 import type { Offer } from '../domain/offer.js';
 import type { StoreId } from '../domain/stores.js';
 
-export const OFFER_SORTS = ['relevance', 'price', 'discount', 'validTo'] as const;
+export const OFFER_SORTS = ['relevance', 'price', 'unitPrice', 'discount', 'validTo'] as const;
 export type OfferSort = (typeof OFFER_SORTS)[number];
 
 export interface OfferQuery {

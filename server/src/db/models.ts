@@ -1,6 +1,6 @@
 import { Schema, model } from 'mongoose';
 import { CATEGORY_IDS } from '../domain/categories.js';
-import type { Offer } from '../domain/offer.js';
+import { CONDITION_KINDS, UNIT_PRICE_UNITS, type Offer } from '../domain/offer.js';
 import { STORE_IDS } from '../domain/stores.js';
 import type { StoreStatus } from '../repositories/offer-repository.js';
 
@@ -15,7 +15,14 @@ const offerSchema = new Schema<Offer>(
     price: { type: Number, required: true },
     regularPrice: Number,
     discountPercent: Number,
-    unitPrice: { _id: false, type: { amount: Number, unit: String } },
+    unitPrice: {
+      _id: false,
+      type: { amount: Number, unit: { type: String, enum: UNIT_PRICE_UNITS } },
+    },
+    condition: {
+      _id: false,
+      type: { kind: { type: String, enum: CONDITION_KINDS }, text: String },
+    },
     validFrom: Date,
     validTo: Date,
     imageUrl: String,
