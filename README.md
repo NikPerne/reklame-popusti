@@ -24,7 +24,7 @@ Each store's data source (public JSON endpoint, HTML page or online flyer) is in
 - **Backend:** Node.js 24, TypeScript (strict), [Fastify](https://fastify.dev), Mongoose, zod
 - **Frontend:** Angular 22, installable PWA (service worker + manifest), Transloco (Slovenian UI with an English switch)
 - **Database:** MongoDB Atlas (M0 free tier) with Atlas Search for diacritic-insensitive search
-- **Hosting:** Render free tier (web service for the API, static site for the frontend)
+- **Hosting:** Render free tier, one web service that serves both the API and the web app
 - **Scheduling:** GitHub Actions scheduled workflow
 - **Tooling:** npm workspaces, Vitest, ESLint, Prettier
 
@@ -68,23 +68,24 @@ Other commands, all run from the repo root:
 
 All configuration comes from environment variables. Locally they are read from `.env` in the repo root; on Render, set them in the dashboard. The server validates them at startup and refuses to start if any are missing or invalid.
 
-| Variable                          | Required | Default            | Description                                                                               |
-| --------------------------------- | -------- | ------------------ | ----------------------------------------------------------------------------------------- |
-| `NODE_ENV`                        |          | `development`      | `development`, `production` or `test`                                                     |
-| `PORT`                            |          | `3000`             | HTTP port (Render sets this automatically)                                                |
-| `LOG_LEVEL`                       |          | `info`             | Pino log level                                                                            |
-| `TRUST_PROXY_HOPS`                |          | `1`                | Proxies in front of the API whose `X-Forwarded-For` is trusted (for the login rate limit) |
-| `MONGODB_URI`                     | ✔        |                    | Atlas connection string, including the database name                                      |
-| `SEARCH_MODE`                     |          | `atlas`            | `atlas` (Atlas Search) or `basic` (fallback, no Atlas Search needed)                      |
-| `APP_PASSWORD_HASH`               | ✔        |                    | argon2 hash of the login password                                                         |
-| `JWT_SECRET`                      | ✔        |                    | Secret for signing session tokens (≥ 32 chars)                                            |
-| `SESSION_TTL_HOURS`               |          | `720`              | How long a login lasts                                                                    |
-| `LOGIN_RATE_LIMIT_MAX`            |          | `5`                | Login attempts allowed per IP per window                                                  |
-| `LOGIN_RATE_LIMIT_WINDOW_MINUTES` |          | `15`               | Login rate-limit window                                                                   |
-| `REFRESH_TOKEN`                   | ✔        |                    | Secret for the protected refresh endpoint (≥ 32 chars)                                    |
-| `SCRAPER_USER_AGENT`              |          | see `.env.example` | User-Agent sent to stores                                                                 |
-| `SCRAPER_MIN_DELAY_MS`            |          | `2000`             | Minimum delay between requests to one host                                                |
-| `SCRAPER_CACHE_TTL_MINUTES`       |          | `60`               | How long fetched responses are cached                                                     |
+| Variable                          | Required | Default                      | Description                                                                               |
+| --------------------------------- | -------- | ---------------------------- | ----------------------------------------------------------------------------------------- |
+| `NODE_ENV`                        |          | `development`                | `development`, `production` or `test`                                                     |
+| `PORT`                            |          | `3000`                       | HTTP port (Render sets this automatically)                                                |
+| `LOG_LEVEL`                       |          | `info`                       | Pino log level                                                                            |
+| `TRUST_PROXY_HOPS`                |          | `1`                          | Proxies in front of the API whose `X-Forwarded-For` is trusted (for the login rate limit) |
+| `CLIENT_DIST_DIR`                 |          | `client/dist/client/browser` | Built web app the server serves (only set it if the build lives elsewhere)                |
+| `MONGODB_URI`                     | ✔        |                              | Atlas connection string, including the database name                                      |
+| `SEARCH_MODE`                     |          | `atlas`                      | `atlas` (Atlas Search) or `basic` (fallback, no Atlas Search needed)                      |
+| `APP_PASSWORD_HASH`               | ✔        |                              | argon2 hash of the login password                                                         |
+| `JWT_SECRET`                      | ✔        |                              | Secret for signing session tokens (≥ 32 chars)                                            |
+| `SESSION_TTL_HOURS`               |          | `720`                        | How long a login lasts                                                                    |
+| `LOGIN_RATE_LIMIT_MAX`            |          | `5`                          | Login attempts allowed per IP per window                                                  |
+| `LOGIN_RATE_LIMIT_WINDOW_MINUTES` |          | `15`                         | Login rate-limit window                                                                   |
+| `REFRESH_TOKEN`                   | ✔        |                              | Secret for the protected refresh endpoint (≥ 32 chars)                                    |
+| `SCRAPER_USER_AGENT`              |          | see `.env.example`           | User-Agent sent to stores                                                                 |
+| `SCRAPER_MIN_DELAY_MS`            |          | `2000`                       | Minimum delay between requests to one host                                                |
+| `SCRAPER_CACHE_TTL_MINUTES`       |          | `60`                         | How long fetched responses are cached                                                     |
 
 ### Authentication setup
 
@@ -154,31 +155,45 @@ Query parameters for offer lists:
 
 ### Render
 
-Both services are defined in [`render.yaml`](render.yaml) (a Render Blueprint). The Node version comes from `.node-version`.
+The whole app runs as **one free Render Web Service**: Fastify serves the API under `/api` and the built Angular app for every other path. One service keeps the free instance hours (750 per month) comfortably within limits, and the browser only ever talks to one origin, so the session cookie can be `SameSite=Strict`.
 
-1. Render dashboard → **New → Blueprint** → select this repository.
-2. Render asks for the values that are not in the file:
-   - `MONGODB_URI`: the Atlas connection string.
-   - `APP_PASSWORD_HASH`: from `npm run hash-password -w server`. Paste the hash **without** the surrounding single quotes (those are only for `.env`).
-   - `JWT_SECRET` and `REFRESH_TOKEN` are generated by Render.
-3. Deploy. The API becomes `https://reklame-popusti-api.onrender.com` and the app `https://reklame-popusti.onrender.com`. If Render picks a different API host (the name was taken), update the `/api/*` rewrite destination in `render.yaml` and push.
+**Dashboard → New → Web Service** → connect the GitHub repository.
 
-What the Blueprint sets up:
+| Field                        | Value                                                                      |
+| ---------------------------- | -------------------------------------------------------------------------- |
+| Name                         | `reklame-popusti` (the app will be `https://reklame-popusti.onrender.com`) |
+| Language                     | Node (version from `.node-version`)                                        |
+| Branch                       | `main`                                                                     |
+| Region                       | Frankfurt (EU Central)                                                     |
+| Root Directory               | _(empty)_                                                                  |
+| Build Command                | `npm ci --include=dev && npm run build`                                    |
+| Start Command                | `npm run start -w server`                                                  |
+| Instance Type                | Free                                                                       |
+| Health Check Path (Advanced) | `/api/health`                                                              |
 
-| Service               | Type                          | Build                                                                                                      | Notes                                                                                                                                                      |
-| --------------------- | ----------------------------- | ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `reklame-popusti-api` | Web Service (free, Frankfurt) | `npm ci --workspace server --include=dev && npm run build -w server`, start `npm run start -w server`      | Health check `/api/health`. Rebuilds only when `server/` changes.                                                                                          |
-| `reklame-popusti`     | Static Site                   | `npm ci --workspace client --include=dev && npm run build -w client`, publish `client/dist/client/browser` | Rewrites `/api/*` to the API (same origin, so the session cookie can be `SameSite=Strict`) and `/*` to `index.html`. Sends CSP and other security headers. |
+`--include=dev` is needed because Render builds with `NODE_ENV=production`, which would otherwise skip TypeScript and the Angular CLI. `npm run build` builds both the server and the client.
 
-`--include=dev` is needed because Render sets `NODE_ENV=production` during builds, which would otherwise skip TypeScript and the Angular CLI.
+**Environment variables:**
+
+| Key                 | Value                                                                                                      |
+| ------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `NODE_ENV`          | `production`                                                                                               |
+| `SEARCH_MODE`       | `atlas`                                                                                                    |
+| `TRUST_PROXY_HOPS`  | `1`                                                                                                        |
+| `MONGODB_URI`       | the Atlas connection string                                                                                |
+| `APP_PASSWORD_HASH` | the hash from `npm run hash-password -w server`, **without** the single quotes (those are only for `.env`) |
+| `JWT_SECRET`        | _Generate_ (or a random string of 32+ characters)                                                          |
+| `REFRESH_TOKEN`     | _Generate_ (or a random string of 32+ characters)                                                          |
+
+Security headers (CSP, `X-Frame-Options`, `Referrer-Policy`, `X-Robots-Tag`, HSTS) and caching headers are set by the server, so nothing else needs configuring on Render.
 
 After the first deploy:
 
-- Open the app, log in, search. The first API request after the service has slept takes up to a minute (the app says so).
-- **Install on the phone:** open the app in Chrome (Android) → menu → _Install app_ / _Add to home screen_; in Safari (iOS) → Share → _Add to Home Screen_. The last searches stay available offline.
-- **Check `TRUST_PROXY_HOPS`:** in the API's Render logs, a failed login logs `failed login attempt` with the client `ip`. If it shows your own public IP, the setting is right. If it shows a Render-internal address, all clients share one rate-limit bucket: safe, but you can raise the value by one and check again. Never set it higher than the number of proxies, or the IP can be faked.
+- Open the app, log in, search. The first request after the service has slept takes up to a minute (the app says so).
+- **Install on the phone:** Chrome (Android) → menu → _Install app_ / _Add to home screen_; Safari (iOS) → Share → _Add to Home Screen_. The installed app opens from its cache immediately and shows the last results while the server wakes up.
+- **Check `TRUST_PROXY_HOPS`:** in the Render logs, a failed login logs `failed login attempt` with the client `ip`. If it shows your own public IP, the setting is right. If it shows a Render-internal address, all clients share one rate-limit bucket: safe, but you can raise the value by one and check again. Never set it higher than the number of proxies, or the IP can be faked.
 
-Free web services sleep after about 15 minutes without traffic. The static site itself is always fast, and cached results show while the API wakes up.
+Free web services sleep after about 15 minutes without traffic.
 
 ### Scheduled refresh
 
@@ -201,5 +216,5 @@ This is a personal tool. Scrapers respect `robots.txt`, identify themselves with
 2. Data model, API and auth ✔
 3. First store adapter (Mercator) ✔
 4. Frontend (login, search, filters, sorting, SL/EN) ✔
-5. PWA and deployment ← _in progress_ (moved ahead so the app is usable early)
+5. PWA and deployment ← _in progress_ (moved ahead so the app is usable early; waiting for the first Render deploy)
 6. Remaining store adapters
