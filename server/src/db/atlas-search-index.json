@@ -1,0 +1,23 @@
+{
+  "name": "offers_search",
+  "definition": {
+    "analyzer": "slFolding",
+    "searchAnalyzer": "slFolding",
+    "mappings": {
+      "dynamic": false,
+      "fields": {
+        "productName": { "type": "string", "analyzer": "slFolding" },
+        "brand": { "type": "string", "analyzer": "slFolding" },
+        "sourceCategory": { "type": "string", "analyzer": "slFolding" }
+      }
+    },
+    "analyzers": [
+      {
+        "name": "slFolding",
+        "charFilters": [],
+        "tokenizer": { "type": "standard" },
+        "tokenFilters": [{ "type": "lowercase" }, { "type": "icuFolding" }]
+      }
+    ]
+  }
+}

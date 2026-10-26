@@ -1,0 +1,153 @@
+import type { PipelineStage, QueryFilter } from 'mongoose';
+import type { CategoryId } from '../domain/categories.js';
+import { normalizeSearchText, type Offer } from '../domain/offer.js';
+import type { StoreId } from '../domain/stores.js';
+import { OfferModel, StoreStatusModel } from '../db/models.js';
+import searchIndex from '../db/atlas-search-index.json' with { type: 'json' };
+import type {
+  OfferPage,
+  OfferQuery,
+  OfferRepository,
+  OfferView,
+  ReplaceResult,
+  StoreStatus,
+} from './offer-repository.js';
+
+export type SearchMode = 'atlas' | 'basic';
+
+const SEARCHED_FIELDS = ['productName', 'brand', 'sourceCategory'];
+
+/** Filters shared by both search modes (everything except the text match). */
+export function buildFilter(
+  query: Omit<OfferQuery, 'sort' | 'page' | 'pageSize'>,
+): QueryFilter<Offer> {
+  const filter: QueryFilter<Offer> = {
+    $or: [{ validTo: { $exists: false } }, { validTo: { $gte: query.now } }],
+  };
+  if (query.stores?.length) filter.store = { $in: query.stores };
+  if (query.category) filter.category = query.category;
+  if (query.minDiscount !== undefined) filter.discountPercent = { $gte: query.minDiscount };
+  return filter;
+}
+
+function escapeRegex(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/** Basic mode: every word must appear in the diacritic-free searchText. */
+export function buildTextFilter(text: string): QueryFilter<Offer> {
+  const terms = normalizeSearchText(text).split(' ').filter(Boolean);
+  return { $and: terms.map((term) => ({ searchText: { $regex: escapeRegex(term) } })) };
+}
+
+type SortSpec = Record<string, 1 | -1 | { $meta: 'searchScore' }>;
+
+export function buildSort(query: OfferQuery, mode: SearchMode): SortSpec {
+  const tiebreak = { _id: 1 } as const;
+  switch (query.sort) {
+    case 'price':
+      return { price: 1, ...tiebreak };
+    case 'validTo':
+      return { validTo: 1, ...tiebreak };
+    case 'relevance':
+      if (query.text && mode === 'atlas') return { score: { $meta: 'searchScore' }, ...tiebreak };
+      return { discountPercent: -1, ...tiebreak };
+    case 'discount':
+      return { discountPercent: -1, ...tiebreak };
+  }
+}
+
+export function buildPipeline(query: OfferQuery, mode: SearchMode): PipelineStage[] {
+  const pipeline: PipelineStage[] = [];
+  const match = buildFilter(query);
+
+  if (query.text) {
+    if (mode === 'atlas') {
+      pipeline.push({
+        $search: {
+          index: searchIndex.name,
+          text: {
+            query: query.text,
+            path: SEARCHED_FIELDS,
+            fuzzy: { maxEdits: 1, prefixLength: 2 },
+          },
+        },
+      });
+    } else {
+      Object.assign(match, buildTextFilter(query.text));
+    }
+  }
+
+  pipeline.push({ $match: match }, { $sort: buildSort(query, mode) } as PipelineStage.Sort, {
+    $facet: {
+      items: [
+        { $skip: (query.page - 1) * query.pageSize },
+        { $limit: query.pageSize },
+        { $project: { searchText: 0, expiresAt: 0 } },
+      ],
+      total: [{ $count: 'count' }],
+    },
+  });
+  return pipeline;
+}
+
+type OfferDoc = Omit<OfferView, 'id'> & { _id: { toString(): string } };
+
+function toView({ _id, ...rest }: OfferDoc): OfferView {
+  return { id: _id.toString(), ...rest };
+}
+
+export class MongoOfferRepository implements OfferRepository {
+  constructor(private readonly searchMode: SearchMode) {}
+
+  async find(query: OfferQuery): Promise<OfferPage> {
+    const [result] = await OfferModel.aggregate<{ items: OfferDoc[]; total: { count: number }[] }>(
+      buildPipeline(query, this.searchMode),
+    );
+    return {
+      items: (result?.items ?? []).map(toView),
+      total: result?.total[0]?.count ?? 0,
+    };
+  }
+
+  async categoryCounts(now: Date): Promise<{ category: CategoryId; count: number }[]> {
+    const rows = await OfferModel.aggregate<{ _id: CategoryId; count: number }>([
+      { $match: buildFilter({ now }) },
+      { $group: { _id: '$category', count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+    ]);
+    return rows.map(({ _id, count }) => ({ category: _id, count }));
+  }
+
+  async replaceStoreOffers(
+    store: StoreId,
+    offers: Offer[],
+    runStartedAt: Date,
+  ): Promise<ReplaceResult> {
+    if (offers.length > 0) {
+      await OfferModel.bulkWrite(
+        offers.map((offer) => ({
+          replaceOne: {
+            filter: { store, externalId: offer.externalId },
+            replacement: offer,
+            upsert: true,
+          },
+        })),
+        { ordered: false },
+      );
+    }
+    const { deletedCount } = await OfferModel.deleteMany({
+      store,
+      scrapedAt: { $lt: runStartedAt },
+    });
+    return { upserted: offers.length, removed: deletedCount };
+  }
+
+  async saveStoreStatus(status: StoreStatus): Promise<void> {
+    await StoreStatusModel.replaceOne({ store: status.store }, status, { upsert: true });
+  }
+
+  async storeStatuses(): Promise<StoreStatus[]> {
+    return StoreStatusModel.find({}, { _id: 0 }).sort({ store: 1 }).lean<StoreStatus[]>();
+  }
+}
