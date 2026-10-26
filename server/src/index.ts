@@ -1,3 +1,5 @@
+import { existsSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { adapters } from './adapters/registry.js';
 import { buildApp } from './app.js';
 import { loadDotEnvFile, loadEnv } from './config/env.js';
@@ -12,11 +14,20 @@ const env = loadEnv();
 await connectDatabase(env.MONGODB_URI);
 const repository = new MongoOfferRepository(env.SEARCH_MODE);
 
+// One Render service serves both the API and the built web app (when it has been built).
+const clientRoot =
+  env.CLIENT_DIST_DIR ?? resolve(import.meta.dirname, '../../client/dist/client/browser');
+const clientBuilt = existsSync(resolve(clientRoot, 'index.html'));
+
 const app = await buildApp({
   env,
   repository,
   refresh: (log) => runRefresh({ adapters, repository, http: createHttpClient(env), log }),
+  ...(clientBuilt && { clientRoot }),
 });
+if (!clientBuilt) {
+  app.log.warn({ clientRoot }, 'web app not built; serving the API only');
+}
 
 const shutdown = async (signal: string): Promise<void> => {
   app.log.info({ signal }, 'shutting down');

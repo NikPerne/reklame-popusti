@@ -32,7 +32,10 @@ function hasValidRefreshToken(request: FastifyRequest, expected: string): boolea
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
-/** Default-deny authentication for every route. Routes opt out with `config.auth`. */
+/**
+ * Default-deny authentication for every route under /api, including unknown ones.
+ * Routes opt out with `config.auth`.
+ */
 export const authPlugin = fp(
   async (
     app: FastifyInstance,
@@ -46,6 +49,8 @@ export const authPlugin = fp(
     });
 
     app.addHook('onRequest', async (request, reply) => {
+      // The web app's own files (HTML, JS, icons) are public: the login page has to load.
+      if (request.url !== '/api' && !request.url.startsWith('/api/')) return;
       const auth = request.routeOptions.config.auth;
       if (auth === 'public') return;
       if (auth === 'refresh-token') {

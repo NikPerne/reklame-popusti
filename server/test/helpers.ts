@@ -88,7 +88,7 @@ export interface TestApp {
   refreshCalls: number;
 }
 
-export async function buildTestApp(env?: Env): Promise<TestApp> {
+export async function buildTestApp(env?: Env, clientRoot?: string): Promise<TestApp> {
   const repository = new FakeOfferRepository();
   const result: TestApp = {
     app: undefined as unknown as FastifyInstance,
@@ -102,6 +102,7 @@ export async function buildTestApp(env?: Env): Promise<TestApp> {
       result.refreshCalls++;
       return { startedAt: new Date(), finishedAt: new Date(), results: [] };
     },
+    ...(clientRoot !== undefined && { clientRoot }),
   });
   return result;
 }

@@ -12,6 +12,9 @@ const envSchema = z.object({
    */
   TRUST_PROXY_HOPS: z.coerce.number().int().nonnegative().default(1),
 
+  /** Built Angular app to serve; defaults to client/dist/client/browser in the repo. */
+  CLIENT_DIST_DIR: z.string().min(1).optional(),
+
   MONGODB_URI: z
     .string()
     .regex(/^mongodb(\+srv)?:\/\//, 'must be a mongodb:// or mongodb+srv:// connection string'),
