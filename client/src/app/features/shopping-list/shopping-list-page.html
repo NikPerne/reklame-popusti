@@ -8,6 +8,10 @@
     }
   </header>
 
+  @if (list.sharedWith().length > 0) {
+    <p class="shared">{{ t('sharedWith', { emails: list.sharedWith().join(', ') }) }}</p>
+  }
+
   @if (list.pendingCount() > 0) {
     <p class="pending" role="status">{{ t('pending') }}</p>
   }

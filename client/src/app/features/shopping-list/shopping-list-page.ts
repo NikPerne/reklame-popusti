@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, DestroyRef, computed, inject } from '@angular/core';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { STORE_IDS, type StoreId } from '../../core/api/models';
 import { LanguageService } from '../../core/i18n/language';
@@ -8,6 +8,8 @@ import {
 } from '../../core/shopping-list/shopping-list-service';
 import { EurPipe } from '../../shared/format';
 import { STORE_NAMES } from '../search/offer-card';
+
+const REFRESH_INTERVAL_MS = 30_000;
 
 interface StoreGroup {
   store: StoreId;
@@ -50,6 +52,11 @@ export class ShoppingListPage {
 
   constructor() {
     void this.list.sync();
+    // Pick up the other person's ticks on a shared list while shopping together.
+    const timer = setInterval(() => {
+      if (document.visibilityState === 'visible') void this.list.sync();
+    }, REFRESH_INTERVAL_MS);
+    inject(DestroyRef).onDestroy(() => clearInterval(timer));
   }
 
   protected isExpired(item: ShoppingItem): boolean {

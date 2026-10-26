@@ -1,28 +1,67 @@
 <section class="login-card" *transloco="let t; prefix: 'login'">
-  <h1>{{ t('title') }}</h1>
+  <h1>{{ mode() === 'login' ? t('title') : t('signupTitle') }}</h1>
   <p class="intro">{{ t('intro') }}</p>
 
   <form (submit)="submit($event)" novalidate>
+    <label for="email">{{ t('email') }}</label>
+    <input
+      id="email"
+      class="field"
+      type="email"
+      name="email"
+      autocomplete="username"
+      inputmode="email"
+      required
+      [value]="email()"
+      (input)="onInput('email', $event)"
+    />
+
     <label for="password">{{ t('password') }}</label>
     <input
       id="password"
       class="field"
       type="password"
       name="password"
-      autocomplete="current-password"
+      [attr.autocomplete]="mode() === 'login' ? 'current-password' : 'new-password'"
+      [attr.minlength]="mode() === 'signup' ? 8 : null"
       required
       [value]="password()"
       [attr.aria-invalid]="error() === 'wrongPassword'"
       [attr.aria-describedby]="error() ? 'login-error' : null"
-      (input)="onPasswordInput($event)"
+      (input)="onInput('password', $event)"
     />
+    @if (mode() === 'signup') {
+      <p class="hint">{{ t('passwordHint') }}</p>
+
+      <label for="code">{{ t('code') }}</label>
+      <input
+        id="code"
+        class="field"
+        type="text"
+        name="code"
+        autocomplete="off"
+        autocapitalize="off"
+        required
+        [value]="code()"
+        [attr.aria-invalid]="error() === 'wrongCode'"
+        (input)="onInput('code', $event)"
+      />
+    }
 
     @if (error(); as errorKey) {
       <p id="login-error" class="error" role="alert">{{ t(errorKey) }}</p>
     }
 
-    <button class="button" type="submit" [disabled]="!password() || submitting()">
-      {{ submitting() ? t('submitting') : t('submit') }}
+    <button class="button" type="submit" [disabled]="!canSubmit()">
+      @if (mode() === 'login') {
+        {{ submitting() ? t('submitting') : t('submit') }}
+      } @else {
+        {{ submitting() ? t('signupSubmitting') : t('signupSubmit') }}
+      }
     </button>
   </form>
+
+  <button type="button" class="link-button switch" (click)="switchMode()">
+    {{ mode() === 'login' ? t('toSignup') : t('toLogin') }}
+  </button>
 </section>

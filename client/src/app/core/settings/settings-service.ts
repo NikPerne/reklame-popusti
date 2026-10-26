@@ -41,6 +41,8 @@ export class SettingsService {
   private readonly http = inject(HttpClient);
   private readonly state = signal<StoredState>(loadState());
   private syncing: Promise<void> | undefined;
+  /** Bumped by reset(), so a sync still running for the previous account is discarded. */
+  private generation = 0;
 
   readonly preferredStores = computed(() => this.state().settings.preferredStores);
   readonly hiddenCategories = computed(() => this.state().settings.hiddenCategories);
@@ -59,6 +61,19 @@ export class SettingsService {
     void this.sync();
   }
 
+  /** Forgets this device's copy (another account logged in, or logged out). */
+  reset(): void {
+    this.generation++;
+    this.update({ settings: DEFAULTS, dirty: false });
+  }
+
+  /** Uploads settings chosen before logging in, unless they were never changed. */
+  adoptLocal(): void {
+    if (this.state().settings.updatedAt !== DEFAULTS.updatedAt) {
+      this.update({ ...this.state(), dirty: true });
+    }
+  }
+
   /** Sends local changes, then takes the server copy (the newer one wins on the server). */
   sync(): Promise<void> {
     this.syncing ??= this.runSync().finally(() => {
@@ -68,11 +83,13 @@ export class SettingsService {
   }
 
   private async runSync(): Promise<void> {
+    const generation = this.generation;
     try {
       const sent = this.state().settings;
       const stored = this.state().dirty
         ? await firstValueFrom(this.http.put<Settings>('/api/settings', sent))
         : await firstValueFrom(this.http.get<Settings>('/api/settings'));
+      if (generation !== this.generation) return;
       // A change made while the request ran stays (and is sent on the next sync).
       if (this.state().settings === sent || !this.state().dirty) {
         this.update({ settings: stored, dirty: false });

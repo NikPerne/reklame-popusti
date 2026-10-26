@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { CATEGORY_IDS, STORE_IDS, type CategoryId, type StoreId } from '../../core/api/models';
+import { AuthService } from '../../core/auth/auth-service';
 import { SettingsService } from '../../core/settings/settings-service';
 import { STORE_NAMES } from '../search/offer-card';
 
@@ -15,6 +16,7 @@ const SELECTABLE_STORES = STORE_IDS.filter((s) => s !== 'dm' && s !== 'mueller')
 })
 export class SettingsPage {
   protected readonly settings = inject(SettingsService);
+  protected readonly email = inject(AuthService).email;
   protected readonly stores = SELECTABLE_STORES;
   protected readonly categories = CATEGORY_IDS;
   protected readonly storeNames = STORE_NAMES;

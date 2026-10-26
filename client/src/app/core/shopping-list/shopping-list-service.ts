@@ -70,7 +70,10 @@ function isPermanentFailure(error: unknown): boolean {
 export class ShoppingListService {
   private readonly http = inject(HttpClient);
   private readonly state = signal<StoredState>(loadState());
+  private readonly sharedWithSignal = signal<string[]>([]);
   private syncing: Promise<void> | undefined;
+  /** Bumped by reset(), so a sync still running for the previous account is discarded. */
+  private generation = 0;
 
   readonly items = computed(() => this.state().items);
   readonly ids = computed(() => new Set(this.items().map((i) => i.id)));
@@ -78,11 +81,21 @@ export class ShoppingListService {
   readonly openCount = computed(() => this.items().filter((i) => !i.checked).length);
   /** Changes not yet saved on the server (e.g. while offline). */
   readonly pendingCount = computed(() => this.state().pending.length);
+  /** Other accounts that see the same list. */
+  readonly sharedWith = this.sharedWithSignal.asReadonly();
 
   constructor() {
     const onOnline = () => void this.sync();
+    // A shared list may have changed on the other person's phone while this app was hidden.
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') void this.sync();
+    };
     window.addEventListener('online', onOnline);
-    inject(DestroyRef).onDestroy(() => window.removeEventListener('online', onOnline));
+    document.addEventListener('visibilitychange', onVisible);
+    inject(DestroyRef).onDestroy(() => {
+      window.removeEventListener('online', onOnline);
+      document.removeEventListener('visibilitychange', onVisible);
+    });
   }
 
   has(offerId: string): boolean {
@@ -128,6 +141,24 @@ export class ShoppingListService {
     if (this.items().some((i) => i.checked)) this.change({ kind: 'clear-checked' });
   }
 
+  /** Forgets this device's copy (another account logged in, or logged out). */
+  reset(): void {
+    this.generation++;
+    this.sharedWithSignal.set([]);
+    this.update(() => ({ items: [], pending: [] }));
+  }
+
+  /** Queues every local item for upload, so a list kept before logging in is not lost. */
+  adoptLocal(): void {
+    this.update((s) => ({
+      items: s.items,
+      pending: [
+        ...s.items.map((item): PendingChange => ({ kind: 'put', item })),
+        ...s.pending.filter((c) => c.kind !== 'put'),
+      ],
+    }));
+  }
+
   /** Sends pending changes, then loads the server copy. Safe to call any time. */
   sync(): Promise<void> {
     this.syncing ??= this.runSync().finally(() => {
@@ -142,8 +173,10 @@ export class ShoppingListService {
   }
 
   private async runSync(): Promise<void> {
+    const generation = this.generation;
+    const current = () => generation === this.generation;
     // Send changes one by one, oldest first; stop at the first network problem.
-    while (this.state().pending.length > 0) {
+    while (current() && this.state().pending.length > 0) {
       const [next] = this.state().pending;
       if (!next) break;
       try {
@@ -151,13 +184,16 @@ export class ShoppingListService {
       } catch (error) {
         if (!isPermanentFailure(error)) return;
       }
+      if (!current()) return;
       this.update((s) => ({ ...s, pending: s.pending.slice(1) }));
     }
 
     try {
-      const { items } = await firstValueFrom(
-        this.http.get<{ items: ShoppingItem[] }>('/api/shopping-list'),
+      const { items, sharedWith } = await firstValueFrom(
+        this.http.get<{ items: ShoppingItem[]; sharedWith?: string[] }>('/api/shopping-list'),
       );
+      if (!current()) return;
+      this.sharedWithSignal.set(sharedWith ?? []);
       // Changes made while the request was running stay on top of the server copy.
       this.update((s) => ({ items: s.pending.reduce(applyChange, items), pending: s.pending }));
     } catch {

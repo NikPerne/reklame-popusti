@@ -1,5 +1,8 @@
 <section class="page" *transloco="let t">
   <h1>{{ t('settings.title') }}</h1>
+  @if (email(); as email) {
+    <p class="account">{{ t('settings.account', { email }) }}</p>
+  }
 
   <fieldset>
     <legend>{{ t('settings.preferredStores') }}</legend>

@@ -7,11 +7,22 @@
   },
   "login": {
     "title": "Prijava",
+    "signupTitle": "Nov račun",
     "intro": "Vsi popusti slovenskih trgovin na enem mestu.",
+    "email": "E-naslov",
     "password": "Geslo",
+    "passwordHint": "Vsaj 8 znakov.",
+    "code": "Koda za povabilo",
     "submit": "Prijava",
     "submitting": "Prijavljam …",
-    "wrongPassword": "Napačno geslo.",
+    "signupSubmit": "Ustvari račun",
+    "signupSubmitting": "Ustvarjam račun …",
+    "toSignup": "Imaš kodo za povabilo? Ustvari račun",
+    "toLogin": "Že imaš račun? Prijava",
+    "wrongPassword": "Napačen e-naslov ali geslo.",
+    "wrongCode": "Napačna koda za povabilo.",
+    "emailTaken": "Račun s tem e-naslovom že obstaja. Prijavi se.",
+    "invalid": "Preveri e-naslov. Geslo mora imeti vsaj 8 znakov.",
     "tooManyAttempts": "Preveč poskusov. Poskusi znova čez nekaj minut.",
     "offline": "Strežnik ni dosegljiv. Preveri povezavo in poskusi znova.",
     "error": "Prijava ni uspela. Poskusi znova."
@@ -100,14 +111,16 @@
     "remove": "Odstrani",
     "total": "Še za nakup skupaj",
     "expired": "Ponudba je potekla",
-    "pending": "Brez povezave – spremembe bodo shranjene, ko bo povezava spet na voljo."
+    "pending": "Brez povezave – spremembe bodo shranjene, ko bo povezava spet na voljo.",
+    "sharedWith": "Seznam deliš z: {{ emails }}"
   },
   "settings": {
     "title": "Nastavitve",
     "preferredStores": "Priljubljene trgovine",
     "preferredStoresHint": "Iskanje privzeto prikaže le te trgovine (filter lahko vedno spremeniš). Brez izbire: vse trgovine.",
     "hiddenCategories": "Skrite kategorije",
-    "hiddenCategoriesHint": "Ponudbe iz teh kategorij se nikoli ne prikažejo, razen če kategorijo izbereš v filtru."
+    "hiddenCategoriesHint": "Ponudbe iz teh kategorij se nikoli ne prikažejo, razen če kategorijo izbereš v filtru.",
+    "account": "Prijavljen kot {{ email }}"
   },
   "home": {
     "newThisWeek": "Novo ta teden",

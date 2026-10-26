@@ -37,3 +37,14 @@ label {
 .button {
   margin-top: var(--space-3);
 }
+
+.hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.switch {
+  display: block;
+  margin: var(--space-4) auto 0;
+}

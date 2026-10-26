@@ -42,7 +42,11 @@ describe('auth', () => {
     await Promise.resolve();
     const request = http.expectOne('/api/auth/me');
     if (status === 0) request.error(new ProgressEvent('error'));
-    else request.flush({}, { status, statusText: String(status) });
+    else
+      request.flush(status === 200 ? { email: 'nik@example.com' } : {}, {
+        status,
+        statusText: String(status),
+      });
   }
 
   describe('authGuard', () => {

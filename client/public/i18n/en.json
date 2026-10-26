@@ -7,11 +7,22 @@
   },
   "login": {
     "title": "Log in",
+    "signupTitle": "New account",
     "intro": "Every Slovenian store's discounts in one place.",
+    "email": "Email",
     "password": "Password",
+    "passwordHint": "At least 8 characters.",
+    "code": "Invite code",
     "submit": "Log in",
     "submitting": "Logging in …",
-    "wrongPassword": "Wrong password.",
+    "signupSubmit": "Create account",
+    "signupSubmitting": "Creating account …",
+    "toSignup": "Have an invite code? Create an account",
+    "toLogin": "Already have an account? Log in",
+    "wrongPassword": "Wrong email or password.",
+    "wrongCode": "Wrong invite code.",
+    "emailTaken": "An account with this email already exists. Log in instead.",
+    "invalid": "Check the email. The password needs at least 8 characters.",
     "tooManyAttempts": "Too many attempts. Try again in a few minutes.",
     "offline": "The server can't be reached. Check your connection and try again.",
     "error": "Login failed. Please try again."
@@ -100,14 +111,16 @@
     "remove": "Remove",
     "total": "Still to buy in total",
     "expired": "Offer has ended",
-    "pending": "Offline – changes will be saved when you are back online."
+    "pending": "Offline – changes will be saved when you are back online.",
+    "sharedWith": "Shared with: {{ emails }}"
   },
   "settings": {
     "title": "Settings",
     "preferredStores": "Preferred stores",
     "preferredStoresHint": "Search shows only these stores by default (you can always change the filter). None selected: all stores.",
     "hiddenCategories": "Hidden categories",
-    "hiddenCategoriesHint": "Offers in these categories never show up, unless you pick the category in the filter."
+    "hiddenCategoriesHint": "Offers in these categories never show up, unless you pick the category in the filter.",
+    "account": "Logged in as {{ email }}"
   },
   "home": {
     "newThisWeek": "New this week",

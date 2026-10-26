@@ -114,3 +114,14 @@
   margin: 0 auto;
   padding: var(--space-4);
 }
+
+.app-footer {
+  padding: var(--space-6) var(--space-4);
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--muted);
+
+  a {
+    color: inherit;
+  }
+}

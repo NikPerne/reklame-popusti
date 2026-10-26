@@ -4,8 +4,8 @@ import { fromEvent, map, merge } from 'rxjs';
 import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { AuthService } from './core/auth/auth-service';
+import { SessionData } from './core/auth/session-data';
 import { LANGUAGES, LanguageService, type Language } from './core/i18n/language';
-import { SettingsService } from './core/settings/settings-service';
 import { ShoppingListService } from './core/shopping-list/shopping-list-service';
 
 @Component({
@@ -19,9 +19,10 @@ export class App {
   private readonly router = inject(Router);
   protected readonly language = inject(LanguageService);
   protected readonly shoppingList = inject(ShoppingListService);
-  private readonly settings = inject(SettingsService);
+  private readonly sessionData = inject(SessionData);
 
   protected readonly languages = LANGUAGES;
+  protected readonly year = new Date().getFullYear();
   protected readonly authStatus = this.auth.status;
 
   /** While offline, the service worker serves the last saved results; tell the user. */
@@ -33,14 +34,11 @@ export class App {
   );
 
   constructor() {
-    // Load the shared list and settings (and send offline changes) once logged in.
+    // Load the account's list and settings (and send offline changes) once logged in.
     effect(() => {
-      if (this.authStatus() === 'authenticated') {
-        untracked(() => {
-          void this.shoppingList.sync();
-          void this.settings.sync();
-        });
-      }
+      if (this.authStatus() !== 'authenticated') return;
+      const email = this.auth.email();
+      untracked(() => this.sessionData.loggedIn(email));
     });
   }
 
@@ -50,6 +48,7 @@ export class App {
 
   protected async logout(): Promise<void> {
     await this.auth.logout().catch(() => undefined);
+    this.sessionData.loggedOut();
     await this.router.navigate(['/login']);
   }
 }

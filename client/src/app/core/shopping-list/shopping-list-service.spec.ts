@@ -129,4 +129,41 @@ describe('ShoppingListService', () => {
 
     expect(list.items().map((i) => i.id)).toEqual(['x']);
   });
+
+  it('knows who else sees a shared list', async () => {
+    const sync = list.sync();
+    await settle();
+    http.expectOne('/api/shopping-list').flush({ items: [], sharedWith: ['teja@example.com'] });
+    await sync;
+
+    expect(list.sharedWith()).toEqual(['teja@example.com']);
+  });
+
+  it('syncs when the app comes back into view', async () => {
+    document.dispatchEvent(new Event('visibilitychange'));
+    await settle();
+
+    http.expectOne('/api/shopping-list').flush({ items: [] });
+  });
+
+  it('discards a sync that was still running when another account logged in', async () => {
+    const sync = list.sync();
+    await settle();
+    list.reset();
+    http.expectOne('/api/shopping-list').flush({ items: [{ ...makeItem(), id: 'old' }] });
+    await sync;
+
+    expect(list.items()).toEqual([]);
+  });
 });
+
+function makeItem(): ShoppingItem {
+  return {
+    id: 'x',
+    store: 'lidl',
+    productName: 'Šunka',
+    price: 1.29,
+    checked: false,
+    updatedAt: '2026-10-26T10:00:00.000Z',
+  };
+}
