@@ -4,17 +4,19 @@
   "description": "One search, every discount. Aggregates offers from Slovenian retailers into a single PWA.",
   "type": "module",
   "workspaces": [
-    "server"
+    "server",
+    "client"
   ],
   "engines": {
     "node": ">=24.15.0"
   },
   "scripts": {
     "dev:server": "npm run dev -w server",
+    "dev:client": "npm start -w client",
     "build": "npm run build --workspaces --if-present",
     "test": "npm test --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "lint": "eslint .",
+    "lint": "eslint . && npm run lint -w client",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
