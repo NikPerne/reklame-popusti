@@ -102,3 +102,15 @@
     color: var(--warn);
   }
 }
+
+.stale-warning {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--warn);
+  border-radius: var(--radius);
+  color: var(--warn);
+  font-size: 0.875rem;
+  list-style: none;
+}

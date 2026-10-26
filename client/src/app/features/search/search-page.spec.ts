@@ -118,6 +118,31 @@ describe('SearchPage', () => {
     expect(element.querySelector('app-home-sections')).toBeNull();
   });
 
+  it('warns about stores without fresh data', async () => {
+    const fixture = TestBed.createComponent(SearchPage);
+    await fixture.whenStable();
+    const status = (hoursAgo: number) => ({
+      lastRunAt: new Date().toISOString(),
+      ok: hoursAgo < 30,
+      offerCount: 10,
+      durationMs: 1,
+      lastSuccessAt: new Date(Date.now() - hoursAgo * 3_600_000).toISOString(),
+    });
+    http.expectOne('/api/stores').flush([
+      { id: 'mercator', name: 'Mercator', website: '', status: status(2) },
+      { id: 'lidl', name: 'Lidl', website: '', status: status(40) },
+      { id: 'dm', name: 'dm', website: '', status: null },
+    ]);
+    http.match('/api/categories').forEach((r) => r.flush([]));
+    http.match(isSectionRequest).forEach((r) => r.flush(makePage([])));
+    expectOffers({ page: '1' }).flush(makePage([]));
+    await fixture.whenStable();
+
+    const warnings = (fixture.nativeElement as HTMLElement).querySelectorAll('.stale-warning li');
+    expect(warnings).toHaveLength(1);
+    expect(warnings[0]?.textContent).toContain('Lidl: ni novih podatkov od');
+  });
+
   it('writes filter changes to the URL', async () => {
     const router = TestBed.inject(Router);
     const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);

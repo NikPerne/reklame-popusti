@@ -97,6 +97,8 @@ export interface StoreStatus {
   offerCount: number;
   durationMs: number;
   error?: string;
+  /** Last successful refresh (ISO); missing if there has never been one. */
+  lastSuccessAt?: string;
 }
 
 export interface StoreInfo {

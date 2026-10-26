@@ -71,7 +71,9 @@
   },
   "stores": {
     "lastRefresh": "Osveženo {{ date }}",
-    "refreshFailed": "Zadnja osvežitev ni uspela"
+    "refreshFailed": "Zadnja osvežitev ni uspela",
+    "stale": "{{ store }}: ni novih podatkov od {{ date }}",
+    "neverRefreshed": "{{ store }}: osvežitev še ni uspela"
   },
   "categories": {
     "sadje-zelenjava": "Sadje in zelenjava",

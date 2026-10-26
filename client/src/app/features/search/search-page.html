@@ -36,6 +36,20 @@
     />
   </details>
 
+  @if (staleStores().length) {
+    <ul class="stale-warning" role="status">
+      @for (stale of staleStores(); track stale.store.id) {
+        <li>
+          @if (stale.lastSuccess; as last) {
+            ⚠️ {{ t('stores.stale', { store: stale.store.name, date: last | shortDate: lang() }) }}
+          } @else {
+            ⚠️ {{ t('stores.neverRefreshed', { store: stale.store.name }) }}
+          }
+        </li>
+      }
+    </ul>
+  }
+
   @if (!params().q && !filtered()) {
     <app-home-sections [prefs]="prefs()" [lang]="lang()" />
   }

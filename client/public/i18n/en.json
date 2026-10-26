@@ -71,7 +71,9 @@
   },
   "stores": {
     "lastRefresh": "Updated {{ date }}",
-    "refreshFailed": "Last refresh failed"
+    "refreshFailed": "Last refresh failed",
+    "stale": "{{ store }}: no new data since {{ date }}",
+    "neverRefreshed": "{{ store }}: no successful refresh yet"
   },
   "categories": {
     "sadje-zelenjava": "Fruit & vegetables",
