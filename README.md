@@ -4,7 +4,7 @@
 
 Search for a product such as `kava` or `pralni prašek` and see every current offer across stores: price, regular price, discount %, unit price, validity dates, store, image and a link to the source.
 
-> **Status:** Phase 1 (scaffold) is in progress. The server skeleton and health check work. Data model, auth, adapters, frontend and PWA come in later phases (see [Roadmap](#roadmap)).
+> **Status:** Phase 1 (scaffold) is complete: the server skeleton with its health check and an empty Angular app. Data model, auth, adapters, frontend and PWA come in later phases (see [Roadmap](#roadmap)).
 
 ## Supported stores
 
@@ -153,8 +153,8 @@ This is a personal tool. Scrapers respect `robots.txt`, identify themselves with
 
 ## Roadmap
 
-1. Scaffold ← _in progress_
-2. Data model, API and auth
+1. Scaffold ✔
+2. Data model, API and auth ← _next_
 3. First store adapter end to end
 4. Frontend (login, search, filters, sorting, SL/EN)
 5. Remaining store adapters

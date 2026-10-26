@@ -37,7 +37,7 @@ npm install                 # all workspaces
 npm run dev:server          # tsx watch, http://localhost:3000
 npm run dev:client          # ng serve, http://localhost:4200
 npm test                    # all tests (Vitest on the server)
-npm run lint                # ESLint (strict type-checked rules for the server)
+npm run lint                # ESLint: strict type-checked rules for the server, angular-eslint (ng lint) for the client
 npm run typecheck
 npm run build
 npm run format              # Prettier
