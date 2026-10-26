@@ -27,7 +27,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await disconnectDatabase();
-  await server?.stop();
+  await server.stop();
 });
 
 async function seed(store: StoreId, offers: Partial<ScrapedOffer>[]) {
