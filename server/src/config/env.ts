@@ -1,9 +1,16 @@
+import { existsSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { z } from 'zod';
 
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.coerce.number().int().positive().default(3000),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
+  /**
+   * Number of proxies in front of the server whose X-Forwarded-For entries are trusted.
+   * Too low is safe (all clients share one rate-limit key); too high lets clients spoof their IP.
+   */
+  TRUST_PROXY_HOPS: z.coerce.number().int().nonnegative().default(1),
 
   MONGODB_URI: z
     .string()
@@ -30,10 +37,21 @@ const envSchema = z.object({
   SCRAPER_CACHE_TTL_MINUTES: z.coerce.number().int().nonnegative().default(60),
 });
 
-export type Env = z.infer<typeof envSchema>;
+/** The refresh job (GitHub Actions) only needs the database and scraper settings. */
+const refreshEnvSchema = envSchema.pick({
+  NODE_ENV: true,
+  LOG_LEVEL: true,
+  MONGODB_URI: true,
+  SCRAPER_USER_AGENT: true,
+  SCRAPER_MIN_DELAY_MS: true,
+  SCRAPER_CACHE_TTL_MINUTES: true,
+});
 
-export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
-  const result = envSchema.safeParse(source);
+export type Env = z.infer<typeof envSchema>;
+export type RefreshEnv = z.infer<typeof refreshEnvSchema>;
+
+function parseEnv<T extends z.ZodType>(schema: T, source: NodeJS.ProcessEnv): z.infer<T> {
+  const result = schema.safeParse(source);
   if (!result.success) {
     const issues = result.error.issues
       .map((issue) => `  - ${issue.path.join('.')}: ${issue.message}`)
@@ -41,4 +59,20 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
     throw new Error(`Invalid environment configuration:\n${issues}`);
   }
   return result.data;
+}
+
+export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
+  return parseEnv(envSchema, source);
+}
+
+export function loadRefreshEnv(source: NodeJS.ProcessEnv = process.env): RefreshEnv {
+  return parseEnv(refreshEnvSchema, source);
+}
+
+/** Local development reads the repo-root .env; on Render and in CI variables are set directly. */
+export function loadDotEnvFile(): void {
+  const envFile = resolve(import.meta.dirname, '../../../.env');
+  if (existsSync(envFile)) {
+    process.loadEnvFile(envFile);
+  }
 }
