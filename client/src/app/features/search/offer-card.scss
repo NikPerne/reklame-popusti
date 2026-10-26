@@ -64,7 +64,7 @@
   color: #fff;
   font-weight: 600;
 
-  @each $store in mercator, lidl, hofer, spar, dm, mueller {
+  @each $store in mercator, lidl, hofer, spar, dm, mueller, eurospin, tus {
     &[data-store='#{$store}'] {
       --store-color: var(--store-#{$store});
     }

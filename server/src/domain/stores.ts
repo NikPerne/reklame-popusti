@@ -5,6 +5,8 @@ export const STORES = {
   spar: { name: 'Spar', website: 'https://www.spar.si' },
   dm: { name: 'dm', website: 'https://www.dm.si' },
   mueller: { name: 'Müller', website: 'https://www.mueller.si' },
+  eurospin: { name: 'Eurospin', website: 'https://www.eurospin.si' },
+  tus: { name: 'Tuš', website: 'https://www.tus.si' },
 } as const;
 
 export type StoreId = keyof typeof STORES;

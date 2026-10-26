@@ -58,12 +58,12 @@ describe('offer endpoints', () => {
   });
 
   it.each([
-    ['/api/offers?store=tus', 'unknown store'],
+    ['/api/offers?store=konzum', 'unknown store'],
     ['/api/offers?category=nope', 'unknown category'],
     ['/api/offers?minDiscount=150', 'discount over 100'],
     ['/api/offers?pageSize=1000', 'page size over the limit'],
     ['/api/offers?q=k', 'one-letter query'],
-    ['/api/stores/tus/offers', 'unknown store in path'],
+    ['/api/stores/konzum/offers', 'unknown store in path'],
   ])('rejects %s (%s) with 400', async (url) => {
     expect((await get(url)).statusCode).toBe(400);
   });
@@ -83,7 +83,16 @@ describe('offer endpoints', () => {
 
     const stores = (await get('/api/stores')).json<{ id: string; status: unknown }[]>();
 
-    expect(stores.map((s) => s.id)).toEqual(['mercator', 'lidl', 'hofer', 'spar', 'dm', 'mueller']);
+    expect(stores.map((s) => s.id)).toEqual([
+      'mercator',
+      'lidl',
+      'hofer',
+      'spar',
+      'dm',
+      'mueller',
+      'eurospin',
+      'tus',
+    ]);
     expect(stores.find((s) => s.id === 'lidl')?.status).toMatchObject({
       ok: true,
       offerCount: 120,

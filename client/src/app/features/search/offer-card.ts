@@ -11,6 +11,8 @@ export const STORE_NAMES: Record<StoreId, string> = {
   spar: 'Spar',
   dm: 'dm',
   mueller: 'Müller',
+  eurospin: 'Eurospin',
+  tus: 'Tuš',
 };
 
 @Component({

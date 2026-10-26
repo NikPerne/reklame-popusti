@@ -13,7 +13,7 @@ describe('search params', () => {
     const params = parseSearchParams(
       convertToParamMap({
         q: '  kava ',
-        store: 'lidl,tus,mercator',
+        store: 'lidl,konzum,mercator',
         category: 'shramba',
         minDiscount: '30',
         sort: 'unitPrice',

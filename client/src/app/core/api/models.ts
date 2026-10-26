@@ -3,7 +3,16 @@
  * keep them in sync when the API changes.
  */
 
-export const STORE_IDS = ['mercator', 'lidl', 'hofer', 'spar', 'dm', 'mueller'] as const;
+export const STORE_IDS = [
+  'mercator',
+  'lidl',
+  'hofer',
+  'spar',
+  'dm',
+  'mueller',
+  'eurospin',
+  'tus',
+] as const;
 export type StoreId = (typeof STORE_IDS)[number];
 
 export const CATEGORY_IDS = [
