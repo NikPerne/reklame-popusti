@@ -11,8 +11,7 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "refresh": "node dist/jobs/refresh.js",
-    "refresh:dev": "tsx src/jobs/refresh.ts",
-    "hash-password": "tsx src/scripts/hash-password.ts"
+    "refresh:dev": "tsx src/jobs/refresh.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.5",

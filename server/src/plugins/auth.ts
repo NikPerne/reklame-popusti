@@ -4,6 +4,7 @@ import fastifyJwt from '@fastify/jwt';
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import fp from 'fastify-plugin';
 import type { Env } from '../config/env.js';
+import type { SessionUser } from '../domain/account.js';
 
 export const SESSION_COOKIE = 'session';
 
@@ -19,8 +20,8 @@ declare module 'fastify' {
 
 declare module '@fastify/jwt' {
   interface FastifyJWT {
-    payload: { sub: 'owner' };
-    user: { sub: 'owner' };
+    payload: SessionUser;
+    user: SessionUser;
   }
 }
 
@@ -60,7 +61,9 @@ export const authPlugin = fp(
         return;
       }
       try {
-        await request.jwtVerify();
+        const user = await request.jwtVerify<Partial<SessionUser>>();
+        // Sessions from before accounts existed have no email; they must log in again.
+        if (typeof user.sub !== 'string' || typeof user.email !== 'string') throw new Error();
       } catch {
         return reply.unauthorized('Not logged in');
       }

@@ -3,14 +3,12 @@ import { CATEGORY_IDS } from '../domain/categories.js';
 import { DEFAULT_SETTINGS, type Settings } from '../domain/settings.js';
 import { STORE_IDS } from '../domain/stores.js';
 
+/** Each user's settings, keyed by user id. */
 export interface SettingsRepository {
-  get(): Promise<Settings>;
+  get(userId: string): Promise<Settings>;
   /** Saves unless the stored settings are newer; returns what is stored afterwards. */
-  save(settings: Settings): Promise<Settings>;
+  save(userId: string, settings: Settings): Promise<Settings>;
 }
-
-/** There is one user, so one document. */
-const DOCUMENT_ID = 'owner';
 
 const settingsSchema = new Schema<Settings & { _id: string }>(
   {
@@ -19,25 +17,21 @@ const settingsSchema = new Schema<Settings & { _id: string }>(
     hiddenCategories: [{ type: String, enum: CATEGORY_IDS }],
     updatedAt: { type: Date, required: true },
   },
-  { collection: 'settings', versionKey: false },
+  { collection: 'user_settings', versionKey: false },
 );
 
 const SettingsModel = model<Settings & { _id: string }>('Settings', settingsSchema);
 
 export class MongoSettingsRepository implements SettingsRepository {
-  async get(): Promise<Settings> {
-    const doc = await SettingsModel.findById(DOCUMENT_ID, { _id: 0 }).lean<Settings>();
+  async get(userId: string): Promise<Settings> {
+    const doc = await SettingsModel.findById(userId, { _id: 0 }).lean<Settings>();
     return doc ?? DEFAULT_SETTINGS;
   }
 
-  async save(settings: Settings): Promise<Settings> {
-    const current = await this.get();
+  async save(userId: string, settings: Settings): Promise<Settings> {
+    const current = await this.get(userId);
     if (current.updatedAt > settings.updatedAt) return current;
-    await SettingsModel.replaceOne(
-      { _id: DOCUMENT_ID },
-      { _id: DOCUMENT_ID, ...settings },
-      { upsert: true },
-    );
+    await SettingsModel.replaceOne({ _id: userId }, { _id: userId, ...settings }, { upsert: true });
     return settings;
   }
 }

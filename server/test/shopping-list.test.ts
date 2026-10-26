@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { buildTestApp, login, type TestApp } from './helpers.js';
+import { buildTestApp, login, signup, TEST_EMAIL, testEnv, type TestApp } from './helpers.js';
 
 const item = (overrides: Record<string, unknown> = {}) => ({
   id: 'offer-1',
@@ -94,5 +94,57 @@ describe('shopping list API', () => {
       headers: { cookie },
     });
     expect(response.statusCode).toBe(204);
+  });
+});
+
+describe('shared shopping lists', () => {
+  let t: TestApp;
+
+  beforeEach(async () => {
+    t = await buildTestApp(testEnv({ SHARED_LISTS: `${TEST_EMAIL},teja@example.com` }));
+  });
+
+  afterEach(async () => {
+    await t.app.close();
+  });
+
+  const putAs = (cookie: string, id: string) =>
+    t.app.inject({
+      method: 'PUT',
+      url: `/api/shopping-list/items/${id}`,
+      headers: { cookie },
+      payload: item({ id }),
+    });
+  const getAs = async (cookie: string) =>
+    (await t.app.inject({ method: 'GET', url: '/api/shopping-list', headers: { cookie } })).json<{
+      items: { id: string }[];
+      sharedWith: string[];
+    }>();
+
+  it('gives the accounts in a group one list, and tells each who else sees it', async () => {
+    const nik = await login(t.app);
+    const teja = await signup(t.app, 'teja@example.com');
+
+    await putAs(nik, 'kava');
+    await putAs(teja, 'mleko');
+
+    expect((await getAs(nik)).items.map((i) => i.id).sort()).toEqual(['kava', 'mleko']);
+    expect((await getAs(teja)).items.map((i) => i.id).sort()).toEqual(['kava', 'mleko']);
+    expect((await getAs(nik)).sharedWith).toEqual(['teja@example.com']);
+    expect((await getAs(teja)).sharedWith).toEqual([TEST_EMAIL]);
+  });
+
+  it('keeps everyone else on their own private list', async () => {
+    const nik = await login(t.app);
+    const other = await signup(t.app, 'other@example.com');
+
+    await putAs(nik, 'kava');
+    await putAs(other, 'kruh');
+
+    expect((await getAs(nik)).items.map((i) => i.id)).toEqual(['kava']);
+    expect(await getAs(other)).toEqual({
+      items: [expect.objectContaining({ id: 'kruh' })],
+      sharedWith: [],
+    });
   });
 });

@@ -1,6 +1,7 @@
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { z } from 'zod';
+import { parseSharedLists } from '../domain/account.js';
 
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
@@ -21,8 +22,23 @@ const envSchema = z.object({
   /** `atlas` uses the Atlas Search index; `basic` uses a regex on the diacritic-free searchText field. */
   SEARCH_MODE: z.enum(['atlas', 'basic']).default('atlas'),
 
-  /** argon2 hash of the single user's password (generate with `npm run hash-password -w server`). */
-  APP_PASSWORD_HASH: z.string().startsWith('$argon2', 'must be an argon2 hash'),
+  /** Invite code needed to create an account; without it nobody can sign up. */
+  SIGNUP_CODE: z.string().min(8, 'must be at least 8 characters').optional(),
+  /**
+   * Accounts that share one shopping list: emails separated by commas, groups by semicolons,
+   * e.g. `a@x.si,b@y.si; c@z.si,d@w.si`. Kept out of the code because the repo is public.
+   */
+  SHARED_LISTS: z
+    .string()
+    .default('')
+    .transform((value, ctx) => {
+      const groups = parseSharedLists(value);
+      if (groups instanceof Error) {
+        ctx.addIssue({ code: 'custom', message: groups.message });
+        return z.NEVER;
+      }
+      return groups;
+    }),
   JWT_SECRET: z.string().min(32, 'must be at least 32 characters'),
   SESSION_TTL_HOURS: z.coerce.number().positive().default(720),
   LOGIN_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(5),

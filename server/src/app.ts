@@ -10,6 +10,7 @@ import { clientAppPlugin } from './plugins/client-app.js';
 import type { OfferRepository } from './repositories/offer-repository.js';
 import type { SettingsRepository } from './repositories/settings-repository.js';
 import type { ShoppingListRepository } from './repositories/shopping-list-repository.js';
+import type { UserRepository } from './repositories/user-repository.js';
 import { adminRoutes } from './routes/admin.js';
 import { authRoutes } from './routes/auth.js';
 import { healthRoutes } from './routes/health.js';
@@ -20,6 +21,7 @@ import { shoppingListRoutes } from './routes/shopping-list.js';
 export interface AppDependencies {
   env: Env;
   repository: OfferRepository;
+  users: UserRepository;
   shoppingList: ShoppingListRepository;
   settings: SettingsRepository;
   /** Runs one refresh of all stores; started by POST /api/admin/refresh. */
@@ -48,6 +50,7 @@ const CONTENT_SECURITY_POLICY = {
 export async function buildApp({
   env,
   repository,
+  users,
   shoppingList,
   settings,
   refresh,
@@ -99,9 +102,9 @@ export async function buildApp({
   });
 
   await app.register(healthRoutes);
-  await app.register(authRoutes, env);
+  await app.register(authRoutes, { ...env, users });
   await app.register(offerRoutes, { repository });
-  await app.register(shoppingListRoutes, { shoppingList });
+  await app.register(shoppingListRoutes, { shoppingList, sharedLists: env.SHARED_LISTS });
   await app.register(settingsRoutes, { settings });
   await app.register(adminRoutes, {
     refreshTrigger: new RefreshTrigger(() => refresh(app.log), app.log),

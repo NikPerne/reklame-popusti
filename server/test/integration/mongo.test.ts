@@ -4,6 +4,7 @@
  * Atlas Search itself can't run here; the "basic" search mode is used instead.
  */
 import { MongoMemoryServer } from 'mongodb-memory-server';
+import mongoose from 'mongoose';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { connectDatabase, disconnectDatabase } from '../../src/db/connect.js';
 import { OfferModel } from '../../src/db/models.js';
@@ -13,6 +14,7 @@ import { MongoOfferRepository } from '../../src/repositories/mongo-offer-reposit
 import type { OfferQuery } from '../../src/repositories/offer-repository.js';
 import { MongoSettingsRepository } from '../../src/repositories/settings-repository.js';
 import { MongoShoppingListRepository } from '../../src/repositories/shopping-list-repository.js';
+import { MongoUserRepository } from '../../src/repositories/user-repository.js';
 import { scrapedOffer } from '../helpers.js';
 
 let server: MongoMemoryServer;
@@ -22,7 +24,8 @@ const repository = new MongoOfferRepository('basic');
 beforeAll(async () => {
   server = await MongoMemoryServer.create();
   await connectDatabase(server.getUri('integration'));
-  await OfferModel.syncIndexes();
+  // Unique indexes (e.g. one account per email) must exist before the tests rely on them.
+  await mongoose.connection.syncIndexes();
 }, 180_000);
 
 afterAll(async () => {
@@ -139,31 +142,61 @@ describe('MongoShoppingListRepository (real MongoDB)', () => {
   });
 
   it('keeps the newer copy and clears checked items', async () => {
-    expect(await list.save(item(true, '2026-10-26T12:00:00Z'))).toBe('saved');
-    expect(await list.save(item(false, '2026-10-26T11:00:00Z'))).toBe('stale');
-    expect((await list.list())[0]).toMatchObject({ id: 'offer-1', checked: true });
+    expect(await list.save('user:a', item(true, '2026-10-26T12:00:00Z'))).toBe('saved');
+    expect(await list.save('user:a', item(false, '2026-10-26T11:00:00Z'))).toBe('stale');
+    expect(await list.list('user:a')).toEqual([
+      expect.objectContaining({ id: 'offer-1', checked: true }),
+    ]);
+    expect(await list.has('user:a', 'offer-1')).toBe(true);
 
-    expect(await list.removeChecked()).toBe(1);
-    expect(await list.count()).toBe(0);
+    expect(await list.removeChecked('user:a')).toBe(1);
+    expect(await list.count('user:a')).toBe(0);
+  });
+
+  it('keeps lists apart even when they hold the same offer', async () => {
+    await list.save('user:a', item(false, '2026-10-26T12:00:00Z'));
+    await list.save('user:b', item(true, '2026-10-26T12:00:00Z'));
+
+    await list.remove('user:b', 'offer-1');
+
+    expect(await list.list('user:a')).toHaveLength(1);
+    expect(await list.list('user:b')).toHaveLength(0);
+    expect(await list.has('user:b', 'offer-1')).toBe(false);
+  });
+});
+
+describe('MongoUserRepository (real MongoDB)', () => {
+  it('creates users and refuses a second account with the same email', async () => {
+    const users = new MongoUserRepository();
+    await users.create({ email: 'a@x.si', passwordHash: 'h', createdAt: now });
+
+    const created = await users.findByEmail('a@x.si');
+    expect(created).toMatchObject({ email: 'a@x.si', passwordHash: 'h' });
+    expect(created?.id).toMatch(/^[0-9a-f]{24}$/);
+    expect(await users.create({ email: 'a@x.si', passwordHash: 'h2', createdAt: now })).toBe(
+      'exists',
+    );
+    expect(await users.findByEmail('b@x.si')).toBeUndefined();
   });
 });
 
 describe('MongoSettingsRepository (real MongoDB)', () => {
   it('stores settings and keeps the newer copy', async () => {
     const settings = new MongoSettingsRepository();
-    await settings.save({
+    await settings.save('u1', {
       preferredStores: ['lidl'],
       hiddenCategories: [],
       updatedAt: new Date('2026-10-26T12:00:00Z'),
     });
-    const result = await settings.save({
+    const result = await settings.save('u1', {
       preferredStores: [],
       hiddenCategories: [],
       updatedAt: new Date('2026-10-26T11:00:00Z'),
     });
 
     expect(result.preferredStores).toEqual(['lidl']);
-    expect((await settings.get()).preferredStores).toEqual(['lidl']);
+    expect((await settings.get('u1')).preferredStores).toEqual(['lidl']);
+    expect((await settings.get('u2')).preferredStores).toEqual([]);
   });
 });
 

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { buildTestApp, login, type TestApp } from './helpers.js';
+import { buildTestApp, login, signup, type TestApp } from './helpers.js';
 
 describe('settings API', () => {
   let t: TestApp;
@@ -49,6 +49,23 @@ describe('settings API', () => {
 
   it('needs a session', async () => {
     expect((await t.app.inject({ method: 'GET', url: '/api/settings' })).statusCode).toBe(401);
+  });
+
+  it('keeps settings per account', async () => {
+    await put({
+      preferredStores: ['lidl'],
+      hiddenCategories: [],
+      updatedAt: '2026-10-26T12:00:00Z',
+    });
+
+    const other = await signup(t.app, 'other@example.com');
+    const response = await t.app.inject({
+      method: 'GET',
+      url: '/api/settings',
+      headers: { cookie: other },
+    });
+
+    expect(response.json()).toMatchObject({ preferredStores: [] });
   });
 });
 
