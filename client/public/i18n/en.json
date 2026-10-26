@@ -62,7 +62,8 @@
       "multi-buy": "Multi-buy",
       "coupon": "With coupon",
       "other": "Condition"
-    }
+    },
+    "alsoAt": "Also at"
   },
   "stores": {
     "lastRefresh": "Updated {{ date }}",

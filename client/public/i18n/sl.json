@@ -62,7 +62,8 @@
       "multi-buy": "Več kosov",
       "coupon": "S kuponom",
       "other": "Pogoj"
-    }
+    },
+    "alsoAt": "Tudi"
   },
   "stores": {
     "lastRefresh": "Osveženo {{ date }}",

@@ -41,6 +41,17 @@ export type OfferSort = (typeof OFFER_SORTS)[number];
 export type UnitPriceUnit = 'kg' | 'l' | 'piece';
 export type ConditionKind = 'loyalty-card' | 'multi-buy' | 'coupon' | 'other';
 
+/** The same product at another store (or a duplicate listing). */
+export interface OfferAlternative {
+  id: string;
+  store: StoreId;
+  productName: string;
+  price: number;
+  unitPrice?: { amount: number; unit: UnitPriceUnit };
+  condition?: { kind: ConditionKind; text: string };
+  sourceUrl?: string;
+}
+
 export interface Offer {
   id: string;
   store: StoreId;
@@ -62,6 +73,8 @@ export interface Offer {
   /** EAN barcodes (Mercator, Spar, Tuš only). */
   eans?: string[];
   scrapedAt: string;
+  /** Other offers for the same product, cheapest first when sorting by price. */
+  alsoAt?: OfferAlternative[];
 }
 
 export interface OfferPage {

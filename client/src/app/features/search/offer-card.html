@@ -51,6 +51,41 @@
       }
     </div>
 
+    @if (alternatives().length) {
+      <details class="also-at">
+        <summary>
+          {{ t('alsoAt') }}:
+          @for (alt of alternatives().slice(0, 2); track alt.id; let last = $last) {
+            {{ storeNames[alt.store] }} {{ alt.price | eur: lang() }}{{ last ? '' : ' · ' }}
+          }
+          @if (alternatives().length > 2) {
+            +{{ alternatives().length - 2 }}
+          }
+        </summary>
+        <ul>
+          @for (alt of alternatives(); track alt.id) {
+            <li>
+              <span class="alt-store" [attr.data-store]="alt.store">{{
+                storeNames[alt.store]
+              }}</span>
+              <span class="alt-price">{{ alt.price | eur: lang() }}</span>
+              @if (alt.unitPrice; as unit) {
+                <span class="alt-unit"
+                  >{{ unit.amount | eur: lang() }}/{{ t('units.' + unit.unit) }}</span
+                >
+              }
+              @if (alt.condition; as condition) {
+                <span class="alt-condition">{{ condition.text }}</span>
+              }
+              @if (alt.sourceUrl; as url) {
+                <a [href]="url" target="_blank" rel="noopener noreferrer">↗</a>
+              }
+            </li>
+          }
+        </ul>
+      </details>
+    }
+
     @if (offer().sourceUrl; as url) {
       <a class="source" [href]="url" target="_blank" rel="noopener noreferrer">
         {{ t('toStore') }} ↗

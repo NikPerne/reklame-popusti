@@ -120,3 +120,40 @@
   font-size: 0.8rem;
   color: var(--accent);
 }
+
+.also-at {
+  font-size: 0.8rem;
+
+  summary {
+    cursor: pointer;
+    color: var(--accent);
+  }
+
+  ul {
+    display: grid;
+    gap: var(--space-1);
+    margin: var(--space-1) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-2);
+  }
+}
+
+.alt-store {
+  font-weight: 600;
+}
+
+.alt-price {
+  font-weight: 700;
+}
+
+.alt-unit,
+.alt-condition {
+  color: var(--muted);
+}

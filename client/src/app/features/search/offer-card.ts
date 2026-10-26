@@ -25,6 +25,7 @@ export class OfferCard {
   readonly offer = input.required<Offer>();
   readonly lang = input.required<Language>();
 
+  protected readonly storeNames = STORE_NAMES;
   protected readonly storeName = computed(() => STORE_NAMES[this.offer().store]);
 
   /** Show "from <date>" for offers that haven't started yet, otherwise "until <date>". */
@@ -32,6 +33,11 @@ export class OfferCard {
     const from = this.offer().validFrom;
     return from !== undefined && new Date(from).getTime() > Date.now();
   });
+
+  /** "Spar 1,99 € · Tuš 2,09 €" summary of the same product elsewhere, cheapest first. */
+  protected readonly alternatives = computed(() =>
+    [...(this.offer().alsoAt ?? [])].sort((a, b) => a.price - b.price),
+  );
 
   protected readonly hasSaving = computed(() => {
     const { price, regularPrice } = this.offer();

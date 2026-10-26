@@ -85,3 +85,42 @@ describe('OfferCard', () => {
     expect(link.rel).toBe('noopener noreferrer');
   });
 });
+
+describe('OfferCard alternatives', () => {
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [OfferCard, translocoTesting()],
+    }).compileComponents();
+  });
+
+  it('lists the same product at other stores, cheapest first', async () => {
+    const fixture = TestBed.createComponent(OfferCard);
+    fixture.componentRef.setInput(
+      'offer',
+      makeOffer({
+        alsoAt: [
+          { id: 'b', store: 'tus', productName: 'Kava', price: 2.09 },
+          { id: 'a', store: 'spar', productName: 'Kava', price: 1.99 },
+          { id: 'c', store: 'mercator', productName: 'Kava', price: 2.29 },
+        ],
+      }),
+    );
+    fixture.componentRef.setInput('lang', 'sl');
+    await fixture.whenStable();
+    const element = fixture.nativeElement as HTMLElement;
+
+    expect(
+      element.querySelector('.also-at summary')?.textContent?.replace(/\s+/g, ' ').trim(),
+    ).toBe('Tudi: Spar 1,99 € · Tuš 2,09 € +1');
+    expect(element.querySelectorAll('.also-at li')).toHaveLength(3);
+  });
+
+  it('shows nothing when the product is only at one store', async () => {
+    const fixture = TestBed.createComponent(OfferCard);
+    fixture.componentRef.setInput('offer', makeOffer());
+    fixture.componentRef.setInput('lang', 'sl');
+    await fixture.whenStable();
+
+    expect((fixture.nativeElement as HTMLElement).querySelector('.also-at')).toBeNull();
+  });
+});
