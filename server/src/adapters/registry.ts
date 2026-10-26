@@ -4,6 +4,7 @@ import { lidlAdapter } from './lidl/lidl-adapter.js';
 import { mercatorAdapter } from './mercator/mercator-adapter.js';
 import { sparAdapter } from './spar/spar-adapter.js';
 import type { StoreAdapter } from './store-adapter.js';
+import { tusAdapter } from './tus/tus-adapter.js';
 
 /** Enabled store adapters. Adding a store = adding its adapter here; nothing else changes. */
 export const adapters: readonly StoreAdapter[] = [
@@ -12,4 +13,5 @@ export const adapters: readonly StoreAdapter[] = [
   hoferAdapter,
   sparAdapter,
   eurospinAdapter,
+  tusAdapter,
 ];
