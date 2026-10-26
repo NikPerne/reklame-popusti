@@ -12,6 +12,7 @@ import { routes } from './app.routes';
 import { authInterceptor } from './core/auth/auth-interceptor';
 import { DEFAULT_LANGUAGE, LANGUAGES, LanguageService } from './core/i18n/language';
 import { TranslocoHttpLoader } from './core/i18n/transloco-loader';
+import { provideServiceWorker } from '@angular/service-worker';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -30,6 +31,10 @@ export const appConfig: ApplicationConfig = {
     }),
     provideAppInitializer(() => {
       inject(LanguageService).restore();
+    }),
+    provideServiceWorker('ngsw-worker.js', {
+      enabled: !isDevMode(),
+      registrationStrategy: 'registerWhenStable:30000',
     }),
   ],
 };

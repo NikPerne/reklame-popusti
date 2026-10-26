@@ -3,7 +3,16 @@ import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslocoDirective } from '@jsverse/transloco';
-import { Subject, catchError, debounceTime, distinctUntilChanged, map, of, switchMap } from 'rxjs';
+import {
+  Subject,
+  catchError,
+  debounceTime,
+  distinctUntilChanged,
+  finalize,
+  map,
+  of,
+  switchMap,
+} from 'rxjs';
 import type { Offer, StoreInfo } from '../../core/api/models';
 import { OffersApi } from '../../core/api/offers-api';
 import { LanguageService } from '../../core/i18n/language';
@@ -28,6 +37,7 @@ interface PageRequest {
 }
 
 const SEARCH_DEBOUNCE_MS = 300;
+const SLOW_REQUEST_MS = 5000;
 
 @Component({
   selector: 'app-search-page',
@@ -47,6 +57,8 @@ export class SearchPage {
   protected readonly total = signal(0);
   protected readonly page = signal(1);
   protected readonly status = signal<LoadStatus>('loading');
+  /** The free API server sleeps when idle; the first request can take up to a minute. */
+  protected readonly slow = signal(false);
   protected readonly hasMore = computed(() => this.items().length < this.total());
   /** Filters start collapsed on phones, where they would push the results off the screen. */
   protected readonly filtersOpen =
@@ -72,9 +84,16 @@ export class SearchPage {
       .pipe(
         switchMap((request) => {
           this.status.set('loading');
+          this.slow.set(false);
+          const slowTimer = setTimeout(() => {
+            this.slow.set(true);
+          }, SLOW_REQUEST_MS);
           return this.api.searchOffers(toApiParams(request.params, request.page)).pipe(
             map((result) => ({ request, result, error: null })),
             catchError((error: unknown) => of({ request, result: null, error })),
+            finalize(() => {
+              clearTimeout(slowTimer);
+            }),
           );
         }),
         takeUntilDestroyed(),

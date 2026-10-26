@@ -2,7 +2,8 @@
   "app": {
     "title": "Discounts",
     "logout": "Log out",
-    "language": "Language"
+    "language": "Language",
+    "offline": "Offline – showing saved results."
   },
   "login": {
     "title": "Log in",
@@ -26,7 +27,8 @@
     "loading": "Loading …",
     "error": "Offers could not be loaded.",
     "retry": "Try again",
-    "offline": "Offline."
+    "offline": "Offline.",
+    "waking": "The server is waking up, this can take up to a minute …"
   },
   "filters": {
     "title": "Filters",
@@ -50,7 +52,11 @@
     "validTo": "until {{ date }}",
     "validFrom": "from {{ date }}",
     "toStore": "Open in store",
-    "units": { "kg": "kg", "l": "l", "piece": "piece" },
+    "units": {
+      "kg": "kg",
+      "l": "l",
+      "piece": "piece"
+    },
     "conditions": {
       "loyalty-card": "With card",
       "multi-buy": "Multi-buy",

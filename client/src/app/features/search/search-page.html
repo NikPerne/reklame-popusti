@@ -73,7 +73,7 @@
   </ul>
 
   @if (status() === 'loading') {
-    <p class="message">{{ t('search.loading') }}</p>
+    <p class="message">{{ t(slow() ? 'search.waking' : 'search.loading') }}</p>
   } @else if (status() === 'ready' && hasMore()) {
     <div class="more">
       <button type="button" class="button secondary" (click)="loadMore()">

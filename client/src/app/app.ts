@@ -1,4 +1,6 @@
 import { Component, inject } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { fromEvent, map, merge } from 'rxjs';
 import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { AuthService } from './core/auth/auth-service';
@@ -17,6 +19,14 @@ export class App {
 
   protected readonly languages = LANGUAGES;
   protected readonly authStatus = this.auth.status;
+
+  /** While offline, the service worker serves the last saved results; tell the user. */
+  protected readonly online = toSignal(
+    merge(fromEvent(window, 'online'), fromEvent(window, 'offline')).pipe(
+      map(() => navigator.onLine),
+    ),
+    { initialValue: navigator.onLine },
+  );
 
   protected setLanguage(lang: Language): void {
     this.language.set(lang);

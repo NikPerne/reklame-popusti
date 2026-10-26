@@ -65,6 +65,15 @@
   }
 }
 
+.offline-banner {
+  margin: 0;
+  padding: var(--space-2) var(--space-4);
+  background: var(--warn);
+  color: #fff;
+  font-size: 0.875rem;
+  text-align: center;
+}
+
 .app-main {
   min-width: 0;
   max-width: 64rem;

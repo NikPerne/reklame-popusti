@@ -2,7 +2,8 @@
   "app": {
     "title": "Popusti",
     "logout": "Odjava",
-    "language": "Jezik"
+    "language": "Jezik",
+    "offline": "Brez povezave – prikazani so shranjeni rezultati."
   },
   "login": {
     "title": "Prijava",
@@ -26,7 +27,8 @@
     "loading": "Nalagam …",
     "error": "Ponudb ni bilo mogoče naložiti.",
     "retry": "Poskusi znova",
-    "offline": "Brez povezave."
+    "offline": "Brez povezave.",
+    "waking": "Strežnik se zbuja, to lahko traja do minute …"
   },
   "filters": {
     "title": "Filtri",
@@ -50,7 +52,11 @@
     "validTo": "do {{ date }}",
     "validFrom": "od {{ date }}",
     "toStore": "Odpri v trgovini",
-    "units": { "kg": "kg", "l": "l", "piece": "kos" },
+    "units": {
+      "kg": "kg",
+      "l": "l",
+      "piece": "kos"
+    },
     "conditions": {
       "loyalty-card": "S kartico",
       "multi-buy": "Več kosov",

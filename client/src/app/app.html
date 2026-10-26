@@ -24,6 +24,10 @@
       }
     </div>
   </header>
+
+  @if (!online()) {
+    <p class="offline-banner" role="status">{{ t('app.offline') }}</p>
+  }
 </ng-container>
 
 <main class="app-main">
