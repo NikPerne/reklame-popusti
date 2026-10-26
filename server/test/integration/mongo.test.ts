@@ -209,3 +209,37 @@ describe('date filters and "newest" (real MongoDB)', () => {
     ]);
   });
 });
+
+describe('store status (real MongoDB)', () => {
+  it('keeps the last successful refresh when a later run fails', async () => {
+    const base = { store: 'lidl' as const, offerCount: 10, durationMs: 1000 };
+    await repository.saveStoreStatus({
+      ...base,
+      ok: true,
+      lastRunAt: new Date('2026-10-26T04:17:00Z'),
+    });
+    await repository.saveStoreStatus({
+      ...base,
+      ok: false,
+      offerCount: 0,
+      error: 'site changed',
+      lastRunAt: new Date('2026-10-26T10:17:00Z'),
+    });
+
+    const [failed] = await repository.storeStatuses();
+    expect(failed).toMatchObject({
+      ok: false,
+      error: 'site changed',
+      lastSuccessAt: new Date('2026-10-26T04:17:00Z'),
+    });
+
+    await repository.saveStoreStatus({
+      ...base,
+      ok: true,
+      lastRunAt: new Date('2026-10-26T16:17:00Z'),
+    });
+    const [recovered] = await repository.storeStatuses();
+    expect(recovered).toMatchObject({ ok: true, lastSuccessAt: new Date('2026-10-26T16:17:00Z') });
+    expect(recovered).not.toHaveProperty('error');
+  });
+});

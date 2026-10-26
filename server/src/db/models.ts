@@ -53,6 +53,7 @@ const storeStatusSchema = new Schema<StoreStatus>(
     offerCount: { type: Number, required: true },
     durationMs: { type: Number, required: true },
     error: String,
+    lastSuccessAt: Date,
   },
   { collection: 'store_status', versionKey: false },
 );

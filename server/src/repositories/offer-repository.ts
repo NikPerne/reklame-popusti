@@ -63,6 +63,8 @@ export interface StoreStatus {
   offerCount: number;
   durationMs: number;
   error?: string;
+  /** Last successful refresh; kept when later runs fail (used for the "no new data" warning). */
+  lastSuccessAt?: Date;
 }
 
 export interface ReplaceResult {

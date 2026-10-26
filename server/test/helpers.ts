@@ -88,7 +88,12 @@ export class FakeOfferRepository implements OfferRepository {
   }
 
   async saveStoreStatus(status: StoreStatus): Promise<void> {
-    this.statuses = [...this.statuses.filter((s) => s.store !== status.store), status];
+    const previous = this.statuses.find((s) => s.store === status.store);
+    const lastSuccessAt = status.ok ? status.lastRunAt : previous?.lastSuccessAt;
+    this.statuses = [
+      ...this.statuses.filter((s) => s.store !== status.store),
+      { ...status, ...(lastSuccessAt && { lastSuccessAt }) },
+    ];
   }
 
   async storeStatuses(): Promise<StoreStatus[]> {

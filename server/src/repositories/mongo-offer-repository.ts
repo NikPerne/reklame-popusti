@@ -278,7 +278,15 @@ export class MongoOfferRepository implements OfferRepository {
   }
 
   async saveStoreStatus(status: StoreStatus): Promise<void> {
-    await StoreStatusModel.replaceOne({ store: status.store }, status, { upsert: true });
+    // A failed run leaves lastSuccessAt as it was; a successful one clears the old error.
+    await StoreStatusModel.updateOne(
+      { store: status.store },
+      {
+        $set: { ...status, ...(status.ok && { lastSuccessAt: status.lastRunAt }) },
+        ...(status.error === undefined && { $unset: { error: 1 } }),
+      },
+      { upsert: true },
+    );
   }
 
   async storeStatuses(): Promise<StoreStatus[]> {
