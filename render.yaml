@@ -1,0 +1,89 @@
+# Render Blueprint: https://render.com/docs/blueprint-spec
+# Dashboard -> New -> Blueprint -> pick this repo. Render asks for the `sync: false` values.
+services:
+  # --- API (Fastify) ---------------------------------------------------------------------------
+  - type: web
+    name: reklame-popusti-api
+    runtime: node
+    plan: free
+    region: frankfurt
+    # Render sets NODE_ENV=production during the build too, so dev dependencies (TypeScript)
+    # must be included explicitly. Only the server workspace is installed.
+    buildCommand: npm ci --workspace server --include=dev && npm run build -w server
+    startCommand: npm run start -w server
+    healthCheckPath: /api/health
+    buildFilter:
+      paths:
+        - server/**
+        - package.json
+        - package-lock.json
+        - .node-version
+      ignoredPaths:
+        - server/test/**
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SEARCH_MODE
+        value: atlas
+      # Requests pass through the static site's proxy and Render's load balancer.
+      # Verify after the first deploy (see README); too low is safe, too high is not.
+      - key: TRUST_PROXY_HOPS
+        value: '1'
+      - key: MONGODB_URI
+        sync: false
+      - key: APP_PASSWORD_HASH
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: REFRESH_TOKEN
+        generateValue: true
+
+  # --- Frontend (Angular PWA) ------------------------------------------------------------------
+  - type: web
+    name: reklame-popusti
+    runtime: static
+    buildCommand: npm ci --workspace client --include=dev && npm run build -w client
+    staticPublishPath: client/dist/client/browser
+    pullRequestPreviewsEnabled: false
+    buildFilter:
+      paths:
+        - client/**
+        - package.json
+        - package-lock.json
+        - .node-version
+    routes:
+      # Same-origin API: the browser only ever talks to this site, so the session cookie can be
+      # SameSite=Strict. Change the host if Render gave the API a different URL.
+      - type: rewrite
+        source: /api/*
+        destination: https://reklame-popusti-api.onrender.com/api/*
+      # Angular routes (e.g. /login) are served by index.html. Existing files are served first.
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /*
+        name: Content-Security-Policy
+        value: "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self'; font-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: Referrer-Policy
+        value: no-referrer
+      - path: /*
+        name: X-Robots-Tag
+        value: noindex, nofollow
+      # The service worker must always see the latest app version.
+      - path: /index.html
+        name: Cache-Control
+        value: no-cache
+      - path: /ngsw.json
+        name: Cache-Control
+        value: no-cache
+      - path: /ngsw-worker.js
+        name: Cache-Control
+        value: no-cache

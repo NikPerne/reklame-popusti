@@ -39,7 +39,7 @@ export const authRoutes: FastifyPluginAsync<AuthRouteOptions> = async (app, env)
       const { password } = parseOrBadRequest(loginBodySchema, request.body);
       const valid = await verify(env.APP_PASSWORD_HASH, password).catch(() => false);
       if (!valid) {
-        request.log.warn('failed login attempt');
+        request.log.warn({ ip: request.ip }, 'failed login attempt');
         return reply.unauthorized('Wrong password');
       }
 
