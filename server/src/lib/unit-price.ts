@@ -54,3 +54,27 @@ export function parseUnitPriceText(
   const amount = Math.round((price / (quantity * unit.factor)) * 1000) / 1000;
   return { amount, unit: unit.unit };
 }
+
+/**
+ * Unit price from a package size in a product name, for stores that don't publish one:
+ * "Jogurt, 430 g" → €/kg, "Detergent, 50 pranj 2,7 l" → €/l, "Desert, 6 x 37 g" → €/kg.
+ * The last size in the name wins (it is usually the package size).
+ */
+export function unitPriceFromName(
+  price: number,
+  name: string,
+): { amount: number; unit: UnitPriceUnit } | undefined {
+  const sizes = [
+    ...name
+      .toLowerCase()
+      .matchAll(/(?:(\d+)\s*x\s*)?(\d+(?:[.,]\d+)?)\s*(kg|g|ml|cl|l|kos|kosov|kom)(?![a-zčšž])/g),
+  ];
+  const last = sizes.at(-1);
+  if (!last) return undefined;
+  const count = last[1] ? Number(last[1]) : 1;
+  const quantity = parseDecimal(last[2]);
+  const unit = UNIT_FACTORS[last[3] === 'kosov' ? 'kos' : (last[3] ?? '')];
+  if (!unit || !quantity || quantity <= 0 || !(price > 0)) return undefined;
+  const amount = Math.round((price / (count * quantity * unit.factor)) * 1000) / 1000;
+  return { amount, unit: unit.unit };
+}

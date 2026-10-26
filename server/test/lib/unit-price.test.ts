@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { decodeHtmlEntities } from '../../src/lib/html.js';
-import { parseUnitPriceText } from '../../src/lib/unit-price.js';
+import { parseUnitPriceText, unitPriceFromName } from '../../src/lib/unit-price.js';
 
 describe('parseUnitPriceText', () => {
   it.each([
@@ -31,5 +31,22 @@ describe('decodeHtmlEntities', () => {
       `"Feta" & 'sir' 'x' <b>`,
     );
     expect(decodeHtmlEntities('&unknown;')).toBe('&unknown;');
+  });
+});
+
+describe('unitPriceFromName', () => {
+  it.each([
+    ['Jogurt MU Athentikos, naravni, 430 g', 2.15, { amount: 5, unit: 'kg' }],
+    ['Alpsko mleko, polnomastno, 1 l', 0.99, { amount: 0.99, unit: 'l' }],
+    ['Detergent Nila, gel, 50 pranj 2,7 l', 8.1, { amount: 3, unit: 'l' }],
+    ['Desert Balconi, Rollino Cacao, 6 x 37 g', 2.22, { amount: 10, unit: 'kg' }],
+    ['Papirnati robčki, 3-slojni, 100 kosov', 1, { amount: 0.01, unit: 'piece' }],
+    ['Pivo Union, 4,9 % alkohola, 6 x 0,5 l', 6, { amount: 2, unit: 'l' }],
+  ])('%s at %d €', (name, price, expected) => {
+    expect(unitPriceFromName(price, name)).toEqual(expected);
+  });
+
+  it('returns undefined without a size', () => {
+    expect(unitPriceFromName(1, 'Šopek krizantem')).toBeUndefined();
   });
 });
