@@ -14,6 +14,11 @@ jobs:
         with:
           node-version-file: .node-version
           cache: npm
+      # MongoDB binary for the integration tests (mongodb-memory-server).
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/mongodb-binaries
+          key: mongodb-binaries-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - run: npm ci
       - run: npm run format:check
       - run: npm run lint
