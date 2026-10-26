@@ -4,7 +4,7 @@
 
 Search for a product such as `kava` or `pralni prašek` and see every current offer across stores: price, regular price, discount %, unit price, validity dates, store, image and a link to the source.
 
-> **Status:** Phases 1–4 are complete: API, Mercator adapter and the Angular frontend (login, search, filters, sorting, SL/EN). Next: the remaining store adapters, then PWA and deployment. See the [Roadmap](#roadmap).
+> **Status:** Live at https://popusti.onrender.com with Mercator offers (API, frontend, PWA, scheduled refresh). Next: the Lidl, Hofer and Spar adapters. See the [Roadmap](#roadmap).
 
 ## Supported stores
 
@@ -216,5 +216,5 @@ This is a personal tool. Scrapers respect `robots.txt`, identify themselves with
 2. Data model, API and auth ✔
 3. First store adapter (Mercator) ✔
 4. Frontend (login, search, filters, sorting, SL/EN) ✔
-5. PWA and deployment ← _in progress_ (moved ahead so the app is usable early; waiting for the first Render deploy)
-6. Remaining store adapters
+5. PWA and deployment ✔ (live at https://popusti.onrender.com)
+6. Remaining store adapters (Lidl, Hofer, Spar) ← _next_
