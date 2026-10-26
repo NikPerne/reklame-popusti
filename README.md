@@ -4,7 +4,7 @@
 
 Search for a product such as `kava` or `pralni prašek` and see every current offer across stores: price, regular price, discount %, unit price, validity dates, store, image and a link to the source.
 
-> **Status:** Live at https://popusti.onrender.com with Mercator, Lidl, Hofer and Spar offers (API, frontend, PWA, scheduled refresh). Next: Eurospin and Tuš. See the [Roadmap](#roadmap).
+> **Status:** Live at https://popusti.onrender.com with Mercator, Lidl, Hofer, Spar and Eurospin offers (API, frontend, PWA, scheduled refresh). Next: Tuš. See the [Roadmap](#roadmap).
 
 ## Supported stores
 
@@ -15,7 +15,7 @@ Search for a product such as `kava` or `pralni prašek` and see every current of
 | Hofer    | ✔ done      | "Pregled posebne ponudbe" listing (all current special offers, ~280, 60 per page) with the products in the page's embedded Nuxt payload (`__NUXT_DATA__`). Offer price and on-sale date only; Hofer publishes no regular price, so no discount %. The "Vse spuščene cene" (permanently lowered prices) list is not included.  |
 | Spar     | ✔ done      | Online shop `online.spar.si`, categories "Iz letaka" and "Akcije, dom in prosti čas" (50 per page, `?currentPage=N`). Products come from the Next.js flight payload in the HTML. Respects spar.si's robots.txt wishes: 10 s between requests and visits only 04:00–08:45 UTC, so Spar refreshes in the 04:17 UTC run only.    |
 | dm       | not planned | Offers only come from `product-search.services.dmtech.com`, whose robots.txt disallows everything.                                                                                                                                                                                                                            |
-| Eurospin | planned     | `eurospin.si/akcije/`: one page with all ~390 offers as schema.org product cards (old/new price, size, unit price, validity).                                                                                                                                                                                                 |
+| Eurospin | ✔ done      | `eurospin.si/akcije/`: one page with all ~390 offers as schema.org product cards (old/new price, size, unit price, validity), plus its 26 `?category_filter=` pages to learn each product's category (27 requests per run). Next week's preview cards without a price are skipped.                                            |
 | Tuš      | planned     | WooCommerce offer lists "Aktualno iz kataloga" and "Tuš Klub −50 %" (card price), with EAN, regular price and discount %; no validity dates in the lists. "Trajno znižano" and "Mojih 10" are not included.                                                                                                                   |
 | Müller   | postponed   | No product offers online, only campaign texts and PDF leaflets.                                                                                                                                                                                                                                                               |
 
@@ -129,7 +129,7 @@ Query parameters for offer lists:
 | Parameter          | Example         | Notes                                                                                                                                                  |
 | ------------------ | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `q`                | `pralni prašek` | Text search, 2–100 characters, ignores diacritics                                                                                                      |
-| `store`            | `lidl,dm`       | One or more of `mercator`, `lidl`, `hofer`, `spar`, `dm`, `mueller`                                                                                    |
+| `store`            | `lidl,dm`       | One or more of `mercator`, `lidl`, `hofer`, `spar`, `dm`, `mueller`, `eurospin`, `tus`                                                                 |
 | `category`         | `drogerija`     | One of the category ids in `server/src/domain/categories.ts`                                                                                           |
 | `minDiscount`      | `30`            | Minimum discount in %                                                                                                                                  |
 | `sort`             | `price`         | `relevance` (default when `q` is set), `discount` (default otherwise), `price`, `unitPrice` (€/kg, €/l or €/piece; offers without one last), `validTo` |
@@ -219,4 +219,4 @@ This is a personal tool. Scrapers respect `robots.txt`, identify themselves with
 3. First store adapter (Mercator) ✔
 4. Frontend (login, search, filters, sorting, SL/EN) ✔
 5. PWA and deployment ✔ (live at https://popusti.onrender.com)
-6. Remaining store adapters: Lidl ✔, Hofer ✔, Spar ✔, then Eurospin, Tuš ← _next_
+6. Remaining store adapters: Lidl ✔, Hofer ✔, Spar ✔, Eurospin ✔, then Tuš ← _next_
