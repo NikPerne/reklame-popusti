@@ -15,6 +15,14 @@ const ALWAYS_REVALIDATE = new Set([
 /** Angular's content-hashed bundles, e.g. main-7MAUWQK5.js. */
 const HASHED_ASSET = /-[A-Z0-9]{8}\.(?:js|css)$/;
 
+/**
+ * The service worker runs under the CSP of its own script. It fetches the stores' product
+ * images on the page's behalf, and those fetches fall under connect-src, so the worker needs
+ * the same reach as the page's img-src. The page itself keeps connect-src 'self'.
+ */
+const SERVICE_WORKER = 'ngsw-worker.js';
+const SERVICE_WORKER_CSP = "default-src 'self'; connect-src 'self' https:; script-src 'self'";
+
 function cacheControlFor(filePath: string): string {
   const name = basename(filePath);
   if (ALWAYS_REVALIDATE.has(name)) return 'no-cache';
@@ -36,6 +44,9 @@ export const clientAppPlugin = fp(
       cacheControl: false,
       setHeaders: (reply, filePath) => {
         void reply.header('cache-control', cacheControlFor(filePath));
+        if (basename(filePath) === SERVICE_WORKER) {
+          void reply.header('content-security-policy', SERVICE_WORKER_CSP);
+        }
       },
     });
 

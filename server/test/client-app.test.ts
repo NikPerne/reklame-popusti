@@ -13,6 +13,7 @@ describe('serving the web app', () => {
     writeFileSync(join(root, 'index.html'), '<!doctype html><title>Popusti</title>');
     writeFileSync(join(root, 'main-7MAUWQK5.js'), 'console.log(1)');
     writeFileSync(join(root, 'ngsw.json'), '{}');
+    writeFileSync(join(root, 'ngsw-worker.js'), '// worker');
     mkdirSync(join(root, 'i18n'));
     writeFileSync(join(root, 'i18n', 'sl.json'), '{}');
     t = await buildTestApp(undefined, root);
@@ -68,6 +69,15 @@ describe('serving the web app', () => {
 
     expect(response.statusCode).toBe(404);
     expect(response.json()).toEqual({ statusCode: 404, error: 'Not Found' });
+  });
+
+  it('lets the service worker fetch store images while the page keeps connect-src self', async () => {
+    const worker = await get('/ngsw-worker.js');
+    const page = await get('/');
+
+    expect(worker.statusCode).toBe(200);
+    expect(worker.headers['content-security-policy']).toContain("connect-src 'self' https:");
+    expect(page.headers['content-security-policy']).toContain("connect-src 'self';");
   });
 
   it('sends the security headers', async () => {
