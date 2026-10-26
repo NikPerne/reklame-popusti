@@ -85,6 +85,8 @@ export type Offer = ScrapedOffer & {
   searchText: string;
   /** When the TTL index deletes the offer. */
   expiresAt: Date;
+  /** Set after each refresh for offers that have a twin (see domain/grouping.ts). */
+  groupKey?: string;
 };
 
 /** Lowercases and strips diacritics: "Pralni PRAŠEK Đumbir" -> "pralni prasek dumbir". */

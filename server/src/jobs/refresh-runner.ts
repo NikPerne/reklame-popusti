@@ -58,6 +58,16 @@ export async function runRefresh(deps: RefreshDependencies): Promise<RefreshSumm
     results.push(await refreshStore(adapter, deps, now));
   }
 
+  // Link offers for the same product across stores, now that every store's offers are in.
+  if (results.some((r) => r.ok && !r.skipped)) {
+    try {
+      const groups = await deps.repository.regroup();
+      deps.log.info({ groups }, 'grouped offers for the same product');
+    } catch (error) {
+      deps.log.error({ err: error }, 'grouping offers failed');
+    }
+  }
+
   return { startedAt, finishedAt: now(), results };
 }
 

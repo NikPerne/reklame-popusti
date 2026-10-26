@@ -4,7 +4,9 @@ import { normalizeSearchText, type Offer } from '../domain/offer.js';
 import type { StoreId } from '../domain/stores.js';
 import { OfferModel, StoreStatusModel } from '../db/models.js';
 import searchIndex from '../db/atlas-search-index.json' with { type: 'json' };
+import { computeGroups } from '../domain/grouping.js';
 import type {
+  OfferAlternative,
   OfferPage,
   OfferQuery,
   OfferRepository,
@@ -41,10 +43,12 @@ export function buildTextFilter(text: string): QueryFilter<Offer> {
   return { $and: terms.map((term) => ({ searchText: { $regex: escapeRegex(term) } })) };
 }
 
-type SortSpec = Record<string, 1 | -1 | { $meta: 'searchScore' }>;
+type SortSpec = Record<string, 1 | -1>;
 
 /** Ascending sorts put missing values first in MongoDB; this field sorts them last instead. */
 const SORT_KEY = '_sortKey';
+/** Atlas Search relevance, copied into a field so it survives grouping. */
+const SCORE = '_score';
 const LAST = 1e12;
 
 /** Optional fields used for ascending sorts, mapped to a `$addFields` stage that fills gaps. */
@@ -64,7 +68,7 @@ export function buildSort(query: OfferQuery, mode: SearchMode): SortSpec {
     case 'validTo':
       return { [SORT_KEY]: 1, ...tiebreak };
     case 'relevance':
-      if (query.text && mode === 'atlas') return { score: { $meta: 'searchScore' }, ...tiebreak };
+      if (query.text && mode === 'atlas') return { [SCORE]: -1, ...tiebreak };
       return { discountPercent: -1, ...tiebreak };
     case 'discount':
       return { discountPercent: -1, ...tiebreak };
@@ -93,25 +97,74 @@ export function buildPipeline(query: OfferQuery, mode: SearchMode): PipelineStag
   }
 
   pipeline.push({ $match: match });
+  if (query.text && mode === 'atlas') {
+    pipeline.push({ $addFields: { [SCORE]: { $meta: 'searchScore' } } });
+  }
   const sortKey = sortKeyStage(query);
   if (sortKey) pipeline.push(sortKey);
-  pipeline.push({ $sort: buildSort(query, mode) } as PipelineStage.Sort, {
-    $facet: {
-      items: [
-        { $skip: (query.page - 1) * query.pageSize },
-        { $limit: query.pageSize },
-        { $project: { searchText: 0, expiresAt: 0, [SORT_KEY]: 0 } },
-      ],
-      total: [{ $count: 'count' }],
+  const sort = { $sort: buildSort(query, mode) } as PipelineStage.Sort;
+
+  pipeline.push(
+    sort,
+    // One result per product: the best offer for this sort, the others as "also at".
+    {
+      $group: {
+        _id: { $ifNull: ['$groupKey', '$_id'] },
+        best: { $first: '$ROOT' },
+        members: {
+          $push: {
+            id: '$_id',
+            store: '$store',
+            productName: '$productName',
+            price: '$price',
+            unitPrice: '$unitPrice',
+            condition: '$condition',
+            sourceUrl: '$sourceUrl',
+          },
+        },
+      },
     },
-  });
+    {
+      $replaceRoot: {
+        newRoot: {
+          $mergeObjects: [
+            '$best',
+            {
+              alsoAt: {
+                $filter: { input: '$members', cond: { $ne: ['$this.id', '$best._id'] } },
+              },
+            },
+          ],
+        },
+      },
+    },
+    sort,
+    {
+      $facet: {
+        items: [
+          { $skip: (query.page - 1) * query.pageSize },
+          { $limit: query.pageSize },
+          { $project: { searchText: 0, expiresAt: 0, groupKey: 0, [SORT_KEY]: 0, [SCORE]: 0 } },
+        ],
+        total: [{ $count: 'count' }],
+      },
+    },
+  );
   return pipeline;
 }
 
-type OfferDoc = Omit<OfferView, 'id'> & { _id: { toString(): string } };
+type AlternativeDoc = Omit<OfferAlternative, 'id'> & { id: { toString(): string } };
+type OfferDoc = Omit<OfferView, 'id' | 'alsoAt'> & {
+  _id: { toString(): string };
+  alsoAt?: AlternativeDoc[];
+};
 
-function toView({ _id, ...rest }: OfferDoc): OfferView {
-  return { id: _id.toString(), ...rest };
+function toView({ _id, alsoAt, ...rest }: OfferDoc): OfferView {
+  return {
+    id: _id.toString(),
+    ...rest,
+    ...(alsoAt?.length && { alsoAt: alsoAt.map((a) => ({ ...a, id: a.id.toString() })) }),
+  };
 }
 
 export class MongoOfferRepository implements OfferRepository {
@@ -158,6 +211,38 @@ export class MongoOfferRepository implements OfferRepository {
       scrapedAt: { $lt: runStartedAt },
     });
     return { upserted: offers.length, removed: deletedCount };
+  }
+
+  async regroup(): Promise<number> {
+    const docs = await OfferModel.find(
+      {},
+      { store: 1, productName: 1, price: 1, eans: 1, groupKey: 1 },
+    ).lean<
+      (Pick<Offer, 'store' | 'productName' | 'price' | 'eans' | 'groupKey'> & { _id: unknown })[]
+    >();
+    const groups = computeGroups(
+      docs.map((d) => ({
+        id: String(d._id),
+        store: d.store,
+        productName: d.productName,
+        price: d.price,
+        ...(d.eans && { eans: d.eans }),
+      })),
+    );
+    const updates = docs.flatMap((d) => {
+      const key = groups.get(String(d._id));
+      if (key === d.groupKey) return [];
+      return [
+        {
+          updateOne: {
+            filter: { _id: d._id },
+            update: key ? { $set: { groupKey: key } } : { $unset: { groupKey: 1 } },
+          },
+        },
+      ];
+    });
+    if (updates.length > 0) await OfferModel.bulkWrite(updates, { ordered: false });
+    return new Set(groups.values()).size;
   }
 
   async saveStoreStatus(status: StoreStatus): Promise<void> {

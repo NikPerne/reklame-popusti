@@ -73,6 +73,13 @@ export class FakeOfferRepository implements OfferRepository {
     return { upserted: offers.length, removed };
   }
 
+  regroupCalls = 0;
+
+  async regroup(): Promise<number> {
+    this.regroupCalls++;
+    return 0;
+  }
+
   async saveStoreStatus(status: StoreStatus): Promise<void> {
     this.statuses = [...this.statuses.filter((s) => s.store !== status.store), status];
   }

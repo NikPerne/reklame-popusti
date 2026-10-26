@@ -26,7 +26,8 @@ describe('buildPipeline', () => {
     expect(pipeline[0]).toMatchObject({
       $search: { index: 'default', text: { query: 'kava' } },
     });
-    expect(pipeline).toContainEqual({ $sort: { score: { $meta: 'searchScore' }, _id: 1 } });
+    expect(pipeline).toContainEqual({ $addFields: { _score: { $meta: 'searchScore' } } });
+    expect(pipeline).toContainEqual({ $sort: { _score: -1, _id: 1 } });
   });
 
   it('uses the searchText regex in basic mode and falls back to discount order', () => {
@@ -68,6 +69,18 @@ describe('buildPipeline', () => {
     expect(pipeline).toContainEqual({
       $addFields: { _sortKey: { $ifNull: ['$validTo', new Date(1e15)] } },
     });
+  });
+
+  it('collapses offers for the same product into one result with "also at" alternatives', () => {
+    const pipeline = buildPipeline({ ...base, sort: 'price' }, 'atlas');
+    const groupIndex = pipeline.findIndex((s) => '$group' in s);
+
+    expect(pipeline[groupIndex]).toMatchObject({
+      $group: { _id: { $ifNull: ['$groupKey', '$_id'] }, best: { $first: '$ROOT' } },
+    });
+    // Sorted before grouping (so the best offer comes first) and again after.
+    expect(pipeline[groupIndex - 1]).toEqual({ $sort: { price: 1, _id: 1 } });
+    expect(pipeline[groupIndex + 2]).toEqual({ $sort: { price: 1, _id: 1 } });
   });
 
   it('paginates inside the facet', () => {

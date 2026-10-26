@@ -58,6 +58,20 @@ describe('runRefresh', () => {
     });
 
     expect(summary.results[0]).toMatchObject({ ok: true, offerCount: 1, invalidCount: 1 });
+    expect(repository.regroupCalls).toBe(1);
+  });
+
+  it('does not regroup when no store was refreshed', async () => {
+    const repository = new FakeOfferRepository();
+
+    await runRefresh({
+      adapters: [adapter('lidl', () => Promise.reject(new Error('down')))],
+      repository,
+      http,
+      log: silentLogger,
+    });
+
+    expect(repository.regroupCalls).toBe(0);
   });
 
   it("keeps a store's previous offers when it returns nothing valid", async () => {

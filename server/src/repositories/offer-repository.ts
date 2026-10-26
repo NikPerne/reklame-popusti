@@ -20,7 +20,22 @@ export interface OfferQuery {
   now: Date;
 }
 
-export type OfferView = Omit<Offer, 'searchText' | 'expiresAt'> & { id: string };
+/** Another store's (or a duplicate listing's) offer for the same product. */
+export interface OfferAlternative {
+  id: string;
+  store: StoreId;
+  productName: string;
+  price: number;
+  unitPrice?: Offer['unitPrice'];
+  condition?: Offer['condition'];
+  sourceUrl?: string;
+}
+
+export type OfferView = Omit<Offer, 'searchText' | 'expiresAt' | 'groupKey'> & {
+  id: string;
+  /** The same product elsewhere (shared barcode or duplicate listing), when there is any. */
+  alsoAt?: OfferAlternative[];
+};
 
 export interface OfferPage {
   items: OfferView[];
@@ -47,6 +62,8 @@ export interface OfferRepository {
   categoryCounts(now: Date): Promise<{ category: CategoryId; count: number }[]>;
   /** Upserts the store's current offers and removes the ones not seen in this run. */
   replaceStoreOffers(store: StoreId, offers: Offer[], runStartedAt: Date): Promise<ReplaceResult>;
+  /** Links offers for the same product (see computeGroups); returns the number of groups. */
+  regroup(): Promise<number>;
   saveStoreStatus(status: StoreStatus): Promise<void>;
   storeStatuses(): Promise<StoreStatus[]>;
 }
