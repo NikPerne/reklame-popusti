@@ -36,6 +36,10 @@
     />
   </details>
 
+  @if (!params().q && !filtered()) {
+    <app-home-sections [prefs]="prefs()" [lang]="lang()" />
+  }
+
   <div class="results-header" aria-live="polite">
     @if (status() !== 'error' && status() !== 'offline') {
       <h2>

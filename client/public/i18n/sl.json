@@ -38,14 +38,16 @@
     "minDiscount": "Najmanjši popust",
     "anyDiscount": "Kateri koli",
     "sort": "Razvrsti",
-    "reset": "Ponastavi filtre"
+    "reset": "Ponastavi filtre",
+    "upcoming": "Pokaži prihodnje ponudbe"
   },
   "sort": {
     "relevance": "Najboljše ujemanje",
     "price": "Najnižja cena",
     "unitPrice": "Najnižja cena na enoto",
     "discount": "Največji popust",
-    "validTo": "Kmalu poteče"
+    "validTo": "Kmalu poteče",
+    "newest": "Najnovejše"
   },
   "offer": {
     "regularPrice": "Prej",
@@ -104,5 +106,9 @@
     "preferredStoresHint": "Iskanje privzeto prikaže le te trgovine (filter lahko vedno spremeniš). Brez izbire: vse trgovine.",
     "hiddenCategories": "Skrite kategorije",
     "hiddenCategoriesHint": "Ponudbe iz teh kategorij se nikoli ne prikažejo, razen če kategorijo izbereš v filtru."
+  },
+  "home": {
+    "newThisWeek": "Novo ta teden",
+    "endingSoon": "Kmalu poteče"
   }
 }

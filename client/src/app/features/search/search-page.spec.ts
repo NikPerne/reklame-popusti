@@ -7,6 +7,9 @@ import { makeOffer, makePage } from '../../../testing/offers';
 import { translocoTesting } from '../../../testing/transloco-testing';
 import { SearchPage } from './search-page';
 
+const isSectionRequest = (r: { url: string; params: { has(name: string): boolean } }) =>
+  r.url === '/api/offers' && (r.params.has('startedWithinDays') || r.params.has('endsWithinDays'));
+
 describe('SearchPage', () => {
   let http: HttpTestingController;
   let queryParams: BehaviorSubject<Record<string, string>>;
@@ -40,6 +43,8 @@ describe('SearchPage', () => {
     await fixture.whenStable();
     http.match('/api/stores').forEach((r) => r.flush([]));
     http.match('/api/categories').forEach((r) => r.flush([]));
+    // The start page's "new this week" / "ending soon" rows.
+    http.match(isSectionRequest).forEach((r) => r.flush(makePage([])));
     const element = fixture.nativeElement as HTMLElement;
     return { fixture, element };
   }
@@ -47,7 +52,9 @@ describe('SearchPage', () => {
   function expectOffers(params: Record<string, string>) {
     return http.expectOne(
       (r) =>
-        r.url === '/api/offers' && Object.entries(params).every(([k, v]) => r.params.get(k) === v),
+        r.url === '/api/offers' &&
+        !isSectionRequest(r) &&
+        Object.entries(params).every(([k, v]) => r.params.get(k) === v),
     );
   }
 
@@ -98,6 +105,19 @@ describe('SearchPage', () => {
     expect(element.querySelectorAll('app-offer-card')).toHaveLength(1);
   });
 
+  it('shows the start page rows only without a search', async () => {
+    const { fixture, element } = await create();
+    expectOffers({ page: '1' }).flush(makePage([]));
+    await fixture.whenStable();
+    expect(element.querySelector('app-home-sections')).not.toBeNull();
+
+    queryParams.next({ q: 'kava' });
+    await fixture.whenStable();
+    expectOffers({ q: 'kava' }).flush(makePage([]));
+    await fixture.whenStable();
+    expect(element.querySelector('app-home-sections')).toBeNull();
+  });
+
   it('writes filter changes to the URL', async () => {
     const router = TestBed.inject(Router);
     const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
@@ -109,7 +129,14 @@ describe('SearchPage', () => {
     });
 
     expect(navigate).toHaveBeenCalledWith([], {
-      queryParams: { q: null, store: null, category: null, minDiscount: 40, sort: null },
+      queryParams: {
+        q: null,
+        store: null,
+        category: null,
+        minDiscount: 40,
+        sort: null,
+        upcoming: null,
+      },
       queryParamsHandling: 'merge',
       replaceUrl: false,
     });

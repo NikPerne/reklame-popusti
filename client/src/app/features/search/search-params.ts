@@ -22,6 +22,8 @@ export interface SearchParams {
   minDiscount: number | null;
   /** null = the API default (relevance when searching, otherwise discount). */
   sort: OfferSort | null;
+  /** Also show offers that start later (e.g. next week's flyer). */
+  upcoming: boolean;
 }
 
 export const EMPTY_SEARCH: SearchParams = {
@@ -30,6 +32,7 @@ export const EMPTY_SEARCH: SearchParams = {
   category: null,
   minDiscount: null,
   sort: null,
+  upcoming: false,
 };
 
 function oneOf<T extends string>(values: readonly T[], value: string | null): T | null {
@@ -50,6 +53,7 @@ export function parseSearchParams(map: ParamMap): SearchParams {
     category: oneOf(CATEGORY_IDS, map.get('category')),
     minDiscount: minDiscount > 0 && minDiscount <= 100 ? minDiscount : null,
     sort: oneOf(OFFER_SORTS, map.get('sort')),
+    upcoming: map.get('upcoming') === '1',
   };
 }
 
@@ -62,6 +66,7 @@ export function toQueryParams(params: SearchParams): Params {
     category: params.category,
     minDiscount: params.minDiscount,
     sort: params.sort,
+    upcoming: params.upcoming ? '1' : null,
   };
 }
 
@@ -91,6 +96,7 @@ export function toApiParams(
   if (params.category) api['category'] = params.category;
   else if (prefs.hiddenCategories.length) api['excludeCategory'] = prefs.hiddenCategories.join(',');
   if (params.minDiscount) api['minDiscount'] = String(params.minDiscount);
+  if (params.upcoming) api['upcoming'] = 'true';
   // "Best match" only means something with a search text.
   if (params.sort && (params.sort !== 'relevance' || api['q'])) api['sort'] = params.sort;
   return api;
@@ -105,6 +111,7 @@ export function hasFilters(params: SearchParams): boolean {
     params.stores !== null ||
     params.category !== null ||
     params.minDiscount !== null ||
-    params.sort !== null
+    params.sort !== null ||
+    params.upcoming
   );
 }

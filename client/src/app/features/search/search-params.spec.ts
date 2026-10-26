@@ -26,6 +26,7 @@ describe('search params', () => {
       category: 'shramba',
       minDiscount: 30,
       sort: 'unitPrice',
+      upcoming: false,
     });
     expect(
       parseSearchParams(convertToParamMap({ category: 'nope', minDiscount: '500', sort: 'x' })),
@@ -39,6 +40,7 @@ describe('search params', () => {
       category: null,
       minDiscount: null,
       sort: null,
+      upcoming: null,
     });
   });
 
@@ -49,6 +51,7 @@ describe('search params', () => {
       category: 'shramba',
       minDiscount: 20,
       sort: 'price',
+      upcoming: true,
     };
 
     expect(toApiParams(params, 2)).toEqual({
@@ -57,6 +60,7 @@ describe('search params', () => {
       category: 'shramba',
       minDiscount: '20',
       sort: 'price',
+      upcoming: 'true',
       page: '2',
       pageSize: '24',
     });

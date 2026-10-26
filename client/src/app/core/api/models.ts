@@ -35,7 +35,14 @@ export const CATEGORY_IDS = [
 ] as const;
 export type CategoryId = (typeof CATEGORY_IDS)[number];
 
-export const OFFER_SORTS = ['relevance', 'price', 'unitPrice', 'discount', 'validTo'] as const;
+export const OFFER_SORTS = [
+  'relevance',
+  'price',
+  'unitPrice',
+  'discount',
+  'validTo',
+  'newest',
+] as const;
 export type OfferSort = (typeof OFFER_SORTS)[number];
 
 export type UnitPriceUnit = 'kg' | 'l' | 'piece';

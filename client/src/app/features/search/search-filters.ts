@@ -58,6 +58,10 @@ export class SearchFilters {
     this.changed.emit({ minDiscount: value > 0 ? value : null });
   }
 
+  protected onUpcoming(event: Event): void {
+    this.changed.emit({ upcoming: (event.target as HTMLInputElement).checked });
+  }
+
   protected onSort(event: Event): void {
     const value = (event.target as HTMLSelectElement).value;
     this.changed.emit({ sort: (value || null) as OfferSort | null });

@@ -38,14 +38,16 @@
     "minDiscount": "Minimum discount",
     "anyDiscount": "Any",
     "sort": "Sort by",
-    "reset": "Reset filters"
+    "reset": "Reset filters",
+    "upcoming": "Show upcoming offers"
   },
   "sort": {
     "relevance": "Best match",
     "price": "Lowest price",
     "unitPrice": "Lowest unit price",
     "discount": "Biggest discount",
-    "validTo": "Ending soon"
+    "validTo": "Ending soon",
+    "newest": "Newest"
   },
   "offer": {
     "regularPrice": "Was",
@@ -104,5 +106,9 @@
     "preferredStoresHint": "Search shows only these stores by default (you can always change the filter). None selected: all stores.",
     "hiddenCategories": "Hidden categories",
     "hiddenCategoriesHint": "Offers in these categories never show up, unless you pick the category in the filter."
+  },
+  "home": {
+    "newThisWeek": "New this week",
+    "endingSoon": "Ending soon"
   }
 }

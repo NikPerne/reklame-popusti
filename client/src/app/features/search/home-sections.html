@@ -1,0 +1,20 @@
+<ng-container *transloco="let t; prefix: 'home'">
+  @for (
+    section of [
+      { key: 'newThisWeek', items: sections().newThisWeek },
+      { key: 'endingSoon', items: sections().endingSoon },
+    ];
+    track section.key
+  ) {
+    @if (section.items.length) {
+      <section class="row-section">
+        <h2>{{ t(section.key) }}</h2>
+        <ul class="row">
+          @for (offer of section.items; track offer.id) {
+            <li><app-offer-card [offer]="offer" [lang]="lang()" /></li>
+          }
+        </ul>
+      </section>
+    }
+  }
+</ng-container>

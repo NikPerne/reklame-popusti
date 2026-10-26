@@ -19,12 +19,14 @@ import { OffersApi } from '../../core/api/offers-api';
 import { LanguageService } from '../../core/i18n/language';
 import { SettingsService } from '../../core/settings/settings-service';
 import { ShortDatePipe } from '../../shared/format';
+import { HomeSections } from './home-sections';
 import { OfferCard } from './offer-card';
 import { SearchFilters } from './search-filters';
 import {
   EMPTY_SEARCH,
   MIN_QUERY_LENGTH,
   effectiveStores,
+  hasFilters,
   parseSearchParams,
   sameSearch,
   toApiParams,
@@ -45,7 +47,7 @@ const SLOW_REQUEST_MS = 5000;
 
 @Component({
   selector: 'app-search-page',
-  imports: [TranslocoDirective, OfferCard, SearchFilters, ShortDatePipe],
+  imports: [TranslocoDirective, OfferCard, SearchFilters, HomeSections, ShortDatePipe],
   templateUrl: './search-page.html',
   styleUrl: './search-page.scss',
 })
@@ -58,7 +60,7 @@ export class SearchPage {
   private readonly settings = inject(SettingsService);
 
   /** Preferred stores and hidden categories from the settings. */
-  private readonly prefs = computed<SearchPreferences>(() => ({
+  protected readonly prefs = computed<SearchPreferences>(() => ({
     preferredStores: this.settings.preferredStores(),
     hiddenCategories: this.settings.hiddenCategories(),
   }));
@@ -71,6 +73,7 @@ export class SearchPage {
   /** The free API server sleeps when idle; the first request can take up to a minute. */
   protected readonly slow = signal(false);
   protected readonly hasMore = computed(() => this.items().length < this.total());
+  protected readonly filtered = computed(() => hasFilters(this.params()));
   /** Filters start collapsed on phones, where they would push the results off the screen. */
   protected readonly filtersOpen =
     typeof matchMedia === 'function' && matchMedia('(min-width: 40rem)').matches;
@@ -187,7 +190,7 @@ export class SearchPage {
   }
 
   protected resetFilters(): void {
-    this.update({ stores: null, category: null, minDiscount: null, sort: null });
+    this.update({ stores: null, category: null, minDiscount: null, sort: null, upcoming: false });
   }
 
   protected loadMore(): void {
