@@ -16,6 +16,10 @@ describe('parseUnitPriceText', () => {
     expect(parseUnitPriceText(text)).toEqual(expected);
   });
 
+  it("reads Eurospin's 'za kg' form", () => {
+    expect(parseUnitPriceText('150 g - za kg 7,00 €')).toEqual({ amount: 7, unit: 'kg' });
+  });
+
   it.each([undefined, '', 'cena na kos', '1 m = 2,00'])('ignores %s', (text) => {
     expect(parseUnitPriceText(text)).toBeUndefined();
   });

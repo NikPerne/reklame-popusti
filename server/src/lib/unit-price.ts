@@ -20,8 +20,8 @@ export function parseUnitPriceText(
   text: string | null | undefined,
 ): { amount: number; unit: UnitPriceUnit } | undefined {
   if (!text) return undefined;
-  // Non-breaking spaces (char 160) appear in some stores' price texts.
-  const normalized = text.replaceAll(String.fromCharCode(160), ' ').toLowerCase();
+  // The patterns use \s, which also matches the non-breaking spaces some stores use.
+  const normalized = text.toLowerCase();
 
   // "1 kg = 0,90" (Lidl) or "1,90 €/1 kg" (Hofer)
   const quantityFirst = /(\d+(?:[.,]\d+)?)\s*(kg|g|ml|cl|l|kos|kom)\b\s*=\s*(\d+(?:[.,]\d+)?)/.exec(
@@ -29,11 +29,17 @@ export function parseUnitPriceText(
   );
   const priceFirst =
     /(\d+(?:[.,]\d+)?)\s*€?\s*\/\s*(\d+(?:[.,]\d+)?)?\s*(kg|g|ml|cl|l|kos|kom)\b/.exec(normalized);
+  // "za kg 7,00 €" (Eurospin)
+  const perUnit = /\bza\s+(kg|l|kos)\s+(\d+(?:[.,]\d+)?)/.exec(normalized);
 
   let quantity: number | undefined;
   let unitName: string | undefined;
   let price: number | undefined;
-  if (quantityFirst) {
+  if (perUnit) {
+    quantity = 1;
+    unitName = perUnit[1];
+    price = parseDecimal(perUnit[2]);
+  } else if (quantityFirst) {
     quantity = parseDecimal(quantityFirst[1]);
     unitName = quantityFirst[2];
     price = parseDecimal(quantityFirst[3]);
