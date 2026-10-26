@@ -57,6 +57,7 @@ describe('parseMercatorProducts', () => {
       validTo: new Date('2026-11-03T22:37:52Z'),
       imageUrl: expect.stringMatching(/^https:\/\/mercatoronline\.si\/img\//) as unknown,
       sourceUrl: 'https://mercatoronline.si/izdelek/1436803/soncnicno-olje-zvijezda-1-l',
+      eans: ['3858882210010', '3858882212410'],
     });
   });
 

@@ -1,6 +1,7 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
 import { CATEGORY_IDS } from '../domain/categories.js';
+import { EAN_PATTERN } from '../domain/offer.js';
 import { STORE_IDS, STORES } from '../domain/stores.js';
 import { parseOrBadRequest } from '../lib/validation.js';
 import {
@@ -27,6 +28,7 @@ const offerQuerySchema = z.object({
   store: storeListSchema.optional(),
   category: z.enum(CATEGORY_IDS).optional(),
   minDiscount: z.coerce.number().min(0).max(100).optional(),
+  ean: z.string().regex(EAN_PATTERN, 'must be an 8–14 digit barcode').optional(),
   sort: z.enum(OFFER_SORTS).optional(),
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(MAX_PAGE_SIZE).default(24),
@@ -43,6 +45,7 @@ function toOfferQuery(input: OfferQueryInput, now: Date): OfferQuery {
     ...(input.store !== undefined && { stores: input.store }),
     ...(input.category !== undefined && { category: input.category }),
     ...(input.minDiscount !== undefined && { minDiscount: input.minDiscount }),
+    ...(input.ean !== undefined && { ean: input.ean }),
     sort: input.sort ?? (input.q ? 'relevance' : 'discount'),
     page: input.page,
     pageSize: input.pageSize,

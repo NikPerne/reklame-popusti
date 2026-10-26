@@ -13,6 +13,24 @@ export type UnitPriceUnit = (typeof UNIT_PRICE_UNITS)[number];
 export const CONDITION_KINDS = ['loyalty-card', 'multi-buy', 'coupon', 'other'] as const;
 export type ConditionKind = (typeof CONDITION_KINDS)[number];
 
+/** EAN-8, UPC-A, EAN-13 or GTIN-14. */
+export const EAN_PATTERN = /^\d{8,14}$/;
+
+/** Clean, de-duplicated barcodes, or undefined if there are none. */
+export function normalizeEans(
+  values: readonly (string | number | null | undefined)[],
+): string[] | undefined {
+  const eans = [
+    ...new Set(values.map((v) => String(v ?? '').trim()).filter((v) => EAN_PATTERN.test(v))),
+  ];
+  return eans.length > 0 ? eans : undefined;
+}
+
+/** `{ eans }` for spreading into an offer, or nothing when there are no barcodes. */
+export function withEans(eans: string[] | undefined): { eans?: string[] } {
+  return eans ? { eans } : {};
+}
+
 /** Offers without a known end date are dropped this long after they were last seen. */
 const UNDATED_OFFER_LIFETIME_DAYS = 7;
 /** Keep dated offers briefly past validTo so a late refresh doesn't show an empty store. */
@@ -46,6 +64,8 @@ export const scrapedOfferSchema = z
     validTo: z.date().optional(),
     imageUrl: z.url().optional(),
     sourceUrl: z.url().optional(),
+    /** EAN/GTIN barcodes, where the store publishes them (Mercator, Spar, Tuš). */
+    eans: z.array(z.string().regex(EAN_PATTERN)).min(1).optional(),
   })
   .refine((o) => o.regularPrice === undefined || o.regularPrice >= o.price, {
     message: 'regularPrice must be >= price',

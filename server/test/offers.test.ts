@@ -100,3 +100,16 @@ describe('offer endpoints', () => {
     expect(stores.find((s) => s.id === 'dm')?.status).toBeNull();
   });
 });
+
+describe('barcode search', () => {
+  it('passes a scanned barcode to the repository and rejects malformed ones', async () => {
+    const t = await buildTestApp();
+    const cookie = await login(t.app);
+    const get = (url: string) => t.app.inject({ method: 'GET', url, headers: { cookie } });
+
+    expect((await get('/api/offers?ean=3858882210010')).statusCode).toBe(200);
+    expect(t.repository.queries.at(-1)).toMatchObject({ ean: '3858882210010' });
+    expect((await get('/api/offers?ean=12ab')).statusCode).toBe(400);
+    await t.app.close();
+  });
+});

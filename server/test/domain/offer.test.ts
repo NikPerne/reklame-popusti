@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { finalizeOffer, normalizeSearchText, scrapedOfferSchema } from '../../src/domain/offer.js';
+import {
+  finalizeOffer,
+  normalizeEans,
+  normalizeSearchText,
+  scrapedOfferSchema,
+} from '../../src/domain/offer.js';
 import { scrapedOffer } from '../helpers.js';
 
 describe('normalizeSearchText', () => {
@@ -63,5 +68,14 @@ describe('scrapedOfferSchema', () => {
       scrapedOffer({ validFrom: new Date('2026-11-01'), validTo: new Date('2026-10-01') }),
     );
     expect(result.success).toBe(false);
+  });
+});
+
+describe('normalizeEans', () => {
+  it('keeps valid barcodes once and drops the rest', () => {
+    expect(
+      normalizeEans(['3858882210010', ' 3858882210010 ', 'abc', '123', null, 40111216]),
+    ).toEqual(['3858882210010', '40111216']);
+    expect(normalizeEans([undefined, ''])).toBeUndefined();
   });
 });

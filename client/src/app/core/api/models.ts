@@ -59,6 +59,8 @@ export interface Offer {
   validTo?: string;
   imageUrl?: string;
   sourceUrl?: string;
+  /** EAN barcodes (Mercator, Spar, Tuš only). */
+  eans?: string[];
   scrapedAt: string;
 }
 

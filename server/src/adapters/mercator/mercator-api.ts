@@ -39,6 +39,7 @@ export const mercatorProductSchema = z.looseObject({
     category2: z.string().nullish(),
     category3: z.string().nullish(),
     discounts: z.array(mercatorDiscountSchema),
+    gtins: z.array(z.looseObject({ gtin: z.string() })).nullish(),
   }),
 });
 

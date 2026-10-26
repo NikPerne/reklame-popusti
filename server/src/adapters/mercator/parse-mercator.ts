@@ -1,5 +1,11 @@
 import type { CategoryId } from '../../domain/categories.js';
-import { normalizeSearchText, type ScrapedOffer, type UnitPriceUnit } from '../../domain/offer.js';
+import {
+  normalizeEans,
+  normalizeSearchText,
+  withEans,
+  type ScrapedOffer,
+  type UnitPriceUnit,
+} from '../../domain/offer.js';
 import { parseDecimal, roundMoney, toSentenceCase, toTitleCase } from '../../lib/text.js';
 import { fromStoreLocalTime } from '../../lib/time.js';
 import type { MercatorDiscount, MercatorProduct } from './mercator-api.js';
@@ -147,6 +153,7 @@ export function parseMercatorProduct(
     ...(validTo && { validTo }),
     ...(product.mainImageSrc && { imageUrl: product.mainImageSrc }),
     sourceUrl: new URL(product.url, MERCATOR_BASE_URL).toString(),
+    ...withEans(normalizeEans((data.gtins ?? []).map((g) => g.gtin))),
   };
 }
 

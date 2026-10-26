@@ -37,6 +37,7 @@ describe('Spar parsing', () => {
       validTo: new Date('2026-10-27T21:59:59Z'),
       imageUrl: expect.stringMatching(/^https:\/\/cdn1\.interspar\.at\//) as unknown,
       sourceUrl: 'https://online.spar.si/p/paradiznikova-kremna-juha-podravka-60g-334863',
+      eans: ['3850104048036', '3850104274619', '3850104474613', '3850104875410'],
     });
   });
 

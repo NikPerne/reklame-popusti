@@ -1,6 +1,12 @@
 import type { CategoryId } from '../../domain/categories.js';
 import { guessCategory } from '../../domain/categorize.js';
-import { normalizeSearchText, type ScrapedOffer, type UnitPriceUnit } from '../../domain/offer.js';
+import {
+  normalizeEans,
+  normalizeSearchText,
+  withEans,
+  type ScrapedOffer,
+  type UnitPriceUnit,
+} from '../../domain/offer.js';
 import { flightObjects } from '../../lib/next-flight.js';
 import { roundMoney, toSentenceCase, toTitleCase } from '../../lib/text.js';
 import { sparProductSchema, type SparProduct } from './spar-api.js';
@@ -86,5 +92,6 @@ export function parseSparProduct(product: SparProduct, now: Date): ScrapedOffer 
     ...(validTo && { validTo }),
     ...(image && { imageUrl: image }),
     ...(product.slug && { sourceUrl: `${SPAR_BASE_URL}/p/${product.slug}` }),
+    ...withEans(normalizeEans(product.ean ?? [])),
   };
 }

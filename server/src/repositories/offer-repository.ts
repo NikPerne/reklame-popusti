@@ -10,6 +10,8 @@ export interface OfferQuery {
   stores?: StoreId[];
   category?: CategoryId;
   minDiscount?: number;
+  /** Only offers for this barcode (barcode scanner). */
+  ean?: string;
   /** `relevance` only applies with `text`; otherwise it falls back to `discount`. */
   sort: OfferSort;
   page: number;

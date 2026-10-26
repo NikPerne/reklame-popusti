@@ -27,6 +27,7 @@ const offerSchema = new Schema<Offer>(
     validTo: Date,
     imageUrl: String,
     sourceUrl: String,
+    eans: { type: [String], default: undefined },
     scrapedAt: { type: Date, required: true },
     searchText: { type: String, required: true },
     expiresAt: { type: Date, required: true },
@@ -38,6 +39,7 @@ offerSchema.index({ store: 1, externalId: 1 }, { unique: true });
 offerSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 offerSchema.index({ category: 1, discountPercent: -1 });
 offerSchema.index({ store: 1, discountPercent: -1 });
+offerSchema.index({ eans: 1 }, { sparse: true });
 
 export const OfferModel = model<Offer>('Offer', offerSchema);
 

@@ -27,6 +27,7 @@ export function buildFilter(
   if (query.stores?.length) filter.store = { $in: query.stores };
   if (query.category) filter.category = query.category;
   if (query.minDiscount !== undefined) filter.discountPercent = { $gte: query.minDiscount };
+  if (query.ean) filter.eans = query.ean;
   return filter;
 }
 

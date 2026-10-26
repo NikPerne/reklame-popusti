@@ -43,6 +43,7 @@ describe('Tuš parsing', () => {
       unitPrice: { amount: 5.225, unit: 'kg' },
       imageUrl: 'https://www.tus.si/app/images/5411188141488.jpg',
       sourceUrl: 'https://www.tus.si/izdelki/alpro-sojin-fermantiran-okus-borovnicev-mafin-400-g/',
+      eans: ['5411188141488'],
     });
   });
 

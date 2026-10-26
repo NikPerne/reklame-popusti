@@ -1,7 +1,7 @@
 import * as cheerio from 'cheerio';
 import type { CategoryId } from '../../domain/categories.js';
 import { guessCategory } from '../../domain/categorize.js';
-import type { ScrapedOffer } from '../../domain/offer.js';
+import { normalizeEans, withEans, type ScrapedOffer } from '../../domain/offer.js';
 import { parseDecimal, toTitleCase } from '../../lib/text.js';
 import { unitPriceFromName } from '../../lib/unit-price.js';
 
@@ -56,6 +56,7 @@ const SUBCATEGORY_MAP: Record<string, CategoryId> = {
 
 export interface TusCard {
   id: string;
+  ean?: string;
   name: string;
   /** "2,09 €" */
   price?: string;
@@ -96,6 +97,7 @@ export function extractTusPage(html: string): TusPage {
     cards.push({
       id,
       name,
+      ...optional('ean', card.attr('data-product-ean')),
       ...optional('price', item.find('.price').first().text().trim()),
       ...optional('regularPrice', item.find('.price-regular-desktop').first().text().trim()),
       ...optional('discount', item.find('.discount span').first().text().trim()),
@@ -157,5 +159,6 @@ export function parseTusCard(card: TusCard, clubCard: boolean): ScrapedOffer | u
     ...(clubCard && { condition: { kind: 'loyalty-card' as const, text: 'Tuš klub' } }),
     ...(image && { imageUrl: new URL(image, TUS_BASE_URL).toString() }),
     ...(card.url && { sourceUrl: new URL(card.url, TUS_BASE_URL).toString() }),
+    ...withEans(normalizeEans([card.ean])),
   };
 }

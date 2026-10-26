@@ -30,6 +30,8 @@ export const sparProductSchema = z.looseObject({
   pricePerSubUnit: z.number().nullish(),
   photosUrl: z.array(z.string()).nullish(),
   promotion: sparPromotionSchema.nullish(),
+  /** EAN barcodes of the product (and its pack variants). */
+  ean: z.array(z.string()).nullish(),
   categoriesData: z.array(z.looseObject({ categoryNamesPath: z.string().nullish() })).nullish(),
 });
 

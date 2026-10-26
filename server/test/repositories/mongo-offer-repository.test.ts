@@ -78,3 +78,10 @@ describe('buildPipeline', () => {
     });
   });
 });
+
+describe('buildFilter with a barcode', () => {
+  it('matches offers listing that barcode', () => {
+    const [stage] = buildPipeline({ ...base, ean: '3858882210010' }, 'atlas');
+    expect(stage).toHaveProperty('$match.eans', '3858882210010');
+  });
+});
