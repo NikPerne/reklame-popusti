@@ -98,3 +98,15 @@ describe('buildFilter with a barcode', () => {
     expect(stage).toHaveProperty('$match.eans', '3858882210010');
   });
 });
+
+describe('buildFilter with hidden categories', () => {
+  it('excludes them unless one category is chosen explicitly', () => {
+    expect(buildPipeline({ ...base, excludeCategories: ['oblacila'] }, 'atlas')[0]).toHaveProperty(
+      '$match.category',
+      { $nin: ['oblacila'] },
+    );
+    expect(
+      buildPipeline({ ...base, category: 'pijace', excludeCategories: ['oblacila'] }, 'atlas')[0],
+    ).toHaveProperty('$match.category', 'pijace');
+  });
+});

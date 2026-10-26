@@ -5,7 +5,9 @@ import { loadEnv, type Env } from '../src/config/env.js';
 import type { CategoryId } from '../src/domain/categories.js';
 import { finalizeOffer, type Offer, type ScrapedOffer } from '../src/domain/offer.js';
 import type { StoreId } from '../src/domain/stores.js';
+import { DEFAULT_SETTINGS, type Settings } from '../src/domain/settings.js';
 import type { ShoppingItem } from '../src/domain/shopping-list.js';
+import type { SettingsRepository } from '../src/repositories/settings-repository.js';
 import type { RefreshSummary } from '../src/jobs/refresh-runner.js';
 import type {
   SaveResult,
@@ -124,26 +126,44 @@ export class FakeShoppingListRepository implements ShoppingListRepository {
   }
 }
 
+export class FakeSettingsRepository implements SettingsRepository {
+  stored: Settings = DEFAULT_SETTINGS;
+
+  async get(): Promise<Settings> {
+    return this.stored;
+  }
+
+  async save(settings: Settings): Promise<Settings> {
+    if (this.stored.updatedAt > settings.updatedAt) return this.stored;
+    this.stored = settings;
+    return settings;
+  }
+}
+
 export interface TestApp {
   app: FastifyInstance;
   repository: FakeOfferRepository;
   shoppingList: FakeShoppingListRepository;
+  settings: FakeSettingsRepository;
   refreshCalls: number;
 }
 
 export async function buildTestApp(env?: Env, clientRoot?: string): Promise<TestApp> {
   const repository = new FakeOfferRepository();
   const shoppingList = new FakeShoppingListRepository();
+  const settings = new FakeSettingsRepository();
   const result: TestApp = {
     app: undefined as unknown as FastifyInstance,
     repository,
     shoppingList,
+    settings,
     refreshCalls: 0,
   };
   result.app = await buildApp({
     env: env ?? (await testEnv()),
     repository,
     shoppingList,
+    settings,
     refresh: async (): Promise<RefreshSummary> => {
       result.refreshCalls++;
       return { startedAt: new Date(), finishedAt: new Date(), results: [] };

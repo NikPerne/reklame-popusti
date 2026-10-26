@@ -9,6 +9,7 @@ export interface OfferQuery {
   text?: string;
   stores?: StoreId[];
   category?: CategoryId;
+  excludeCategories?: CategoryId[];
   minDiscount?: number;
   /** Only offers for this barcode (barcode scanner). */
   ean?: string;

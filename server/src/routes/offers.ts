@@ -12,21 +12,27 @@ import {
 
 const MAX_PAGE_SIZE = 100;
 
+/** "a,b" -> ["a", "b"], each checked against the allowed values. */
+const commaList = <T extends string>(values: readonly T[]) =>
+  z
+    .string()
+    .transform((value) =>
+      value
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean),
+    )
+    .pipe(z.array(z.enum(values as [T, ...T[]])).min(1));
+
 /** `?store=lidl,dm` -> ['lidl', 'dm'] */
-const storeListSchema = z
-  .string()
-  .transform((value) =>
-    value
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean),
-  )
-  .pipe(z.array(z.enum(STORE_IDS)).min(1));
+const storeListSchema = commaList(STORE_IDS);
 
 const offerQuerySchema = z.object({
   q: z.string().trim().min(2).max(100).optional(),
   store: storeListSchema.optional(),
   category: z.enum(CATEGORY_IDS).optional(),
+  /** Categories the user never wants to see, e.g. `?excludeCategory=oblacila,tehnika`. */
+  excludeCategory: commaList(CATEGORY_IDS).optional(),
   minDiscount: z.coerce.number().min(0).max(100).optional(),
   ean: z.string().regex(EAN_PATTERN, 'must be an 8–14 digit barcode').optional(),
   sort: z.enum(OFFER_SORTS).optional(),
@@ -44,6 +50,7 @@ function toOfferQuery(input: OfferQueryInput, now: Date): OfferQuery {
     ...(input.q !== undefined && { text: input.q }),
     ...(input.store !== undefined && { stores: input.store }),
     ...(input.category !== undefined && { category: input.category }),
+    ...(input.excludeCategory !== undefined && { excludeCategories: input.excludeCategory }),
     ...(input.minDiscount !== undefined && { minDiscount: input.minDiscount }),
     ...(input.ean !== undefined && { ean: input.ean }),
     sort: input.sort ?? (input.q ? 'relevance' : 'discount'),

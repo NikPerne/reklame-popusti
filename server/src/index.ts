@@ -6,6 +6,7 @@ import { loadDotEnvFile, loadEnv } from './config/env.js';
 import { connectDatabase, disconnectDatabase } from './db/connect.js';
 import { runRefresh } from './jobs/refresh-runner.js';
 import { MongoOfferRepository } from './repositories/mongo-offer-repository.js';
+import { MongoSettingsRepository } from './repositories/settings-repository.js';
 import { MongoShoppingListRepository } from './repositories/shopping-list-repository.js';
 import { createHttpClient } from './scraping/create-http-client.js';
 
@@ -24,6 +25,7 @@ const app = await buildApp({
   env,
   repository,
   shoppingList: new MongoShoppingListRepository(),
+  settings: new MongoSettingsRepository(),
   refresh: (log) => runRefresh({ adapters, repository, http: createHttpClient(env), log }),
   ...(clientBuilt && { clientRoot }),
 });
