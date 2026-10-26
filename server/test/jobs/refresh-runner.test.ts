@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { StoreAdapter } from '../../src/adapters/store-adapter.js';
 import type { ScrapedOffer } from '../../src/domain/offer.js';
 import type { StoreId } from '../../src/domain/stores.js';
@@ -110,5 +110,25 @@ describe('RefreshTrigger', () => {
     await new Promise((resolve) => setImmediate(resolve));
     expect(trigger.running).toBe(false);
     expect(trigger.start()).toBe(true);
+  });
+});
+
+describe('runRefresh with visiting hours', () => {
+  it('skips a store outside its allowed window without touching its offers or status', async () => {
+    const repository = new FakeOfferRepository();
+    repository.offers = [offer('spar')];
+    const fetchOffers = vi.fn(async () => [scrapedOffer()]);
+
+    const summary = await runRefresh({
+      adapters: [{ store: 'spar', fetchOffers, isAllowedAt: () => false }],
+      repository,
+      http,
+      log: silentLogger,
+    });
+
+    expect(summary.results[0]).toMatchObject({ store: 'spar', ok: true, skipped: true });
+    expect(fetchOffers).not.toHaveBeenCalled();
+    expect(repository.offers).toHaveLength(1);
+    expect(repository.statuses).toHaveLength(0);
   });
 });

@@ -7,6 +7,8 @@ export interface RequestOptions {
   method?: 'GET' | 'POST';
   headers?: Record<string, string>;
   body?: string;
+  /** A longer gap to this host than the client's default, when the site asks for one. */
+  minDelayMs?: number;
 }
 
 /** The only way adapters may talk to store websites. */
@@ -93,7 +95,7 @@ export class PoliteHttpClient implements HttpClient {
     if (robots.isDisallowed(url, this.options.userAgent)) throw new RobotsDisallowedError(url);
 
     const crawlDelayMs = (robots.getCrawlDelay(this.options.userAgent) ?? 0) * 1000;
-    const delayMs = Math.max(this.options.minDelayMs, crawlDelayMs);
+    const delayMs = Math.max(this.options.minDelayMs, crawlDelayMs, options.minDelayMs ?? 0);
     const body = await this.withRetry(() => this.request(url, options, delayMs));
     this.cache.set(cacheKey, { body, expiresAt: this.now() + this.options.cacheTtlMs });
     return body;

@@ -129,3 +129,14 @@ describe('PoliteHttpClient', () => {
     await expect(client.fetchJson('https://shop.test/api')).resolves.toEqual({ items: [1, 2] });
   });
 });
+
+describe('PoliteHttpClient per-request delay', () => {
+  it('waits longer when a request asks for it', async () => {
+    const { client, requests } = setup({ pages: { '/a': 'A', '/b': 'B' } });
+
+    await client.fetchText('https://shop.test/a', { minDelayMs: 10_000 });
+    await client.fetchText('https://shop.test/b', { minDelayMs: 10_000 });
+
+    expect(requests[2]!.at - requests[1]!.at).toBeGreaterThanOrEqual(10_000);
+  });
+});

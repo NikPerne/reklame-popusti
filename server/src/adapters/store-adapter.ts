@@ -18,4 +18,9 @@ export interface AdapterContext {
 export interface StoreAdapter {
   readonly store: StoreId;
   fetchOffers(context: AdapterContext): Promise<ScrapedOffer[]>;
+  /**
+   * For stores whose robots.txt limits visiting hours: return false to skip this run.
+   * A skipped store keeps its offers and status.
+   */
+  isAllowedAt?(now: Date): boolean;
 }

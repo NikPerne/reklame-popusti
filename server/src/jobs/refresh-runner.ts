@@ -13,6 +13,8 @@ export interface StoreRefreshResult {
   removedCount: number;
   durationMs: number;
   error?: string;
+  /** The adapter's `isAllowedAt` said no; nothing was fetched or changed. */
+  skipped?: boolean;
 }
 
 export interface RefreshSummary {
@@ -39,6 +41,20 @@ export async function runRefresh(deps: RefreshDependencies): Promise<RefreshSumm
   const results: StoreRefreshResult[] = [];
 
   for (const adapter of deps.adapters) {
+    if (adapter.isAllowedAt && !adapter.isAllowedAt(startedAt)) {
+      // Not a failure: the store only allows visits at certain times. Its offers stay as they are.
+      deps.log.info({ store: adapter.store }, 'outside the store’s allowed time window; skipped');
+      results.push({
+        store: adapter.store,
+        ok: true,
+        skipped: true,
+        offerCount: 0,
+        invalidCount: 0,
+        removedCount: 0,
+        durationMs: 0,
+      });
+      continue;
+    }
     results.push(await refreshStore(adapter, deps, now));
   }
 
