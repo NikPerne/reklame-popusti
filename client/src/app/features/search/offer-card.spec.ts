@@ -1,3 +1,5 @@
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { TranslocoService } from '@jsverse/transloco';
 import type { Offer } from '../../core/api/models';
@@ -10,6 +12,7 @@ describe('OfferCard', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [OfferCard, translocoTesting()],
+      providers: [provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
   });
 
@@ -90,6 +93,7 @@ describe('OfferCard alternatives', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [OfferCard, translocoTesting()],
+      providers: [provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
   });
 
@@ -122,5 +126,31 @@ describe('OfferCard alternatives', () => {
     await fixture.whenStable();
 
     expect((fixture.nativeElement as HTMLElement).querySelector('.also-at')).toBeNull();
+  });
+});
+
+describe('OfferCard shopping list button', () => {
+  beforeEach(async () => {
+    localStorage.clear();
+    await TestBed.configureTestingModule({
+      imports: [OfferCard, translocoTesting()],
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    }).compileComponents();
+  });
+
+  it('adds the offer to the list and shows it is there', async () => {
+    const fixture = TestBed.createComponent(OfferCard);
+    fixture.componentRef.setInput('offer', makeOffer({ id: 'o1' }));
+    fixture.componentRef.setInput('lang', 'sl');
+    await fixture.whenStable();
+    const button = (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('.add')!;
+    expect(button.getAttribute('aria-label')).toBe('Dodaj na seznam');
+
+    button.click();
+    await fixture.whenStable();
+
+    expect(button.getAttribute('aria-pressed')).toBe('true');
+    expect(button.textContent?.trim()).toBe('✓');
+    localStorage.clear();
   });
 });

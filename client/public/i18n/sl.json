@@ -63,7 +63,9 @@
       "coupon": "S kuponom",
       "other": "Pogoj"
     },
-    "alsoAt": "Tudi"
+    "alsoAt": "Tudi",
+    "addToList": "Dodaj na seznam",
+    "removeFromList": "Odstrani s seznama"
   },
   "stores": {
     "lastRefresh": "Osveženo {{ date }}",
@@ -86,5 +88,14 @@
     "tehnika": "Tehnika",
     "oblacila": "Oblačila",
     "drugo": "Drugo"
+  },
+  "list": {
+    "title": "Nakupovalni seznam",
+    "empty": "Seznam je prazen. Izdelke dodaš z gumbom + na ponudbi.",
+    "clearChecked": "Počisti kupljeno",
+    "remove": "Odstrani",
+    "total": "Še za nakup skupaj",
+    "expired": "Ponudba je potekla",
+    "pending": "Brez povezave – spremembe bodo shranjene, ko bo povezava spet na voljo."
   }
 }

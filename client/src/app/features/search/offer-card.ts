@@ -1,7 +1,8 @@
-import { Component, computed, input } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
 import { TranslocoDirective } from '@jsverse/transloco';
 import type { Offer, StoreId } from '../../core/api/models';
 import type { Language } from '../../core/i18n/language';
+import { ShoppingListService } from '../../core/shopping-list/shopping-list-service';
 import { EurPipe, ShortDatePipe } from '../../shared/format';
 
 export const STORE_NAMES: Record<StoreId, string> = {
@@ -22,10 +23,17 @@ export const STORE_NAMES: Record<StoreId, string> = {
   styleUrl: './offer-card.scss',
 })
 export class OfferCard {
+  private readonly shoppingList = inject(ShoppingListService);
+
   readonly offer = input.required<Offer>();
   readonly lang = input.required<Language>();
 
   protected readonly storeNames = STORE_NAMES;
+  protected readonly inList = computed(() => this.shoppingList.ids().has(this.offer().id));
+
+  protected toggleList(): void {
+    this.shoppingList.toggle(this.offer());
+  }
   protected readonly storeName = computed(() => STORE_NAMES[this.offer().store]);
 
   /** Show "from <date>" for offers that haven't started yet, otherwise "until <date>". */

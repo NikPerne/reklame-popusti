@@ -1,4 +1,15 @@
 <article class="card" *transloco="let t; prefix: 'offer'">
+  <button
+    type="button"
+    class="add"
+    [class.in-list]="inList()"
+    [attr.aria-pressed]="inList()"
+    [attr.aria-label]="inList() ? t('removeFromList') : t('addToList')"
+    [title]="inList() ? t('removeFromList') : t('addToList')"
+    (click)="toggleList()"
+  >
+    {{ inList() ? '✓' : '+' }}
+  </button>
   <div class="image">
     @if (offer().imageUrl; as src) {
       <img [src]="src" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" />

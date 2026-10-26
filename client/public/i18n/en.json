@@ -63,7 +63,9 @@
       "coupon": "With coupon",
       "other": "Condition"
     },
-    "alsoAt": "Also at"
+    "alsoAt": "Also at",
+    "addToList": "Add to list",
+    "removeFromList": "Remove from list"
   },
   "stores": {
     "lastRefresh": "Updated {{ date }}",
@@ -86,5 +88,14 @@
     "tehnika": "Electronics",
     "oblacila": "Clothing",
     "drugo": "Other"
+  },
+  "list": {
+    "title": "Shopping list",
+    "empty": "Your list is empty. Add products with the + button on an offer.",
+    "clearChecked": "Clear bought",
+    "remove": "Remove",
+    "total": "Still to buy in total",
+    "expired": "Offer has ended",
+    "pending": "Offline – changes will be saved when you are back online."
   }
 }

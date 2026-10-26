@@ -20,6 +20,12 @@
       </div>
 
       @if (authStatus() === 'authenticated') {
+        <a class="list-link" routerLink="/seznam" [attr.aria-label]="t('list.title')">
+          <span aria-hidden="true">🛒</span>
+          @if (shoppingList.openCount() > 0) {
+            <span class="count">{{ shoppingList.openCount() }}</span>
+          }
+        </a>
         <button type="button" class="link-button" (click)="logout()">{{ t('app.logout') }}</button>
       }
     </div>

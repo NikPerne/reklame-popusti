@@ -74,6 +74,31 @@
   text-align: center;
 }
 
+.list-link {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  font-size: 1.2rem;
+  text-decoration: none;
+
+  .count {
+    position: absolute;
+    top: -0.2rem;
+    right: -0.35rem;
+    min-width: 1.2rem;
+    padding: 0 0.3rem;
+    border-radius: 999px;
+    background: var(--sale);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1.2rem;
+    text-align: center;
+  }
+}
+
 .app-main {
   min-width: 0;
   max-width: 64rem;

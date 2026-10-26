@@ -13,5 +13,11 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () => import('./features/search/search-page').then((m) => m.SearchPage),
   },
+  {
+    path: 'seznam',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/shopping-list/shopping-list-page').then((m) => m.ShoppingListPage),
+  },
   { path: '**', redirectTo: '' },
 ];

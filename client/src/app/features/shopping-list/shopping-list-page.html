@@ -1,0 +1,66 @@
+<section class="page" *transloco="let t; prefix: 'list'">
+  <header class="page-header">
+    <h1>{{ t('title') }}</h1>
+    @if (hasChecked()) {
+      <button type="button" class="button secondary" (click)="list.clearChecked()">
+        {{ t('clearChecked') }}
+      </button>
+    }
+  </header>
+
+  @if (list.pendingCount() > 0) {
+    <p class="pending" role="status">{{ t('pending') }}</p>
+  }
+
+  @if (groups().length === 0) {
+    <p class="empty">{{ t('empty') }}</p>
+  } @else {
+    @for (group of groups(); track group.store) {
+      <section class="store-group" [attr.data-store]="group.store">
+        <h2>
+          <span class="store-name">{{ storeNames[group.store] }}</span>
+          <span class="subtotal">{{ group.openTotal | eur: lang() }}</span>
+        </h2>
+        <ul>
+          @for (item of group.items; track item.id) {
+            <li [class.checked]="item.checked">
+              <button
+                type="button"
+                class="item"
+                role="checkbox"
+                [attr.aria-checked]="item.checked"
+                (click)="toggle(item)"
+              >
+                <span class="box" aria-hidden="true">{{ item.checked ? '✓' : '' }}</span>
+                <span class="text">
+                  <span class="name">{{ item.productName }}</span>
+                  <span class="details">
+                    <strong>{{ item.price | eur: lang() }}</strong>
+                    @if (item.condition; as condition) {
+                      <span class="condition">{{ condition.text }}</span>
+                    }
+                    @if (isExpired(item)) {
+                      <span class="expired">{{ t('expired') }}</span>
+                    }
+                  </span>
+                </span>
+              </button>
+              <button
+                type="button"
+                class="remove"
+                [attr.aria-label]="t('remove')"
+                (click)="list.remove(item.id)"
+              >
+                ×
+              </button>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+
+    <p class="total">
+      {{ t('total') }}: <strong>{{ openTotal() | eur: lang() }}</strong>
+    </p>
+  }
+</section>
