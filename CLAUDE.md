@@ -34,7 +34,18 @@ server/src/
   scripts/hash-password.ts prints an argon2 hash for APP_PASSWORD_HASH
 server/test/               Vitest; helpers.ts has testEnv, FakeOfferRepository, buildTestApp, login
 server/test/fixtures/      saved store responses for adapter tests
-client/                    Angular app (generated with Angular CLI)
+client/src/app/
+  app.ts|html|scss         shell: header with SL/EN switch and logout, <router-outlet>
+  app.config.ts            providers: router, HttpClient + authInterceptor, Transloco, language restore
+  app.routes.ts            /login (guestGuard) and / (authGuard), both lazy-loaded
+  core/api/                API types (mirror of the server's model; keep in sync) + OffersApi
+  core/auth/               AuthService (session status signal), authGuard/guestGuard, authInterceptor
+  core/i18n/               LanguageService (sl default, remembered in localStorage), Transloco loader
+  features/login/          LoginPage
+  features/search/         SearchPage (state in URL query params), SearchFilters, OfferCard, search-params.ts
+  shared/format.ts         eur and shortDate pipes (Intl, take the language as an argument)
+client/public/i18n/        sl.json and en.json; every UI string goes through Transloco
+client/src/testing/        test helpers: translocoTesting() with the real translations, offer factories
 ```
 
 ## Commands (run from the repo root)
@@ -105,6 +116,15 @@ Rules for adding a store:
 4. Register the adapter in `adapters/registry.ts`. Adding a store must not require changes to core code.
 5. Update the store table in README.md.
 
+## Frontend conventions
+
+- Standalone components, signals, `input()`/`output()`, built-in control flow (`@if`, `@for`). The app is zoneless.
+- File names without type suffixes (`search-page.ts`, class `SearchPage`); one folder per feature under `features/`.
+- All text comes from `public/i18n/{sl,en}.json` via `*transloco`. Add every new key to both files. Store data (product names, condition texts) stays in the store's language.
+- Search state lives in the URL query (`q`, `store`, `category`, `minDiscount`, `sort`); `search-params.ts` converts between URL, state and API parameters.
+- Styles: global tokens (colours, spacing, store colours) in `src/styles.scss` with a dark-mode variant; component styles use only those variables. Mobile first: check layouts at 390 px. Grid columns use `minmax(0, 1fr)` so long text can't widen the page.
+- Tests use Vitest with TestBed, `provideHttpClientTesting()` and `translocoTesting()`; no real backend.
+
 ## Authentication
 
 - Single user. The password is checked with argon2 against `APP_PASSWORD_HASH`. Generate the hash with `npm run hash-password -w server`.
@@ -112,7 +132,7 @@ Rules for adding a store:
 - **Public endpoints:** `GET /api/health` and `POST /api/auth/login` only. Everything else needs the session cookie, except `POST /api/admin/refresh`, which needs the header `X-Refresh-Token: <REFRESH_TOKEN>`.
 - Default deny: the `onRequest` hook in `plugins/auth.ts` requires a session for every route, including unknown ones. A route opts out only through `config: { auth: 'public' }` or `config: { auth: 'refresh-token' }`. Never add a public route without the user's agreement.
 - `TRUST_PROXY_HOPS` decides which `X-Forwarded-For` entry counts as the client IP for the rate limit. Keep it at the actual number of Render proxies (verify after deploying).
-- Client: a login page and a functional route guard on all other routes. An HTTP interceptor redirects to login on 401.
+- Client: `authGuard` asks `GET /api/auth/me` once; only a 401 counts as logged out (offline still opens the app, for cached results). `authInterceptor` sends the user to `/login` on a 401 from data requests, but leaves `/api/auth/*` to the guards and login page. The login page follows `returnUrl` only for in-app paths.
 
 ## Hosting and scheduled refresh
 
