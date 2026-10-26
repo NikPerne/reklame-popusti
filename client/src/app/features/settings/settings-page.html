@@ -1,0 +1,37 @@
+<section class="page" *transloco="let t">
+  <h1>{{ t('settings.title') }}</h1>
+
+  <fieldset>
+    <legend>{{ t('settings.preferredStores') }}</legend>
+    <p class="hint">{{ t('settings.preferredStoresHint') }}</p>
+    <div class="options">
+      @for (store of stores; track store) {
+        <label class="option">
+          <input
+            type="checkbox"
+            [checked]="settings.preferredStores().includes(store)"
+            (change)="togglePreferred(store)"
+          />
+          <span>{{ storeNames[store] }}</span>
+        </label>
+      }
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>{{ t('settings.hiddenCategories') }}</legend>
+    <p class="hint">{{ t('settings.hiddenCategoriesHint') }}</p>
+    <div class="options">
+      @for (category of categories; track category) {
+        <label class="option">
+          <input
+            type="checkbox"
+            [checked]="settings.hiddenCategories().includes(category)"
+            (change)="toggleHidden(category)"
+          />
+          <span>{{ t('categories.' + category) }}</span>
+        </label>
+      }
+    </div>
+  </fieldset>
+</section>

@@ -5,6 +5,7 @@ import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { AuthService } from './core/auth/auth-service';
 import { LANGUAGES, LanguageService, type Language } from './core/i18n/language';
+import { SettingsService } from './core/settings/settings-service';
 import { ShoppingListService } from './core/shopping-list/shopping-list-service';
 
 @Component({
@@ -18,6 +19,7 @@ export class App {
   private readonly router = inject(Router);
   protected readonly language = inject(LanguageService);
   protected readonly shoppingList = inject(ShoppingListService);
+  private readonly settings = inject(SettingsService);
 
   protected readonly languages = LANGUAGES;
   protected readonly authStatus = this.auth.status;
@@ -31,9 +33,14 @@ export class App {
   );
 
   constructor() {
-    // Load the shared list (and send offline changes) once the user is known to be logged in.
+    // Load the shared list and settings (and send offline changes) once logged in.
     effect(() => {
-      if (this.authStatus() === 'authenticated') void untracked(() => this.shoppingList.sync());
+      if (this.authStatus() === 'authenticated') {
+        untracked(() => {
+          void this.shoppingList.sync();
+          void this.settings.sync();
+        });
+      }
     });
   }
 

@@ -42,7 +42,7 @@ export class SearchFilters {
   protected readonly filtered = computed(() => hasFilters(this.params()));
 
   protected toggleStore(store: StoreId): void {
-    const current = this.params().stores;
+    const current = this.params().stores ?? [];
     this.changed.emit({
       stores: current.includes(store) ? current.filter((s) => s !== store) : [...current, store],
     });

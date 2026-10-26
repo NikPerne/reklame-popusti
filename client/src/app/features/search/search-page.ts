@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslocoDirective } from '@jsverse/transloco';
 import {
@@ -11,22 +11,26 @@ import {
   finalize,
   map,
   of,
+  skip,
   switchMap,
 } from 'rxjs';
 import type { Offer, StoreInfo } from '../../core/api/models';
 import { OffersApi } from '../../core/api/offers-api';
 import { LanguageService } from '../../core/i18n/language';
+import { SettingsService } from '../../core/settings/settings-service';
 import { ShortDatePipe } from '../../shared/format';
 import { OfferCard } from './offer-card';
 import { SearchFilters } from './search-filters';
 import {
   EMPTY_SEARCH,
   MIN_QUERY_LENGTH,
+  effectiveStores,
   parseSearchParams,
   sameSearch,
   toApiParams,
   toQueryParams,
   type SearchParams,
+  type SearchPreferences,
 } from './search-params';
 
 type LoadStatus = 'loading' | 'ready' | 'error' | 'offline';
@@ -51,6 +55,13 @@ export class SearchPage {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   protected readonly lang = inject(LanguageService).current;
+  private readonly settings = inject(SettingsService);
+
+  /** Preferred stores and hidden categories from the settings. */
+  private readonly prefs = computed<SearchPreferences>(() => ({
+    preferredStores: this.settings.preferredStores(),
+    hiddenCategories: this.settings.hiddenCategories(),
+  }));
 
   protected readonly params = signal<SearchParams>(EMPTY_SEARCH);
   protected readonly items = signal<Offer[]>([]);
@@ -74,6 +85,15 @@ export class SearchPage {
     initialValue: [],
   });
   protected readonly refreshedStores = computed(() => this.stores().filter((s) => s.status));
+  /** What the filters show: the stores actually searched (preferred ones by default). */
+  protected readonly filterParams = computed<SearchParams>(() => ({
+    ...this.params(),
+    stores: effectiveStores(this.params(), this.prefs()),
+  }));
+  protected readonly visibleCategories = computed(() => {
+    const hidden = new Set(this.prefs().hiddenCategories);
+    return this.categories().filter((c) => !hidden.has(c.category));
+  });
 
   private readonly requests = new Subject<PageRequest>();
   private readonly queryInput = new Subject<string>();
@@ -88,13 +108,15 @@ export class SearchPage {
           const slowTimer = setTimeout(() => {
             this.slow.set(true);
           }, SLOW_REQUEST_MS);
-          return this.api.searchOffers(toApiParams(request.params, request.page)).pipe(
-            map((result) => ({ request, result, error: null })),
-            catchError((error: unknown) => of({ request, result: null, error })),
-            finalize(() => {
-              clearTimeout(slowTimer);
-            }),
-          );
+          return this.api
+            .searchOffers(toApiParams(request.params, request.page, this.prefs()))
+            .pipe(
+              map((result) => ({ request, result, error: null })),
+              catchError((error: unknown) => of({ request, result: null, error })),
+              finalize(() => {
+                clearTimeout(slowTimer);
+              }),
+            );
         }),
         takeUntilDestroyed(),
       )
@@ -117,6 +139,17 @@ export class SearchPage {
       .subscribe((params) => {
         this.params.set(params);
         this.requests.next({ params, page: 1 });
+      });
+
+    // Settings changed (here or synced from another device): search again.
+    toObservable(this.prefs)
+      .pipe(
+        skip(1),
+        distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)),
+        takeUntilDestroyed(),
+      )
+      .subscribe(() => {
+        this.requests.next({ params: this.params(), page: 1 });
       });
 
     this.queryInput
@@ -154,7 +187,7 @@ export class SearchPage {
   }
 
   protected resetFilters(): void {
-    this.update({ stores: [], category: null, minDiscount: null, sort: null });
+    this.update({ stores: null, category: null, minDiscount: null, sort: null });
   }
 
   protected loadMore(): void {

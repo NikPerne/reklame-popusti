@@ -97,5 +97,12 @@
     "total": "Still to buy in total",
     "expired": "Offer has ended",
     "pending": "Offline – changes will be saved when you are back online."
+  },
+  "settings": {
+    "title": "Settings",
+    "preferredStores": "Preferred stores",
+    "preferredStoresHint": "Search shows only these stores by default (you can always change the filter). None selected: all stores.",
+    "hiddenCategories": "Hidden categories",
+    "hiddenCategoriesHint": "Offers in these categories never show up, unless you pick the category in the filter."
   }
 }

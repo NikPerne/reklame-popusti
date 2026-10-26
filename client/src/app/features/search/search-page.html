@@ -28,9 +28,9 @@
   <details class="filters-panel" [open]="filtersOpen">
     <summary>{{ t('filters.title') }}</summary>
     <app-search-filters
-      [params]="params()"
+      [params]="filterParams()"
       [stores]="stores()"
-      [categories]="categories()"
+      [categories]="visibleCategories()"
       (changed)="update($event)"
       (resetRequested)="resetFilters()"
     />

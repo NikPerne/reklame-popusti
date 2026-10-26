@@ -19,5 +19,10 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/shopping-list/shopping-list-page').then((m) => m.ShoppingListPage),
   },
+  {
+    path: 'nastavitve',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/settings/settings-page').then((m) => m.SettingsPage),
+  },
   { path: '**', redirectTo: '' },
 ];

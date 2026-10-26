@@ -97,5 +97,12 @@
     "total": "Še za nakup skupaj",
     "expired": "Ponudba je potekla",
     "pending": "Brez povezave – spremembe bodo shranjene, ko bo povezava spet na voljo."
+  },
+  "settings": {
+    "title": "Nastavitve",
+    "preferredStores": "Priljubljene trgovine",
+    "preferredStoresHint": "Iskanje privzeto prikaže le te trgovine (filter lahko vedno spremeniš). Brez izbire: vse trgovine.",
+    "hiddenCategories": "Skrite kategorije",
+    "hiddenCategoriesHint": "Ponudbe iz teh kategorij se nikoli ne prikažejo, razen če kategorijo izbereš v filtru."
   }
 }

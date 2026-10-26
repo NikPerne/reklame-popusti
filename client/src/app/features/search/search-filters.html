@@ -6,7 +6,7 @@
           type="button"
           class="chip"
           [attr.data-store]="store"
-          [attr.aria-pressed]="params().stores.includes(store)"
+          [attr.aria-pressed]="(params().stores ?? []).includes(store)"
           (click)="toggleStore(store)"
         >
           {{ storeNames[store] }}

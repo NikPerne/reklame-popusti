@@ -74,6 +74,15 @@
   text-align: center;
 }
 
+.icon-link {
+  display: inline-grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  font-size: 1.1rem;
+  text-decoration: none;
+}
+
 .list-link {
   position: relative;
   display: inline-grid;

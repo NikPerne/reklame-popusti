@@ -26,6 +26,9 @@
             <span class="count">{{ shoppingList.openCount() }}</span>
           }
         </a>
+        <a class="icon-link" routerLink="/nastavitve" [attr.aria-label]="t('settings.title')">
+          <span aria-hidden="true">⚙️</span>
+        </a>
         <button type="button" class="link-button" (click)="logout()">{{ t('app.logout') }}</button>
       }
     </div>

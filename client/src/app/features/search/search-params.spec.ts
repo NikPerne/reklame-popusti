@@ -35,7 +35,7 @@ describe('search params', () => {
   it('turns empty values into null so the router removes them from the URL', () => {
     expect(toQueryParams({ ...EMPTY_SEARCH, q: 'mleko' })).toEqual({
       q: 'mleko',
-      store: null,
+      store: null, // no store filter: the preferred stores apply
       category: null,
       minDiscount: null,
       sort: null,
@@ -67,6 +67,30 @@ describe('search params', () => {
       page: '1',
       pageSize: '24',
     });
+  });
+
+  it('keeps "all stores" explicit so the preferred stores do not come back', () => {
+    expect(toQueryParams({ ...EMPTY_SEARCH, stores: [] })['store']).toBe('');
+    expect(parseSearchParams(convertToParamMap({ store: '' })).stores).toEqual([]);
+    expect(parseSearchParams(convertToParamMap({})).stores).toBeNull();
+  });
+
+  it('applies the preferences: preferred stores by default, hidden categories always', () => {
+    const prefs = {
+      preferredStores: ['lidl', 'hofer'] as const,
+      hiddenCategories: ['oblacila'] as const,
+    };
+
+    expect(toApiParams(EMPTY_SEARCH, 1, prefs)).toMatchObject({
+      store: 'lidl,hofer',
+      excludeCategory: 'oblacila',
+    });
+    expect(toApiParams({ ...EMPTY_SEARCH, stores: [] }, 1, prefs)['store']).toBeUndefined();
+    expect(toApiParams({ ...EMPTY_SEARCH, stores: ['dm'] }, 1, prefs)['store']).toBe('dm');
+    // Choosing a category shows it even if it is hidden.
+    expect(
+      toApiParams({ ...EMPTY_SEARCH, category: 'oblacila' }, 1, prefs)['excludeCategory'],
+    ).toBeUndefined();
   });
 
   it('knows when filters are active', () => {
