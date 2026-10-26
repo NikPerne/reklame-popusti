@@ -23,9 +23,34 @@ const SEARCHED_FIELDS = ['productName', 'brand', 'sourceCategory'];
 export function buildFilter(
   query: Omit<OfferQuery, 'sort' | 'page' | 'pageSize'>,
 ): QueryFilter<Offer> {
-  const filter: QueryFilter<Offer> = {
-    $or: [{ validTo: { $exists: false } }, { validTo: { $gte: query.now } }],
-  };
+  const day = 86_400_000;
+  const conditions: QueryFilter<Offer>[] = [
+    // Not ended yet (the TTL index removes ended offers a day later).
+    { $or: [{ validTo: { $exists: false } }, { validTo: { $gte: query.now } }] },
+  ];
+  if (!query.upcoming) {
+    // Started already; next week's offers only on request.
+    conditions.push({
+      $or: [{ validFrom: { $exists: false } }, { validFrom: { $lte: query.now } }],
+    });
+  }
+  if (query.startedWithinDays) {
+    conditions.push({
+      validFrom: {
+        $gte: new Date(query.now.getTime() - query.startedWithinDays * day),
+        $lte: query.now,
+      },
+    });
+  }
+  if (query.endsWithinDays) {
+    conditions.push({
+      validTo: {
+        $gte: query.now,
+        $lte: new Date(query.now.getTime() + query.endsWithinDays * day),
+      },
+    });
+  }
+  const filter: QueryFilter<Offer> = { $and: conditions };
   if (query.stores?.length) filter.store = { $in: query.stores };
   if (query.category) filter.category = query.category;
   else if (query.excludeCategories?.length) filter.category = { $nin: query.excludeCategories };
@@ -54,9 +79,13 @@ const LAST = 1e12;
 
 /** Optional fields used for ascending sorts, mapped to a `$addFields` stage that fills gaps. */
 function sortKeyStage(query: OfferQuery): PipelineStage.AddFields | undefined {
-  const field = { unitPrice: '$unitPrice.amount', validTo: '$validTo' }[query.sort as string];
+  const field = { unitPrice: '$unitPrice.amount', validTo: '$validTo', newest: '$validFrom' }[
+    query.sort as string
+  ];
   if (!field) return undefined;
-  const fallback = query.sort === 'validTo' ? new Date(LAST * 1000) : LAST;
+  // Missing values go last: far future for ascending dates, epoch for "newest" (descending).
+  const fallback =
+    query.sort === 'validTo' ? new Date(LAST * 1000) : query.sort === 'newest' ? new Date(0) : LAST;
   return { $addFields: { [SORT_KEY]: { $ifNull: [field, fallback] } } };
 }
 
@@ -68,6 +97,8 @@ export function buildSort(query: OfferQuery, mode: SearchMode): SortSpec {
     case 'unitPrice':
     case 'validTo':
       return { [SORT_KEY]: 1, ...tiebreak };
+    case 'newest':
+      return { [SORT_KEY]: -1, ...tiebreak };
     case 'relevance':
       if (query.text && mode === 'atlas') return { [SCORE]: -1, ...tiebreak };
       return { discountPercent: -1, ...tiebreak };

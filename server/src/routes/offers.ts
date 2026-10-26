@@ -35,6 +35,12 @@ const offerQuerySchema = z.object({
   excludeCategory: commaList(CATEGORY_IDS).optional(),
   minDiscount: z.coerce.number().min(0).max(100).optional(),
   ean: z.string().regex(EAN_PATTERN, 'must be an 8–14 digit barcode').optional(),
+  upcoming: z
+    .enum(['true', 'false'])
+    .transform((v) => v === 'true')
+    .optional(),
+  startedWithinDays: z.coerce.number().int().min(1).max(31).optional(),
+  endsWithinDays: z.coerce.number().int().min(1).max(31).optional(),
   sort: z.enum(OFFER_SORTS).optional(),
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(MAX_PAGE_SIZE).default(24),
@@ -53,6 +59,9 @@ function toOfferQuery(input: OfferQueryInput, now: Date): OfferQuery {
     ...(input.excludeCategory !== undefined && { excludeCategories: input.excludeCategory }),
     ...(input.minDiscount !== undefined && { minDiscount: input.minDiscount }),
     ...(input.ean !== undefined && { ean: input.ean }),
+    ...(input.upcoming !== undefined && { upcoming: input.upcoming }),
+    ...(input.startedWithinDays !== undefined && { startedWithinDays: input.startedWithinDays }),
+    ...(input.endsWithinDays !== undefined && { endsWithinDays: input.endsWithinDays }),
     sort: input.sort ?? (input.q ? 'relevance' : 'discount'),
     page: input.page,
     pageSize: input.pageSize,

@@ -2,7 +2,14 @@ import type { CategoryId } from '../domain/categories.js';
 import type { Offer } from '../domain/offer.js';
 import type { StoreId } from '../domain/stores.js';
 
-export const OFFER_SORTS = ['relevance', 'price', 'unitPrice', 'discount', 'validTo'] as const;
+export const OFFER_SORTS = [
+  'relevance',
+  'price',
+  'unitPrice',
+  'discount',
+  'validTo',
+  'newest',
+] as const;
 export type OfferSort = (typeof OFFER_SORTS)[number];
 
 export interface OfferQuery {
@@ -13,6 +20,12 @@ export interface OfferQuery {
   minDiscount?: number;
   /** Only offers for this barcode (barcode scanner). */
   ean?: string;
+  /** Include offers that start in the future (e.g. next week's flyer). Default: only started ones. */
+  upcoming?: boolean;
+  /** Only offers that started in the last N days ("new this week"). */
+  startedWithinDays?: number;
+  /** Only offers that end within N days ("ending soon"). */
+  endsWithinDays?: number;
   /** `relevance` only applies with `text`; otherwise it falls back to `discount`. */
   sort: OfferSort;
   page: number;

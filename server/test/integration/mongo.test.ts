@@ -166,3 +166,46 @@ describe('MongoSettingsRepository (real MongoDB)', () => {
     expect((await settings.get()).preferredStores).toEqual(['lidl']);
   });
 });
+
+describe('date filters and "newest" (real MongoDB)', () => {
+  const day = 86_400_000;
+  const at = (days: number) => new Date(now.getTime() + days * day);
+
+  beforeAll(async () => {
+    await OfferModel.deleteMany({});
+    await seed('lidl', [
+      { productName: 'Started long ago', validFrom: at(-20), validTo: at(10) },
+      { productName: 'Started this week', validFrom: at(-2), validTo: at(5) },
+      { productName: 'Ends tomorrow', validFrom: at(-5), validTo: at(1) },
+      { productName: 'Next week', validFrom: at(3), validTo: at(9) },
+    ]);
+    await seed(
+      'tus',
+      [{ productName: 'No dates' }].map((o) => ({ ...o, validFrom: undefined })),
+    );
+    await repository.regroup();
+  });
+
+  const names = async (overrides: Partial<OfferQuery>) =>
+    (await repository.find(query(overrides))).items.map((i) => i.productName).sort();
+
+  it("hides next week's offers unless asked", async () => {
+    expect(await names({})).not.toContain('Next week');
+    expect(await names({ upcoming: true })).toContain('Next week');
+  });
+
+  it('finds offers that started recently or end soon', async () => {
+    expect(await names({ startedWithinDays: 7 })).toEqual(['Ends tomorrow', 'Started this week']);
+    expect(await names({ endsWithinDays: 2 })).toEqual(['Ends tomorrow']);
+  });
+
+  it('sorts newest first with undated offers last', async () => {
+    const page = await repository.find(query({ sort: 'newest' }));
+    expect(page.items.map((i) => i.productName)).toEqual([
+      'Started this week',
+      'Ends tomorrow',
+      'Started long ago',
+      'No dates',
+    ]);
+  });
+});

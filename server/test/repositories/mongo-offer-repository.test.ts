@@ -45,7 +45,10 @@ describe('buildPipeline', () => {
 
     expect(stage).toEqual({
       $match: {
-        $or: [{ validTo: { $exists: false } }, { validTo: { $gte: now } }],
+        $and: [
+          { $or: [{ validTo: { $exists: false } }, { validTo: { $gte: now } }] },
+          { $or: [{ validFrom: { $exists: false } }, { validFrom: { $lte: now } }] },
+        ],
         store: { $in: ['lidl'] },
         category: 'pijace',
         discountPercent: { $gte: 25 },
