@@ -76,7 +76,7 @@ describe('buildPipeline', () => {
     const groupIndex = pipeline.findIndex((s) => '$group' in s);
 
     expect(pipeline[groupIndex]).toMatchObject({
-      $group: { _id: { $ifNull: ['$groupKey', '$_id'] }, best: { $first: '$ROOT' } },
+      $group: { _id: { $ifNull: ['$groupKey', '$_id'] }, best: { $first: '$$ROOT' } },
     });
     // Sorted before grouping (so the best offer comes first) and again after.
     expect(pipeline[groupIndex - 1]).toEqual({ $sort: { price: 1, _id: 1 } });

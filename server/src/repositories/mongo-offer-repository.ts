@@ -111,7 +111,7 @@ export function buildPipeline(query: OfferQuery, mode: SearchMode): PipelineStag
     {
       $group: {
         _id: { $ifNull: ['$groupKey', '$_id'] },
-        best: { $first: '$ROOT' },
+        best: { $first: '$$ROOT' },
         members: {
           $push: {
             id: '$_id',
@@ -132,7 +132,7 @@ export function buildPipeline(query: OfferQuery, mode: SearchMode): PipelineStag
             '$best',
             {
               alsoAt: {
-                $filter: { input: '$members', cond: { $ne: ['$this.id', '$best._id'] } },
+                $filter: { input: '$members', cond: { $ne: ['$$this.id', '$best._id'] } },
               },
             },
           ],
