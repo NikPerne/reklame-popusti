@@ -17,17 +17,24 @@ A personal PWA that aggregates current discounts from Slovenian retailers (Merca
 
 ```
 server/src/
-  index.ts            entry point: loads .env (local only), validates env, starts Fastify
-  app.ts              buildApp(): registers plugins and routes; used by tests via app.inject()
-  config/env.ts       zod schema for ALL env vars; the single source of truth for config
-  routes/             one file per route group (health, auth, offers, admin)
-  adapters/<store>/   one folder per store: adapter + pure parse functions      (Phase 2+)
-  adapters/registry.ts list of enabled adapters                                  (Phase 2)
-  scraping/           polite HTTP client: robots.txt, rate limit, UA, cache      (Phase 2)
-  models/             Mongoose models (Offer)                                    (Phase 2)
-  jobs/refresh.ts     CLI entry for the scheduled refresh                       (Phase 2)
-server/test/          Vitest tests; fixtures in test/fixtures/<store>/
-client/               Angular app (generated with Angular CLI)
+  index.ts                 API entry: loads .env (local only), validates env, connects DB, starts Fastify
+  app.ts                   buildApp(deps): plugins, error handler, routes. Tests call it with fakes
+  config/env.ts            zod schema for ALL env vars (loadEnv for the API, loadRefreshEnv for the job)
+  domain/                  stores, shared category ids, Offer schema + finalizeOffer/normalizeSearchText
+  adapters/store-adapter.ts StoreAdapter + AdapterContext interfaces
+  adapters/registry.ts     list of enabled adapters
+  adapters/<store>/        one folder per store: adapter + pure parse functions (from Phase 3)
+  scraping/                PoliteHttpClient: robots.txt, per-host queue + delay, UA, cache, timeout, 1 retry
+  db/                      Mongoose models + indexes, connect, Atlas Search index definition (JSON)
+  repositories/            OfferRepository interface + Mongo implementation (search pipeline builders)
+  jobs/refresh-runner.ts   runRefresh (per-store isolation, validation) + RefreshTrigger (no overlap)
+  jobs/refresh.ts          CLI entry for the scheduled refresh (exit code 1 if any store failed)
+  plugins/auth.ts          default-deny auth hook, cookie + JWT setup
+  routes/                  health, auth, offers (+ stores, categories), admin
+  scripts/hash-password.ts prints an argon2 hash for APP_PASSWORD_HASH
+server/test/               Vitest; helpers.ts has testEnv, FakeOfferRepository, buildTestApp, login
+server/test/fixtures/      saved store responses for adapter tests
+client/                    Angular app (generated with Angular CLI)
 ```
 
 ## Commands (run from the repo root)
@@ -42,7 +49,12 @@ npm run typecheck
 npm run build
 npm run format              # Prettier
 npm test -w server -- adapters/lidl   # run a subset of tests
+npm run refresh:dev -w server         # one refresh against the DB in .env (tsx)
+npm run refresh -w server             # same, from the build (used by GitHub Actions)
+npm run hash-password -w server
 ```
+
+Tests never need a database or network: routes run through `app.inject()` with `FakeOfferRepository`, the HTTP client gets a fake `fetch` and a virtual clock, and the Mongo search pipelines are tested as pure builder functions.
 
 Node ≥ 24.15 is required (Angular 22). The version is pinned in `.node-version`, which Render also reads.
 
@@ -53,7 +65,9 @@ Node ≥ 24.15 is required (Angular 22). The version is pinned in `.node-version
 - Naming: files in `kebab-case.ts`, types and classes in `PascalCase`, functions and variables in `camelCase`, env vars in `UPPER_SNAKE_CASE`. Store ids are lowercase slugs: `mercator`, `lidl`, `hofer`, `spar`, `dm`, `mueller`.
 - Config is read only through `loadEnv()` and passed down. Don't read `process.env` elsewhere.
 - Errors: route handlers throw, and Fastify's error handler turns errors into JSON. Never leak stack traces or internal messages in production. Adapters throw on failure. The refresh runner catches errors **per store**, logs them, records the store's status and continues.
-- Logging goes through the Fastify/pino logger (`app.log`, `request.log`). No `console.log` in server code.
+- Logging goes through pino (`app.log`, `request.log`, or the `Logger` passed in). No `console.log` in server code, except interactive CLI output in `scripts/`.
+- Dependencies are passed in, not imported as singletons (`buildApp(deps)`, `runRefresh(deps)`), so tests can use fakes.
+- Optional properties with `exactOptionalPropertyTypes`: add them conditionally (`...(x !== undefined && { x })`) rather than assigning `undefined`.
 - Prices are stored as numbers in EUR; dates as UTC `Date`. Prettier formats everything (single quotes, width 100).
 - Commits are small and logical, with imperative subjects (for example `Add Lidl offer parser`).
 
@@ -62,11 +76,13 @@ Node ≥ 24.15 is required (Angular 22). The version is pinned in `.node-version
 ```ts
 interface StoreAdapter {
   readonly store: StoreId; // 'lidl', 'dm', ...
-  fetchOffers(ctx: AdapterContext): Promise<Offer[]>; // ctx gives the polite HTTP client + logger
+  fetchOffers(context: AdapterContext): Promise<ScrapedOffer[]>; // context: { http, log, now }
 }
 ```
 
-Normalized `Offer` fields: store, productName, brand, category, price, regularPrice, discountPercent, unitPrice (with unit), validFrom, validTo, imageUrl, sourceUrl, scrapedAt, plus a stable `externalId` for upserts.
+An adapter returns `ScrapedOffer`s: externalId (stable, unique per store), productName, brand?, category (a shared id from `domain/categories.ts`), sourceCategory? (the store's own label), price, regularPrice?, discountPercent?, unitPrice? `{ amount, unit }`, validFrom?, validTo?, imageUrl?, sourceUrl?.
+
+The refresh runner then validates each offer with `scrapedOfferSchema`, skipping and logging invalid ones. `finalizeOffer` adds store, scrapedAt, searchText, expiresAt, and discountPercent when it can be computed. Each store's offers are replaced by upsert on `(store, externalId)`, and the offers not seen in this run are deleted. If an adapter throws or returns no valid offers, the store's previous offers are kept and its status is recorded as failed (`GET /api/stores` shows it).
 
 Rules for adding a store:
 
@@ -81,6 +97,8 @@ Rules for adding a store:
 - Single user. The password is checked with argon2 against `APP_PASSWORD_HASH`. Generate the hash with `npm run hash-password -w server`.
 - `POST /api/auth/login` is rate-limited per IP (`LOGIN_RATE_LIMIT_*`). On success it sets a JWT (signed with `JWT_SECRET`, lifetime `SESSION_TTL_HOURS`) in an **httpOnly, Secure, SameSite=Strict** cookie. `POST /api/auth/logout` clears it. `GET /api/auth/me` checks the session.
 - **Public endpoints:** `GET /api/health` and `POST /api/auth/login` only. Everything else needs the session cookie, except `POST /api/admin/refresh`, which needs the header `X-Refresh-Token: <REFRESH_TOKEN>`.
+- Default deny: the `onRequest` hook in `plugins/auth.ts` requires a session for every route, including unknown ones. A route opts out only through `config: { auth: 'public' }` or `config: { auth: 'refresh-token' }`. Never add a public route without the user's agreement.
+- `TRUST_PROXY_HOPS` decides which `X-Forwarded-For` entry counts as the client IP for the rate limit. Keep it at the actual number of Render proxies (verify after deploying).
 - Client: a login page and a functional route guard on all other routes. An HTTP interceptor redirects to login on 401.
 
 ## Hosting and scheduled refresh

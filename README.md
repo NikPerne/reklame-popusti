@@ -4,7 +4,7 @@
 
 Search for a product such as `kava` or `pralni prašek` and see every current offer across stores: price, regular price, discount %, unit price, validity dates, store, image and a link to the source.
 
-> **Status:** Phase 1 (scaffold) is complete: the server skeleton with its health check and an empty Angular app. Data model, auth, adapters, frontend and PWA come in later phases (see [Roadmap](#roadmap)).
+> **Status:** Phases 1–2 are complete: the API (auth, search, listings, refresh) is in place, but no store adapters exist yet, so there is no data. The Angular app is still empty. See the [Roadmap](#roadmap).
 
 ## Supported stores
 
@@ -54,34 +54,37 @@ npm run dev:client                # Angular on http://localhost:4200 (proxies /a
 
 Other commands, all run from the repo root:
 
-| Command             | What it does            |
-| ------------------- | ----------------------- |
-| `npm test`          | Run all tests           |
-| `npm run lint`      | ESLint                  |
-| `npm run typecheck` | TypeScript type check   |
-| `npm run build`     | Build server and client |
-| `npm run format`    | Prettier                |
+| Command                           | What it does                                                 |
+| --------------------------------- | ------------------------------------------------------------ |
+| `npm test`                        | Run all tests                                                |
+| `npm run lint`                    | ESLint                                                       |
+| `npm run typecheck`               | TypeScript type check                                        |
+| `npm run build`                   | Build server and client                                      |
+| `npm run format`                  | Prettier                                                     |
+| `npm run refresh:dev -w server`   | Run one refresh of all stores against the database in `.env` |
+| `npm run hash-password -w server` | Generate `APP_PASSWORD_HASH`                                 |
 
 ## Environment variables
 
 All configuration comes from environment variables. Locally they are read from `.env` in the repo root; on Render, set them in the dashboard. The server validates them at startup and refuses to start if any are missing or invalid.
 
-| Variable                          | Required | Default            | Description                                                          |
-| --------------------------------- | -------- | ------------------ | -------------------------------------------------------------------- |
-| `NODE_ENV`                        |          | `development`      | `development`, `production` or `test`                                |
-| `PORT`                            |          | `3000`             | HTTP port (Render sets this automatically)                           |
-| `LOG_LEVEL`                       |          | `info`             | Pino log level                                                       |
-| `MONGODB_URI`                     | ✔        |                    | Atlas connection string, including the database name                 |
-| `SEARCH_MODE`                     |          | `atlas`            | `atlas` (Atlas Search) or `basic` (fallback, no Atlas Search needed) |
-| `APP_PASSWORD_HASH`               | ✔        |                    | argon2 hash of the login password                                    |
-| `JWT_SECRET`                      | ✔        |                    | Secret for signing session tokens (≥ 32 chars)                       |
-| `SESSION_TTL_HOURS`               |          | `720`              | How long a login lasts                                               |
-| `LOGIN_RATE_LIMIT_MAX`            |          | `5`                | Failed logins allowed per IP per window                              |
-| `LOGIN_RATE_LIMIT_WINDOW_MINUTES` |          | `15`               | Login rate-limit window                                              |
-| `REFRESH_TOKEN`                   | ✔        |                    | Secret for the protected refresh endpoint (≥ 32 chars)               |
-| `SCRAPER_USER_AGENT`              |          | see `.env.example` | User-Agent sent to stores                                            |
-| `SCRAPER_MIN_DELAY_MS`            |          | `2000`             | Minimum delay between requests to one host                           |
-| `SCRAPER_CACHE_TTL_MINUTES`       |          | `60`               | How long fetched responses are cached                                |
+| Variable                          | Required | Default            | Description                                                                               |
+| --------------------------------- | -------- | ------------------ | ----------------------------------------------------------------------------------------- |
+| `NODE_ENV`                        |          | `development`      | `development`, `production` or `test`                                                     |
+| `PORT`                            |          | `3000`             | HTTP port (Render sets this automatically)                                                |
+| `LOG_LEVEL`                       |          | `info`             | Pino log level                                                                            |
+| `TRUST_PROXY_HOPS`                |          | `1`                | Proxies in front of the API whose `X-Forwarded-For` is trusted (for the login rate limit) |
+| `MONGODB_URI`                     | ✔        |                    | Atlas connection string, including the database name                                      |
+| `SEARCH_MODE`                     |          | `atlas`            | `atlas` (Atlas Search) or `basic` (fallback, no Atlas Search needed)                      |
+| `APP_PASSWORD_HASH`               | ✔        |                    | argon2 hash of the login password                                                         |
+| `JWT_SECRET`                      | ✔        |                    | Secret for signing session tokens (≥ 32 chars)                                            |
+| `SESSION_TTL_HOURS`               |          | `720`              | How long a login lasts                                                                    |
+| `LOGIN_RATE_LIMIT_MAX`            |          | `5`                | Login attempts allowed per IP per window                                                  |
+| `LOGIN_RATE_LIMIT_WINDOW_MINUTES` |          | `15`               | Login rate-limit window                                                                   |
+| `REFRESH_TOKEN`                   | ✔        |                    | Secret for the protected refresh endpoint (≥ 32 chars)                                    |
+| `SCRAPER_USER_AGENT`              |          | see `.env.example` | User-Agent sent to stores                                                                 |
+| `SCRAPER_MIN_DELAY_MS`            |          | `2000`             | Minimum delay between requests to one host                                                |
+| `SCRAPER_CACHE_TTL_MINUTES`       |          | `60`               | How long fetched responses are cached                                                     |
 
 ### Authentication setup
 
@@ -99,13 +102,43 @@ node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
 
 Only `POST /api/auth/login` and `GET /api/health` are public. All other endpoints require the session cookie (or, for the refresh endpoint, the `X-Refresh-Token` header).
 
+The refresh job (GitHub Actions) only needs `MONGODB_URI` and, optionally, the `SCRAPER_*` and `LOG_LEVEL` variables.
+
+## API
+
+All responses are JSON. Offer lists return `{ items, total, page, pageSize }`.
+
+| Method and path                        | Auth                 | Description                                                                 |
+| -------------------------------------- | -------------------- | --------------------------------------------------------------------------- |
+| `GET /api/health`                      | public               | Liveness check                                                              |
+| `POST /api/auth/login`                 | public, rate-limited | Body `{ "password": "…" }`; sets the session cookie                         |
+| `POST /api/auth/logout`                | session              | Clears the session cookie                                                   |
+| `GET /api/auth/me`                     | session              | `200` if logged in, `401` otherwise                                         |
+| `GET /api/offers`                      | session              | Search and filter all offers (query parameters below)                       |
+| `GET /api/stores/:store/offers`        | session              | Offers of one store; same query parameters                                  |
+| `GET /api/categories/:category/offers` | session              | Offers in one category; same query parameters                               |
+| `GET /api/stores`                      | session              | All stores, with the result of their last refresh                           |
+| `GET /api/categories`                  | session              | Categories that have offers, with counts                                    |
+| `POST /api/admin/refresh`              | `X-Refresh-Token`    | Starts a refresh in the background (`202`; `409` if one is already running) |
+
+Query parameters for offer lists:
+
+| Parameter          | Example         | Notes                                                                                     |
+| ------------------ | --------------- | ----------------------------------------------------------------------------------------- |
+| `q`                | `pralni prašek` | Text search, 2–100 characters, ignores diacritics                                         |
+| `store`            | `lidl,dm`       | One or more of `mercator`, `lidl`, `hofer`, `spar`, `dm`, `mueller`                       |
+| `category`         | `drogerija`     | One of the category ids in `server/src/domain/categories.ts`                              |
+| `minDiscount`      | `30`            | Minimum discount in %                                                                     |
+| `sort`             | `price`         | `relevance` (default when `q` is set), `discount` (default otherwise), `price`, `validTo` |
+| `page`, `pageSize` | `1`, `24`       | `pageSize` is at most 100                                                                 |
+
 ## Adding a new store adapter
 
 1. Investigate how the store publishes its offers: a public JSON API, HTML pages, or an online/PDF flyer. Check `robots.txt` and prefer the most stable and least invasive source.
 2. Save sample responses to `server/test/fixtures/<store>/`.
-3. Create `server/src/adapters/<store>/` with an adapter implementing `StoreAdapter` (`fetchOffers(): Promise<Offer[]>`). Parsing goes in pure functions that take raw responses, so they can be tested against fixtures.
+3. Create `server/src/adapters/<store>/` with an adapter implementing `StoreAdapter` (`fetchOffers(context): Promise<ScrapedOffer[]>`, see `server/src/adapters/store-adapter.ts`). Parsing goes in pure functions that take raw responses, so they can be tested against fixtures. Map the store's categories onto the shared category ids.
 4. Make every HTTP request through the shared polite HTTP client. It handles robots.txt, rate limiting, User-Agent and caching. Never call `fetch` directly.
-5. Register the adapter in the adapter registry. No other core code changes.
+5. Register the adapter in `server/src/adapters/registry.ts`. No other core code changes.
 6. Write parsing tests against the fixtures, and update the store table above.
 
 ## Deployment
@@ -116,7 +149,8 @@ Only `POST /api/auth/login` and `GET /api/health` are public. All other endpoint
 2. **Database Access:** create a user with the `readWrite` role on the `reklame` database only, with a long random password.
 3. **Network Access:** add `0.0.0.0/0`. Render's free tier and GitHub Actions runners have no fixed outbound IPs, so the strong database password is the protection here. If you later move to a paid Render plan, you can restrict access to the outbound IP ranges shown on the service's _Connect_ tab.
 4. Copy the connection string (Connect → Drivers) into `MONGODB_URI`, with `/reklame` as the database path.
-5. Create the Atlas Search index from the definition file in the repo (added in Phase 2).
+5. Run the refresh job once (`npm run refresh:dev -w server`). It creates the `offers` collection and its regular indexes, including the TTL index.
+6. Create the Atlas Search index: **Atlas Search → Create Search Index → JSON Editor**, choose database `reklame` and collection `offers`, name it `offers_search`, and paste the `definition` object from [`server/src/db/atlas-search-index.json`](server/src/db/atlas-search-index.json). Until the index is ready, use `SEARCH_MODE=basic`.
 
 ### Render
 
@@ -154,8 +188,8 @@ This is a personal tool. Scrapers respect `robots.txt`, identify themselves with
 ## Roadmap
 
 1. Scaffold ✔
-2. Data model, API and auth ← _next_
-3. First store adapter end to end
+2. Data model, API and auth ✔
+3. First store adapter end to end ← _next_
 4. Frontend (login, search, filters, sorting, SL/EN)
 5. Remaining store adapters
 6. PWA and deployment
