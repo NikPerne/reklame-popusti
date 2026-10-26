@@ -1,0 +1,83 @@
+{
+  "app": {
+    "title": "Discounts",
+    "logout": "Log out",
+    "language": "Language"
+  },
+  "login": {
+    "title": "Log in",
+    "intro": "Every Slovenian store's discounts in one place.",
+    "password": "Password",
+    "submit": "Log in",
+    "submitting": "Logging in …",
+    "wrongPassword": "Wrong password.",
+    "tooManyAttempts": "Too many attempts. Try again in a few minutes.",
+    "offline": "The server can't be reached. Check your connection and try again.",
+    "error": "Login failed. Please try again."
+  },
+  "search": {
+    "placeholder": "Search a product, e.g. coffee or detergent",
+    "label": "Search",
+    "clear": "Clear search",
+    "results": "{{ count }} offers",
+    "topDeals": "Biggest discounts",
+    "noResults": "No offers match your search.",
+    "loadMore": "Show more",
+    "loading": "Loading …",
+    "error": "Offers could not be loaded.",
+    "retry": "Try again",
+    "offline": "Offline."
+  },
+  "filters": {
+    "title": "Filters",
+    "stores": "Stores",
+    "category": "Category",
+    "allCategories": "All categories",
+    "minDiscount": "Minimum discount",
+    "anyDiscount": "Any",
+    "sort": "Sort by",
+    "reset": "Reset filters"
+  },
+  "sort": {
+    "relevance": "Best match",
+    "price": "Lowest price",
+    "unitPrice": "Lowest unit price",
+    "discount": "Biggest discount",
+    "validTo": "Ending soon"
+  },
+  "offer": {
+    "regularPrice": "Was",
+    "validTo": "until {{ date }}",
+    "validFrom": "from {{ date }}",
+    "toStore": "Open in store",
+    "units": { "kg": "kg", "l": "l", "piece": "piece" },
+    "conditions": {
+      "loyalty-card": "With card",
+      "multi-buy": "Multi-buy",
+      "coupon": "With coupon",
+      "other": "Condition"
+    }
+  },
+  "stores": {
+    "lastRefresh": "Updated {{ date }}",
+    "refreshFailed": "Last refresh failed"
+  },
+  "categories": {
+    "sadje-zelenjava": "Fruit & vegetables",
+    "meso-ribe": "Meat & fish",
+    "mlecni-izdelki": "Dairy",
+    "kruh-pekovsko": "Bread & bakery",
+    "shramba": "Pantry",
+    "sladko-slano": "Sweets & snacks",
+    "pijace": "Drinks",
+    "zamrznjeno": "Frozen",
+    "drogerija": "Toiletries",
+    "gospodinjstvo": "Household",
+    "otroci": "Kids",
+    "zivali": "Pets",
+    "dom-vrt": "Home & garden",
+    "tehnika": "Electronics",
+    "oblacila": "Clothing",
+    "drugo": "Other"
+  }
+}

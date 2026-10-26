@@ -1,0 +1,83 @@
+{
+  "app": {
+    "title": "Popusti",
+    "logout": "Odjava",
+    "language": "Jezik"
+  },
+  "login": {
+    "title": "Prijava",
+    "intro": "Vsi popusti slovenskih trgovin na enem mestu.",
+    "password": "Geslo",
+    "submit": "Prijava",
+    "submitting": "Prijavljam …",
+    "wrongPassword": "Napačno geslo.",
+    "tooManyAttempts": "Preveč poskusov. Poskusi znova čez nekaj minut.",
+    "offline": "Strežnik ni dosegljiv. Preveri povezavo in poskusi znova.",
+    "error": "Prijava ni uspela. Poskusi znova."
+  },
+  "search": {
+    "placeholder": "Išči izdelek, npr. kava ali pralni prašek",
+    "label": "Iskanje",
+    "clear": "Počisti iskanje",
+    "results": "{{ count }} ponudb",
+    "topDeals": "Največji popusti",
+    "noResults": "Ni ponudb, ki bi ustrezale iskanju.",
+    "loadMore": "Prikaži več",
+    "loading": "Nalagam …",
+    "error": "Ponudb ni bilo mogoče naložiti.",
+    "retry": "Poskusi znova",
+    "offline": "Brez povezave."
+  },
+  "filters": {
+    "title": "Filtri",
+    "stores": "Trgovine",
+    "category": "Kategorija",
+    "allCategories": "Vse kategorije",
+    "minDiscount": "Najmanjši popust",
+    "anyDiscount": "Kateri koli",
+    "sort": "Razvrsti",
+    "reset": "Ponastavi filtre"
+  },
+  "sort": {
+    "relevance": "Najboljše ujemanje",
+    "price": "Najnižja cena",
+    "unitPrice": "Najnižja cena na enoto",
+    "discount": "Največji popust",
+    "validTo": "Kmalu poteče"
+  },
+  "offer": {
+    "regularPrice": "Prej",
+    "validTo": "do {{ date }}",
+    "validFrom": "od {{ date }}",
+    "toStore": "Odpri v trgovini",
+    "units": { "kg": "kg", "l": "l", "piece": "kos" },
+    "conditions": {
+      "loyalty-card": "S kartico",
+      "multi-buy": "Več kosov",
+      "coupon": "S kuponom",
+      "other": "Pogoj"
+    }
+  },
+  "stores": {
+    "lastRefresh": "Osveženo {{ date }}",
+    "refreshFailed": "Zadnja osvežitev ni uspela"
+  },
+  "categories": {
+    "sadje-zelenjava": "Sadje in zelenjava",
+    "meso-ribe": "Meso in ribe",
+    "mlecni-izdelki": "Mlečni izdelki",
+    "kruh-pekovsko": "Kruh in pekovsko",
+    "shramba": "Shramba",
+    "sladko-slano": "Sladko in slano",
+    "pijace": "Pijače",
+    "zamrznjeno": "Zamrznjeno",
+    "drogerija": "Drogerija",
+    "gospodinjstvo": "Gospodinjstvo",
+    "otroci": "Otroci",
+    "zivali": "Živali",
+    "dom-vrt": "Dom in vrt",
+    "tehnika": "Tehnika",
+    "oblacila": "Oblačila",
+    "drugo": "Drugo"
+  }
+}
