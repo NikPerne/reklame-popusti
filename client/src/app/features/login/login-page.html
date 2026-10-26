@@ -1,0 +1,28 @@
+<section class="login-card" *transloco="let t; prefix: 'login'">
+  <h1>{{ t('title') }}</h1>
+  <p class="intro">{{ t('intro') }}</p>
+
+  <form (submit)="submit($event)" novalidate>
+    <label for="password">{{ t('password') }}</label>
+    <input
+      id="password"
+      class="field"
+      type="password"
+      name="password"
+      autocomplete="current-password"
+      required
+      [value]="password()"
+      [attr.aria-invalid]="error() === 'wrongPassword'"
+      [attr.aria-describedby]="error() ? 'login-error' : null"
+      (input)="onPasswordInput($event)"
+    />
+
+    @if (error(); as errorKey) {
+      <p id="login-error" class="error" role="alert">{{ t(errorKey) }}</p>
+    }
+
+    <button class="button" type="submit" [disabled]="!password() || submitting()">
+      {{ submitting() ? t('submitting') : t('submit') }}
+    </button>
+  </form>
+</section>

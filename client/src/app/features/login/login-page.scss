@@ -1,0 +1,39 @@
+.login-card {
+  max-width: 24rem;
+  margin: 10vh auto 0;
+  padding: var(--space-6);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.intro {
+  margin: var(--space-1) 0 var(--space-6);
+  color: var(--muted);
+}
+
+form {
+  display: grid;
+  gap: var(--space-2);
+}
+
+label {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.error {
+  margin: 0;
+  color: var(--sale);
+  font-size: 0.9rem;
+}
+
+.button {
+  margin-top: var(--space-3);
+}
