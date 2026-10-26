@@ -150,7 +150,7 @@ Query parameters for offer lists:
 3. **Network Access:** add `0.0.0.0/0`. Render's free tier and GitHub Actions runners have no fixed outbound IPs, so the strong database password is the protection here. If you later move to a paid Render plan, you can restrict access to the outbound IP ranges shown on the service's _Connect_ tab.
 4. Copy the connection string (Connect → Drivers) into `MONGODB_URI`, with `/reklame` as the database path.
 5. Run the refresh job once (`npm run refresh:dev -w server`). It creates the `offers` collection and its regular indexes, including the TTL index.
-6. Create the Atlas Search index: **Atlas Search → Create Search Index → JSON Editor**, choose database `reklame` and collection `offers`, name it `offers_search`, and paste the `definition` object from [`server/src/db/atlas-search-index.json`](server/src/db/atlas-search-index.json). Until the index is ready, use `SEARCH_MODE=basic`.
+6. Create the Atlas Search index: **Atlas Search → Create Search Index → JSON Editor**, choose database `reklame` and collection `offers`, keep the default name `default`, and paste the `definition` object from [`server/src/db/atlas-search-index.json`](server/src/db/atlas-search-index.json). Until the index is ready, use `SEARCH_MODE=basic`.
 
 ### Render
 

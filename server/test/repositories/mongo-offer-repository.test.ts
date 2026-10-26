@@ -24,7 +24,7 @@ describe('buildPipeline', () => {
     const pipeline = buildPipeline({ ...base, text: 'kava', sort: 'relevance' }, 'atlas');
 
     expect(pipeline[0]).toMatchObject({
-      $search: { index: 'offers_search', text: { query: 'kava' } },
+      $search: { index: 'default', text: { query: 'kava' } },
     });
     expect(pipeline).toContainEqual({ $sort: { score: { $meta: 'searchScore' }, _id: 1 } });
   });

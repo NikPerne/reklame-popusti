@@ -1,5 +1,5 @@
 {
-  "name": "offers_search",
+  "name": "default",
   "definition": {
     "analyzer": "slFolding",
     "searchAnalyzer": "slFolding",
