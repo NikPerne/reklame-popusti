@@ -1,0 +1,29 @@
+name: Refresh offers
+
+on:
+  schedule:
+    # 05:17, 11:17 and 17:17 Slovenian winter time (cron is UTC; off the hour to avoid peak load).
+    - cron: '17 4,10,16 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci --workspace server
+      - run: npm run build -w server
+      - run: npm run refresh -w server
+        env:
+          NODE_ENV: production
+          LOG_LEVEL: info
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}

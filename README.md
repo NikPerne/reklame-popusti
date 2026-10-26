@@ -175,9 +175,12 @@ Free web services sleep after about 15 minutes without traffic. The first reques
 
 ### Scheduled refresh
 
-Render free web services sleep, so an in-process scheduler would not fire reliably. Instead, a **GitHub Actions scheduled workflow** (`.github/workflows/refresh.yml`, added in Phase 6) runs the refresh job directly against Atlas a few times a day. The workflow needs the repository secret `MONGODB_URI`.
+Render free web services sleep, so an in-process scheduler would not fire reliably. Instead, a **GitHub Actions scheduled workflow** ([`.github/workflows/refresh.yml`](.github/workflows/refresh.yml)) runs the refresh job directly against Atlas at 04:17, 10:17 and 16:17 UTC.
 
-- To refresh manually: `POST /api/admin/refresh` with header `X-Refresh-Token: <REFRESH_TOKEN>`, or run the workflow from the GitHub Actions tab.
+Setup: in the GitHub repo go to **Settings → Secrets and variables → Actions → New repository secret**, name it `MONGODB_URI`, and paste the same connection string as in `.env`. No other secrets are needed.
+
+- To refresh manually: **Actions → Refresh offers → Run workflow**, or `POST /api/admin/refresh` with header `X-Refresh-Token: <REFRESH_TOKEN>`.
+- A run fails (and GitHub emails you) when any store fails; the log shows which one and why.
 - Expired offers are removed automatically by a MongoDB TTL index, so no cleanup job is needed.
 - GitHub disables scheduled workflows in public repos after 60 days without repository activity. Re-enable it in the Actions tab if that happens.
 

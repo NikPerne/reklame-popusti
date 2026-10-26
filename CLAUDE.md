@@ -105,7 +105,9 @@ Rules for adding a store:
 
 - Render free tier: a **Web Service** for `server`, with health check `/api/health`, and a **Static Site** for `client`. The static site rewrites `/api/*` to the web service, then `/*` to `/index.html`. The build and start commands are in README.md.
 - Free web services sleep after about 15 minutes idle, so **no in-process schedulers** (no node-cron).
-- The refresh is triggered by a **GitHub Actions scheduled workflow** that runs the refresh job against Atlas, using the repository secret `MONGODB_URI`. A manual trigger is `POST /api/admin/refresh`.
+- The refresh is triggered by `.github/workflows/refresh.yml` (cron 3x daily + manual "Run workflow"), which builds the server and runs `npm run refresh -w server` with the repository secret `MONGODB_URI`. Another manual trigger is `POST /api/admin/refresh`.
+- `.github/workflows/ci.yml` runs format check, lint, typecheck, tests and build on every push to main.
+- The developer machine is on a network that blocks outbound port 27017, so it cannot reach Atlas. Verify database behaviour via the GitHub Actions refresh or on Render, not locally.
 - Atlas M0: the network access list is `0.0.0.0/0`, because neither Render free nor GitHub runners have fixed IPs. The database user has `readWrite` on the `reklame` database only.
 
 ## Scraping etiquette (hard rules)
