@@ -42,7 +42,12 @@ client/src/app/
   core/auth/               AuthService (session status signal), authGuard/guestGuard, authInterceptor
   core/i18n/               LanguageService (sl default, remembered in localStorage), Transloco loader
   features/login/          LoginPage
-  features/search/         SearchPage (state in URL query params), SearchFilters, OfferCard, search-params.ts
+  core/shopping-list/      ShoppingListService: local-first list (localStorage + pending-change queue), syncs to the API
+  core/settings/           SettingsService: preferred stores, hidden categories (same sync pattern)
+  features/search/         SearchPage (state in URL query params), SearchFilters, OfferCard (+ button, "Tudi:"), HomeSections, search-params.ts
+  features/shopping-list/  ShoppingListPage (/seznam): grouped by store, tap to cross off
+  features/settings/       SettingsPage (/nastavitve)
+  features/scanner/        ScannerPage (/skeniraj): BarcodeDetector or lazily loaded ZXing; EAN check digit
   shared/format.ts         eur and shortDate pipes (Intl, take the language as an argument)
 client/public/i18n/        sl.json and en.json; every UI string goes through Transloco
 client/src/testing/        test helpers: translocoTesting() with the real translations, offer factories
@@ -65,7 +70,81 @@ npm run refresh -w server             # same, from the build (used by GitHub Act
 npm run hash-password -w server
 ```
 
-Tests never need a database or network: routes run through `app.inject()` with `FakeOfferRepository`, the HTTP client gets a fake `fetch` and a virtual clock, and the Mongo search pipelines are tested as pure builder functions.
+Tests never need the network: routes run through `app.inject()` with fake repositories, the HTTP client gets a fake `fetch` and a virtual clock. `server/test/integration/` runs the real Mongo queries against an in-memory MongoDB (`mongodb-memory-server`, downloaded on first run, cached in CI); add a case there for every query change, because pipeline-shape unit tests can't catch wrong operators. Atlas Search (`$search`) can't run there; the `basic` mode is used.
+
+When generating code containing MongoDB variables (`$ROOT`, `$this`) with a script, beware that `String.replace` treats `$` in the replacement as `# CLAUDE.md
+
+Context for AI-assisted work on this repo. **Keep this file and README.md up to date whenever the architecture, commands, env vars or conventions change.**
+
+## Purpose
+
+A personal PWA that aggregates current discounts from Slovenian retailers (Mercator, Lidl, Hofer, Spar, dm, Müller) and makes them searchable in one place. It has one user, the owner, and must not be publicly accessible.
+
+## Architecture
+
+- `server/`: a Fastify + TypeScript API. Store adapters fetch offers and normalize them to one `Offer` model. A refresh job runs all adapters and upserts the results into MongoDB Atlas. A REST API serves search and listings.
+- `client/`: an Angular 22 PWA. The UI is in Slovenian by default, with English available through Transloco runtime switching. It talks to the API through relative `/api/*` URLs: in development via the Angular dev-server proxy; in production the same Fastify server serves both the app and the API. This keeps everything same-origin.
+- Database: MongoDB Atlas M0 with Mongoose. Search uses an Atlas Search index with `icuFolding`, which ignores diacritics (č/š/ž). `SEARCH_MODE=basic` instead uses a regex on a precomputed `searchText` field (lowercase, diacritics removed), for local development and tests. `mongodb-memory-server` has no Atlas Search.
+- Expired offers are deleted by a TTL index on `expiresAt`, which is `validTo` plus a grace period.
+
+## Repo structure
+
+```
+server/src/
+  index.ts                 API entry: loads .env (local only), validates env, connects DB, starts Fastify
+  app.ts                   buildApp(deps): plugins, error handler, routes. Tests call it with fakes
+  config/env.ts            zod schema for ALL env vars (loadEnv for the API, loadRefreshEnv for the job)
+  domain/                  stores, shared category ids, Offer schema + finalizeOffer/normalizeSearchText
+  adapters/store-adapter.ts StoreAdapter + AdapterContext interfaces
+  adapters/registry.ts     list of enabled adapters
+  adapters/<store>/        one folder per store: adapter + pure parse functions (from Phase 3)
+  scraping/                PoliteHttpClient: robots.txt, per-host queue + delay, UA, cache, timeout, 1 retry
+  db/                      Mongoose models + indexes, connect, Atlas Search index definition (JSON)
+  repositories/            OfferRepository interface + Mongo implementation (search pipeline builders)
+  jobs/refresh-runner.ts   runRefresh (per-store isolation, validation) + RefreshTrigger (no overlap)
+  jobs/refresh.ts          CLI entry for the scheduled refresh (exit code 1 if any store failed)
+  plugins/auth.ts          default-deny auth hook, cookie + JWT setup
+  routes/                  health, auth, offers (+ stores, categories), admin
+  scripts/hash-password.ts prints an argon2 hash for APP_PASSWORD_HASH
+server/test/               Vitest; helpers.ts has testEnv, FakeOfferRepository, buildTestApp, login
+server/test/fixtures/      saved store responses for adapter tests
+client/src/app/
+  app.ts|html|scss         shell: header with SL/EN switch and logout, <router-outlet>
+  app.config.ts            providers: router, HttpClient + authInterceptor, Transloco, language restore
+  app.routes.ts            /login (guestGuard) and / (authGuard), both lazy-loaded
+  core/api/                API types (mirror of the server's model; keep in sync) + OffersApi
+  core/auth/               AuthService (session status signal), authGuard/guestGuard, authInterceptor
+  core/i18n/               LanguageService (sl default, remembered in localStorage), Transloco loader
+  features/login/          LoginPage
+  core/shopping-list/      ShoppingListService: local-first list (localStorage + pending-change queue), syncs to the API
+  core/settings/           SettingsService: preferred stores, hidden categories (same sync pattern)
+  features/search/         SearchPage (state in URL query params), SearchFilters, OfferCard (+ button, "Tudi:"), HomeSections, search-params.ts
+  features/shopping-list/  ShoppingListPage (/seznam): grouped by store, tap to cross off
+  features/settings/       SettingsPage (/nastavitve)
+  features/scanner/        ScannerPage (/skeniraj): BarcodeDetector or lazily loaded ZXing; EAN check digit
+  shared/format.ts         eur and shortDate pipes (Intl, take the language as an argument)
+client/public/i18n/        sl.json and en.json; every UI string goes through Transloco
+client/src/testing/        test helpers: translocoTesting() with the real translations, offer factories
+```
+
+## Commands (run from the repo root)
+
+```bash
+npm install                 # all workspaces
+npm run dev:server          # tsx watch, http://localhost:3000
+npm run dev:client          # ng serve, http://localhost:4200
+npm test                    # all tests (Vitest on the server)
+npm run lint                # ESLint: strict type-checked rules for the server, angular-eslint (ng lint) for the client
+npm run typecheck
+npm run build
+npm run format              # Prettier
+npm test -w server -- adapters/lidl   # run a subset of tests
+npm run refresh:dev -w server         # one refresh against the DB in .env (tsx)
+npm run refresh -w server             # same, from the build (used by GitHub Actions)
+npm run hash-password -w server
+```
+
+. That broke production search once.
 
 Node ≥ 24.15 is required (Angular 22). The version is pinned in `.node-version`, which Render also reads.
 
@@ -111,6 +190,7 @@ Store-specific notes (see the README store table for data sources):
 - **Tuš**: `adapters/tus/`, parsed with cheerio. WooCommerce lists (`TUS_LISTS`: "aktualno-iz-kataloga", "tus-klub-50"), `/page/N/`, page count from page 1's pagination. Id = `data-gtm4wp_product_id` (WordPress post id). Category: `product_cat-<slug>` (sub) first, then `product_cat_m-<slug>` (main), then `guessCategory`. Brand from `pa_znamka-<slug>`. Unit price via `unitPriceFromName` (`lib/unit-price.ts`). A product in both lists keeps the cheaper offer.
 - Adapters can declare `isAllowedAt(now)` (visiting hours) and pass `minDelayMs` on requests (longer per-site delay). Never remove these to make a manual run work.
 - **Owner's scope decisions**: no "permanently lowered price" lists (Hofer "Vse spuščene cene", Tuš "Trajno znižano"), no Tuš "Mojih 10". Tuš: only "Aktualno iz kataloga" and "Tuš Klub −50 %" (condition "Tuš klub"). All planned stores are done; dm and Müller are deliberately not scraped.
+- **Grouping**: after each refresh `regroup()` links offers sharing any barcode (union-find in `domain/grouping.ts`) and same-store duplicates (same name and price) via `groupKey`; search collapses each group to its best offer for the sort, the rest in `alsoAt`. Barcodes come from Mercator (`gtins`), Spar (`ean`) and Tuš (`data-product-ean`).
 - Shared parsing helpers: `lib/unit-price.ts` (`parseUnitPriceText`: "1 kg = 0,90", "100 g = …", "1,90 €/1 kg"), `lib/html.ts` (`attributeValues`, `decodeHtmlEntities`), `domain/categorize.ts` (`guessCategory`).
 - **dm**: do not scrape; its only data source is disallowed by robots.txt.
 
@@ -132,6 +212,8 @@ Rules for adding a store:
 - Search state lives in the URL query (`q`, `store`, `category`, `minDiscount`, `sort`); `search-params.ts` converts between URL, state and API parameters.
 - Styles: global tokens (colours, spacing, store colours) in `src/styles.scss` with a dark-mode variant; component styles use only those variables. Mobile first: check layouts at 390 px. Grid columns use `minmax(0, 1fr)` so long text can't widen the page.
 - Tests use Vitest with TestBed, `provideHttpClientTesting()` and `translocoTesting()`; no real backend.
+- User data (shopping list, settings) is local-first: change the signal and localStorage at once, queue the change, sync when online; the server keeps the copy with the newest `updatedAt`.
+- Search URL: no `store` param = preferred stores; `store=` (empty) = explicitly all stores.
 
 ## Authentication
 

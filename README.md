@@ -6,6 +6,17 @@ Search for a product such as `kava` or `pralni prašek` and see every current of
 
 > **Status:** Live at https://popusti.onrender.com with offers from Mercator, Lidl, Hofer, Spar, Eurospin and Tuš (API, frontend, PWA, scheduled refresh). Next: investigating personal Lidl Plus coupons (optional). See the [Roadmap](#roadmap).
 
+## Features
+
+- **Search** across all stores, diacritic-insensitive, with filters (store, category, minimum discount) and sorting (price, **price per unit**, discount, ending soon, newest).
+- **Same product across stores**: offers sharing a barcode (Mercator, Spar, Tuš) are shown as one result, cheapest first, with "Tudi: Spar 1,99 € · Tuš 2,09 €".
+- **Shopping list**: a **+** on every offer; the list is grouped by store with subtotals, items are crossed off in the shop, and it syncs between devices (works offline).
+- **Start page**: "Novo ta teden" and "Kmalu poteče" rows; next week's offers on request.
+- **Settings**: preferred stores (the default filter) and hidden categories, synced between devices.
+- **Barcode scanner**: scan a product in the shop to see its offers in all stores.
+- **Store health**: a warning when a store has had no fresh data for over a day.
+- Loyalty-card prices (Pika, Lidl Plus, Tuš klub) and multi-buy deals are marked; Slovenian UI with English; installable PWA.
+
 ## Supported stores
 
 | Store    | Adapter     | Data source                                                                                                                                                                                                                                                                                                                                                         |
@@ -109,31 +120,40 @@ The refresh job (GitHub Actions) only needs `MONGODB_URI` and, optionally, the `
 
 ## API
 
-All responses are JSON. Offer lists return `{ items, total, page, pageSize }`.
+All responses are JSON. Offer lists return `{ items, total, page, pageSize }`; offers for the same product are one item with the others in `alsoAt`.
 
-| Method and path                        | Auth                 | Description                                                                 |
-| -------------------------------------- | -------------------- | --------------------------------------------------------------------------- |
-| `GET /api/health`                      | public               | Liveness check                                                              |
-| `POST /api/auth/login`                 | public, rate-limited | Body `{ "password": "…" }`; sets the session cookie                         |
-| `POST /api/auth/logout`                | session              | Clears the session cookie                                                   |
-| `GET /api/auth/me`                     | session              | `200` if logged in, `401` otherwise                                         |
-| `GET /api/offers`                      | session              | Search and filter all offers (query parameters below)                       |
-| `GET /api/stores/:store/offers`        | session              | Offers of one store; same query parameters                                  |
-| `GET /api/categories/:category/offers` | session              | Offers in one category; same query parameters                               |
-| `GET /api/stores`                      | session              | All stores, with the result of their last refresh                           |
-| `GET /api/categories`                  | session              | Categories that have offers, with counts                                    |
-| `POST /api/admin/refresh`              | `X-Refresh-Token`    | Starts a refresh in the background (`202`; `409` if one is already running) |
+| Method and path                         | Auth                 | Description                                                                 |
+| --------------------------------------- | -------------------- | --------------------------------------------------------------------------- |
+| `GET /api/health`                       | public               | Liveness check                                                              |
+| `POST /api/auth/login`                  | public, rate-limited | Body `{ "password": "…" }`; sets the session cookie                         |
+| `POST /api/auth/logout`                 | session              | Clears the session cookie                                                   |
+| `GET /api/auth/me`                      | session              | `200` if logged in, `401` otherwise                                         |
+| `GET /api/offers`                       | session              | Search and filter all offers (query parameters below)                       |
+| `GET /api/stores/:store/offers`         | session              | Offers of one store; same query parameters                                  |
+| `GET /api/categories/:category/offers`  | session              | Offers in one category; same query parameters                               |
+| `GET /api/stores`                       | session              | All stores, with the result of their last refresh                           |
+| `GET /api/categories`                   | session              | Categories that have offers, with counts                                    |
+| `GET /api/shopping-list`                | session              | The shopping list                                                           |
+| `PUT /api/shopping-list/items/:id`      | session              | Add or update an item (older writes than the stored one are ignored)        |
+| `DELETE /api/shopping-list/items/:id`   | session              | Remove an item                                                              |
+| `POST /api/shopping-list/clear-checked` | session              | Remove the crossed-off items                                                |
+| `GET` / `PUT /api/settings`             | session              | Preferred stores and hidden categories                                      |
+| `POST /api/admin/refresh`               | `X-Refresh-Token`    | Starts a refresh in the background (`202`; `409` if one is already running) |
 
 Query parameters for offer lists:
 
-| Parameter          | Example         | Notes                                                                                                                                                  |
-| ------------------ | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `q`                | `pralni prašek` | Text search, 2–100 characters, ignores diacritics                                                                                                      |
-| `store`            | `lidl,dm`       | One or more of `mercator`, `lidl`, `hofer`, `spar`, `dm`, `mueller`, `eurospin`, `tus`                                                                 |
-| `category`         | `drogerija`     | One of the category ids in `server/src/domain/categories.ts`                                                                                           |
-| `minDiscount`      | `30`            | Minimum discount in %                                                                                                                                  |
-| `sort`             | `price`         | `relevance` (default when `q` is set), `discount` (default otherwise), `price`, `unitPrice` (€/kg, €/l or €/piece; offers without one last), `validTo` |
-| `page`, `pageSize` | `1`, `24`       | `pageSize` is at most 100                                                                                                                              |
+| Parameter                             | Example         | Notes                                                                                                                                                            |
+| ------------------------------------- | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `q`                                   | `pralni prašek` | Text search, 2–100 characters, ignores diacritics                                                                                                                |
+| `store`                               | `lidl,dm`       | One or more of `mercator`, `lidl`, `hofer`, `spar`, `dm`, `mueller`, `eurospin`, `tus`                                                                           |
+| `category`                            | `drogerija`     | One of the category ids in `server/src/domain/categories.ts`                                                                                                     |
+| `minDiscount`                         | `30`            | Minimum discount in %                                                                                                                                            |
+| `sort`                                | `price`         | `relevance` (default when `q` is set), `discount` (default otherwise), `price`, `unitPrice` (€/kg, €/l or €/piece; offers without one last), `validTo`, `newest` |
+| `excludeCategory`                     | `oblacila`      | Categories to leave out (ignored when `category` is set)                                                                                                         |
+| `ean`                                 | `3838975531314` | Offers for one barcode                                                                                                                                           |
+| `upcoming`                            | `true`          | Also offers that start later (default: only started ones)                                                                                                        |
+| `startedWithinDays`, `endsWithinDays` | `7`, `2`        | Offers that started / end within that many days                                                                                                                  |
+| `page`, `pageSize`                    | `1`, `24`       | `pageSize` is at most 100                                                                                                                                        |
 
 ## Adding a new store adapter
 
@@ -220,4 +240,5 @@ This is a personal tool. Scrapers respect `robots.txt`, identify themselves with
 4. Frontend (login, search, filters, sorting, SL/EN) ✔
 5. PWA and deployment ✔ (live at https://popusti.onrender.com)
 6. Remaining store adapters: Lidl ✔, Hofer ✔, Spar ✔, Eurospin ✔, Tuš ✔
-7. Optional: personal Lidl Plus coupons ← _to investigate_
+7. Shopping list, same product across stores, settings, start-page rows, barcode scanner, store health ✔
+8. Optional: personal Lidl Plus coupons (on hold)
