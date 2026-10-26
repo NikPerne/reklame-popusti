@@ -1,3 +1,4 @@
+import { eurospinAdapter } from './eurospin/eurospin-adapter.js';
 import { hoferAdapter } from './hofer/hofer-adapter.js';
 import { lidlAdapter } from './lidl/lidl-adapter.js';
 import { mercatorAdapter } from './mercator/mercator-adapter.js';
@@ -10,4 +11,5 @@ export const adapters: readonly StoreAdapter[] = [
   lidlAdapter,
   hoferAdapter,
   sparAdapter,
+  eurospinAdapter,
 ];
