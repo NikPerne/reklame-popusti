@@ -4,7 +4,7 @@ Context for AI-assisted work on this repo. **Keep this file and README.md up to 
 
 ## Purpose
 
-A personal PWA that aggregates current discounts from Slovenian retailers (Mercator, Lidl, Hofer, Spar, dm, Müller) and makes them searchable in one place. It has one user, the owner, and must not be publicly accessible.
+A personal PWA that aggregates current discounts from Slovenian retailers (Mercator, Lidl, Hofer, Spar, dm, Müller) and makes them searchable in one place. It is private: accounts are created only with an invite code from the owner.
 
 ## Architecture
 
@@ -30,18 +30,18 @@ server/src/
   jobs/refresh-runner.ts   runRefresh (per-store isolation, validation) + RefreshTrigger (no overlap)
   jobs/refresh.ts          CLI entry for the scheduled refresh (exit code 1 if any store failed)
   plugins/auth.ts          default-deny auth hook, cookie + JWT setup
-  routes/                  health, auth, offers (+ stores, categories), admin
-  scripts/hash-password.ts prints an argon2 hash for APP_PASSWORD_HASH
-server/test/               Vitest; helpers.ts has testEnv, FakeOfferRepository, buildTestApp, login
+  routes/                  health, auth (signup, login), offers (+ stores, categories), shopping-list, settings, admin
+  domain/account.ts        email/password/signup schemas, SHARED_LISTS parsing, listMembership()
+server/test/               Vitest; helpers.ts has testEnv, fake repositories, buildTestApp, login(app, email?), signup(app, email)
 server/test/fixtures/      saved store responses for adapter tests
 client/src/app/
   app.ts|html|scss         shell: header with SL/EN switch and logout, <router-outlet>
   app.config.ts            providers: router, HttpClient + authInterceptor, Transloco, language restore
-  app.routes.ts            /login (guestGuard) and / (authGuard), both lazy-loaded
+  app.routes.ts            /login (guestGuard; also signup) and the app pages (authGuard), all lazy-loaded
   core/api/                API types (mirror of the server's model; keep in sync) + OffersApi
-  core/auth/               AuthService (session status signal), authGuard/guestGuard, authInterceptor
+  core/auth/               AuthService (status + email signals), guards, authInterceptor, SessionData (ties local data to one account)
   core/i18n/               LanguageService (sl default, remembered in localStorage), Transloco loader
-  features/login/          LoginPage
+  features/login/          LoginPage: login, or signup with an invite code
   core/shopping-list/      ShoppingListService: local-first list (localStorage + pending-change queue), syncs to the API
   core/settings/           SettingsService: preferred stores, hidden categories (same sync pattern)
   features/search/         SearchPage (state in URL query params), SearchFilters, OfferCard (+ button, "Tudi:"), HomeSections, search-params.ts
@@ -67,84 +67,11 @@ npm run format              # Prettier
 npm test -w server -- adapters/lidl   # run a subset of tests
 npm run refresh:dev -w server         # one refresh against the DB in .env (tsx)
 npm run refresh -w server             # same, from the build (used by GitHub Actions)
-npm run hash-password -w server
 ```
 
 Tests never need the network: routes run through `app.inject()` with fake repositories, the HTTP client gets a fake `fetch` and a virtual clock. `server/test/integration/` runs the real Mongo queries against an in-memory MongoDB (`mongodb-memory-server`, downloaded on first run, cached in CI); add a case there for every query change, because pipeline-shape unit tests can't catch wrong operators. Atlas Search (`$search`) can't run there; the `basic` mode is used.
 
-When generating code containing MongoDB variables (`$ROOT`, `$this`) with a script, beware that `String.replace` treats `$` in the replacement as `# CLAUDE.md
-
-Context for AI-assisted work on this repo. **Keep this file and README.md up to date whenever the architecture, commands, env vars or conventions change.**
-
-## Purpose
-
-A personal PWA that aggregates current discounts from Slovenian retailers (Mercator, Lidl, Hofer, Spar, dm, Müller) and makes them searchable in one place. It has one user, the owner, and must not be publicly accessible.
-
-## Architecture
-
-- `server/`: a Fastify + TypeScript API. Store adapters fetch offers and normalize them to one `Offer` model. A refresh job runs all adapters and upserts the results into MongoDB Atlas. A REST API serves search and listings.
-- `client/`: an Angular 22 PWA. The UI is in Slovenian by default, with English available through Transloco runtime switching. It talks to the API through relative `/api/*` URLs: in development via the Angular dev-server proxy; in production the same Fastify server serves both the app and the API. This keeps everything same-origin.
-- Database: MongoDB Atlas M0 with Mongoose. Search uses an Atlas Search index with `icuFolding`, which ignores diacritics (č/š/ž). `SEARCH_MODE=basic` instead uses a regex on a precomputed `searchText` field (lowercase, diacritics removed), for local development and tests. `mongodb-memory-server` has no Atlas Search.
-- Expired offers are deleted by a TTL index on `expiresAt`, which is `validTo` plus a grace period.
-
-## Repo structure
-
-```
-server/src/
-  index.ts                 API entry: loads .env (local only), validates env, connects DB, starts Fastify
-  app.ts                   buildApp(deps): plugins, error handler, routes. Tests call it with fakes
-  config/env.ts            zod schema for ALL env vars (loadEnv for the API, loadRefreshEnv for the job)
-  domain/                  stores, shared category ids, Offer schema + finalizeOffer/normalizeSearchText
-  adapters/store-adapter.ts StoreAdapter + AdapterContext interfaces
-  adapters/registry.ts     list of enabled adapters
-  adapters/<store>/        one folder per store: adapter + pure parse functions (from Phase 3)
-  scraping/                PoliteHttpClient: robots.txt, per-host queue + delay, UA, cache, timeout, 1 retry
-  db/                      Mongoose models + indexes, connect, Atlas Search index definition (JSON)
-  repositories/            OfferRepository interface + Mongo implementation (search pipeline builders)
-  jobs/refresh-runner.ts   runRefresh (per-store isolation, validation) + RefreshTrigger (no overlap)
-  jobs/refresh.ts          CLI entry for the scheduled refresh (exit code 1 if any store failed)
-  plugins/auth.ts          default-deny auth hook, cookie + JWT setup
-  routes/                  health, auth, offers (+ stores, categories), admin
-  scripts/hash-password.ts prints an argon2 hash for APP_PASSWORD_HASH
-server/test/               Vitest; helpers.ts has testEnv, FakeOfferRepository, buildTestApp, login
-server/test/fixtures/      saved store responses for adapter tests
-client/src/app/
-  app.ts|html|scss         shell: header with SL/EN switch and logout, <router-outlet>
-  app.config.ts            providers: router, HttpClient + authInterceptor, Transloco, language restore
-  app.routes.ts            /login (guestGuard) and / (authGuard), both lazy-loaded
-  core/api/                API types (mirror of the server's model; keep in sync) + OffersApi
-  core/auth/               AuthService (session status signal), authGuard/guestGuard, authInterceptor
-  core/i18n/               LanguageService (sl default, remembered in localStorage), Transloco loader
-  features/login/          LoginPage
-  core/shopping-list/      ShoppingListService: local-first list (localStorage + pending-change queue), syncs to the API
-  core/settings/           SettingsService: preferred stores, hidden categories (same sync pattern)
-  features/search/         SearchPage (state in URL query params), SearchFilters, OfferCard (+ button, "Tudi:"), HomeSections, search-params.ts
-  features/shopping-list/  ShoppingListPage (/seznam): grouped by store, tap to cross off
-  features/settings/       SettingsPage (/nastavitve)
-  features/scanner/        ScannerPage (/skeniraj): BarcodeDetector or lazily loaded ZXing; EAN check digit
-  shared/format.ts         eur and shortDate pipes (Intl, take the language as an argument)
-client/public/i18n/        sl.json and en.json; every UI string goes through Transloco
-client/src/testing/        test helpers: translocoTesting() with the real translations, offer factories
-```
-
-## Commands (run from the repo root)
-
-```bash
-npm install                 # all workspaces
-npm run dev:server          # tsx watch, http://localhost:3000
-npm run dev:client          # ng serve, http://localhost:4200
-npm test                    # all tests (Vitest on the server)
-npm run lint                # ESLint: strict type-checked rules for the server, angular-eslint (ng lint) for the client
-npm run typecheck
-npm run build
-npm run format              # Prettier
-npm test -w server -- adapters/lidl   # run a subset of tests
-npm run refresh:dev -w server         # one refresh against the DB in .env (tsx)
-npm run refresh -w server             # same, from the build (used by GitHub Actions)
-npm run hash-password -w server
-```
-
-. That broke production search once.
+When generating code containing MongoDB variables (`$ROOT`, `$this`) with a script, beware that `String.replace` treats `$` in the replacement specially (`$$` becomes `$`, and `` $` `` inserts all text before the match). Use the Edit tool for such text. This broke production search once and duplicated half of this file once.
 
 Node ≥ 24.15 is required (Angular 22). The version is pinned in `.node-version`, which Render also reads.
 
@@ -217,9 +144,11 @@ Rules for adding a store:
 
 ## Authentication
 
-- Single user. The password is checked with argon2 against `APP_PASSWORD_HASH`. Generate the hash with `npm run hash-password -w server`.
-- `POST /api/auth/login` is rate-limited per IP (`LOGIN_RATE_LIMIT_*`). On success it sets a JWT (signed with `JWT_SECRET`, lifetime `SESSION_TTL_HOURS`) in an **httpOnly, Secure, SameSite=Strict** cookie. `POST /api/auth/logout` clears it. `GET /api/auth/me` checks the session.
-- **Public endpoints:** `GET /api/health` and `POST /api/auth/login` only. Everything else needs the session cookie, except `POST /api/admin/refresh`, which needs the header `X-Refresh-Token: <REFRESH_TOKEN>`.
+- Accounts (`users` collection: email, argon2 `passwordHash`). `POST /api/auth/signup` needs the invite code `SIGNUP_CODE` (compared in constant time; unset = signup closed). Emails are lower-cased. Login answers the same for an unknown email and a wrong password (and verifies against a dummy hash, so timing is the same).
+- Signup and login are rate-limited per IP (`LOGIN_RATE_LIMIT_*`). On success they set a JWT `{ sub: userId, email }` (signed with `JWT_SECRET`, lifetime `SESSION_TTL_HOURS`) in an **httpOnly, Secure, SameSite=Strict** cookie. The auth hook rejects tokens without an email (pre-accounts sessions). `POST /api/auth/logout` clears the cookie. `GET /api/auth/me` returns `{ email }`.
+- Settings are per user (`user_settings`, `_id` = user id). Shopping lists are per list (`shopping_items`, `_id` = `listId/itemId`): `listMembership()` gives `shared:<first email>` to accounts grouped in `SHARED_LISTS` (env var, so emails stay out of this public repo) and `user:<id>` to everyone else. Items merge per item (newer `updatedAt` wins), so two people can edit a shared list at once.
+- Client: `SessionData` remembers which account the local list/settings belong to. Logout or a different account clears them; the first login after the switch to accounts uploads the local list (`adoptLocal`). The list re-syncs when the app becomes visible and every 30 s on the list page.
+- **Public endpoints:** `GET /api/health`, `POST /api/auth/signup` and `POST /api/auth/login` only. Everything else needs the session cookie, except `POST /api/admin/refresh`, which needs the header `X-Refresh-Token: <REFRESH_TOKEN>`.
 - Default deny: the `onRequest` hook in `plugins/auth.ts` requires a session for every route under `/api`, including unknown ones (the web app's own files are public). A route opts out only through `config: { auth: 'public' }` or `config: { auth: 'refresh-token' }`. Never add a public route without the user's agreement.
 - `TRUST_PROXY_HOPS` decides which `X-Forwarded-For` entry counts as the client IP for the rate limit. Keep it at the actual number of Render proxies (verify after deploying).
 - Client: `authGuard` asks `GET /api/auth/me` once; only a 401 counts as logged out (offline still opens the app, for cached results). `authInterceptor` sends the user to `/login` on a 401 from data requests, but leaves `/api/auth/*` to the guards and login page. The login page follows `returnUrl` only for in-app paths.

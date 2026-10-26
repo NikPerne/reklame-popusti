@@ -67,15 +67,14 @@ npm run dev:client                # Angular on http://localhost:4200 (proxies /a
 
 Other commands, all run from the repo root:
 
-| Command                           | What it does                                                 |
-| --------------------------------- | ------------------------------------------------------------ |
-| `npm test`                        | Run all tests                                                |
-| `npm run lint`                    | ESLint                                                       |
-| `npm run typecheck`               | TypeScript type check                                        |
-| `npm run build`                   | Build server and client                                      |
-| `npm run format`                  | Prettier                                                     |
-| `npm run refresh:dev -w server`   | Run one refresh of all stores against the database in `.env` |
-| `npm run hash-password -w server` | Generate `APP_PASSWORD_HASH`                                 |
+| Command                         | What it does                                                 |
+| ------------------------------- | ------------------------------------------------------------ |
+| `npm test`                      | Run all tests                                                |
+| `npm run lint`                  | ESLint                                                       |
+| `npm run typecheck`             | TypeScript type check                                        |
+| `npm run build`                 | Build server and client                                      |
+| `npm run format`                | Prettier                                                     |
+| `npm run refresh:dev -w server` | Run one refresh of all stores against the database in `.env` |
 
 ## Environment variables
 
@@ -90,7 +89,8 @@ All configuration comes from environment variables. Locally they are read from `
 | `CLIENT_DIST_DIR`                 |          | `client/dist/client/browser` | Built web app the server serves (only set it if the build lives elsewhere)                |
 | `MONGODB_URI`                     | ✔        |                              | Atlas connection string, including the database name                                      |
 | `SEARCH_MODE`                     |          | `atlas`                      | `atlas` (Atlas Search) or `basic` (fallback, no Atlas Search needed)                      |
-| `APP_PASSWORD_HASH`               | ✔        |                              | argon2 hash of the login password                                                         |
+| `SIGNUP_CODE`                     |          |                              | Invite code needed to create an account (≥ 8 chars); unset = nobody can sign up           |
+| `SHARED_LISTS`                    |          |                              | Accounts sharing one shopping list: `a@x.si,b@y.si` (groups separated by `;`)             |
 | `JWT_SECRET`                      | ✔        |                              | Secret for signing session tokens (≥ 32 chars)                                            |
 | `SESSION_TTL_HOURS`               |          | `720`                        | How long a login lasts                                                                    |
 | `LOGIN_RATE_LIMIT_MAX`            |          | `5`                          | Login attempts allowed per IP per window                                                  |
@@ -102,19 +102,17 @@ All configuration comes from environment variables. Locally they are read from `
 
 ### Authentication setup
 
-The app has a single user and a single password. Only the hash is stored:
+Everyone has their own account (email + password; only an argon2 hash of the password is stored). To let someone sign up, give them the invite code you set in `SIGNUP_CODE`; they choose _Imaš kodo za povabilo? Ustvari račun_ on the login page. Change the code whenever you like: existing accounts keep working. Without `SIGNUP_CODE` nobody can sign up.
 
-```bash
-npm run hash-password -w server   # prompts for a password, prints an argon2 hash
-```
+Settings are per account. Each account has its own shopping list, except the accounts listed together in `SHARED_LISTS`, which share one (for example `you@gmail.com,partner@gmail.com`). The list page shows who it is shared with.
 
-Put the hash in `APP_PASSWORD_HASH` (in single quotes in `.env`, because it contains `$`). Generate `JWT_SECRET` and `REFRESH_TOKEN` with:
+Generate `JWT_SECRET` and `REFRESH_TOKEN` with:
 
 ```bash
 node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
 ```
 
-Only `POST /api/auth/login` and `GET /api/health` are public. All other endpoints require the session cookie (or, for the refresh endpoint, the `X-Refresh-Token` header).
+Only `POST /api/auth/signup`, `POST /api/auth/login` and `GET /api/health` are public. All other endpoints require the session cookie (or, for the refresh endpoint, the `X-Refresh-Token` header).
 
 The refresh job (GitHub Actions) only needs `MONGODB_URI` and, optionally, the `SCRAPER_*` and `LOG_LEVEL` variables.
 
@@ -122,23 +120,24 @@ The refresh job (GitHub Actions) only needs `MONGODB_URI` and, optionally, the `
 
 All responses are JSON. Offer lists return `{ items, total, page, pageSize }`; offers for the same product are one item with the others in `alsoAt`.
 
-| Method and path                         | Auth                 | Description                                                                 |
-| --------------------------------------- | -------------------- | --------------------------------------------------------------------------- |
-| `GET /api/health`                       | public               | Liveness check                                                              |
-| `POST /api/auth/login`                  | public, rate-limited | Body `{ "password": "…" }`; sets the session cookie                         |
-| `POST /api/auth/logout`                 | session              | Clears the session cookie                                                   |
-| `GET /api/auth/me`                      | session              | `200` if logged in, `401` otherwise                                         |
-| `GET /api/offers`                       | session              | Search and filter all offers (query parameters below)                       |
-| `GET /api/stores/:store/offers`         | session              | Offers of one store; same query parameters                                  |
-| `GET /api/categories/:category/offers`  | session              | Offers in one category; same query parameters                               |
-| `GET /api/stores`                       | session              | All stores, with the result of their last refresh                           |
-| `GET /api/categories`                   | session              | Categories that have offers, with counts                                    |
-| `GET /api/shopping-list`                | session              | The shopping list                                                           |
-| `PUT /api/shopping-list/items/:id`      | session              | Add or update an item (older writes than the stored one are ignored)        |
-| `DELETE /api/shopping-list/items/:id`   | session              | Remove an item                                                              |
-| `POST /api/shopping-list/clear-checked` | session              | Remove the crossed-off items                                                |
-| `GET` / `PUT /api/settings`             | session              | Preferred stores and hidden categories                                      |
-| `POST /api/admin/refresh`               | `X-Refresh-Token`    | Starts a refresh in the background (`202`; `409` if one is already running) |
+| Method and path                         | Auth                 | Description                                                                  |
+| --------------------------------------- | -------------------- | ---------------------------------------------------------------------------- |
+| `GET /api/health`                       | public               | Liveness check                                                               |
+| `POST /api/auth/signup`                 | public, rate-limited | Body `{ "email", "password", "code" }`; creates the account, sets the cookie |
+| `POST /api/auth/login`                  | public, rate-limited | Body `{ "email", "password" }`; sets the session cookie                      |
+| `POST /api/auth/logout`                 | session              | Clears the session cookie                                                    |
+| `GET /api/auth/me`                      | session              | `{ "email" }` if logged in, `401` otherwise                                  |
+| `GET /api/offers`                       | session              | Search and filter all offers (query parameters below)                        |
+| `GET /api/stores/:store/offers`         | session              | Offers of one store; same query parameters                                   |
+| `GET /api/categories/:category/offers`  | session              | Offers in one category; same query parameters                                |
+| `GET /api/stores`                       | session              | All stores, with the result of their last refresh                            |
+| `GET /api/categories`                   | session              | Categories that have offers, with counts                                     |
+| `GET /api/shopping-list`                | session              | The account's (or shared) list: `{ items, sharedWith }`                      |
+| `PUT /api/shopping-list/items/:id`      | session              | Add or update an item (older writes than the stored one are ignored)         |
+| `DELETE /api/shopping-list/items/:id`   | session              | Remove an item                                                               |
+| `POST /api/shopping-list/clear-checked` | session              | Remove the crossed-off items                                                 |
+| `GET` / `PUT /api/settings`             | session              | Preferred stores and hidden categories                                       |
+| `POST /api/admin/refresh`               | `X-Refresh-Token`    | Starts a refresh in the background (`202`; `409` if one is already running)  |
 
 Query parameters for offer lists:
 
@@ -197,15 +196,16 @@ The whole app runs as **one free Render Web Service**: Fastify serves the API un
 
 **Environment variables:**
 
-| Key                 | Value                                                                                                      |
-| ------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `NODE_ENV`          | `production`                                                                                               |
-| `SEARCH_MODE`       | `atlas`                                                                                                    |
-| `TRUST_PROXY_HOPS`  | `1`                                                                                                        |
-| `MONGODB_URI`       | the Atlas connection string                                                                                |
-| `APP_PASSWORD_HASH` | the hash from `npm run hash-password -w server`, **without** the single quotes (those are only for `.env`) |
-| `JWT_SECRET`        | _Generate_ (or a random string of 32+ characters)                                                          |
-| `REFRESH_TOKEN`     | _Generate_ (or a random string of 32+ characters)                                                          |
+| Key                | Value                                                                                 |
+| ------------------ | ------------------------------------------------------------------------------------- |
+| `NODE_ENV`         | `production`                                                                          |
+| `SEARCH_MODE`      | `atlas`                                                                               |
+| `TRUST_PROXY_HOPS` | `1`                                                                                   |
+| `MONGODB_URI`      | the Atlas connection string                                                           |
+| `SIGNUP_CODE`      | an invite code you make up (8+ characters); give it to the people who may sign up     |
+| `SHARED_LISTS`     | optional: emails that share one shopping list, e.g. `you@gmail.com,partner@gmail.com` |
+| `JWT_SECRET`       | _Generate_ (or a random string of 32+ characters)                                     |
+| `REFRESH_TOKEN`    | _Generate_ (or a random string of 32+ characters)                                     |
 
 Security headers (CSP, `X-Frame-Options`, `Referrer-Policy`, `X-Robots-Tag`, HSTS) and caching headers are set by the server, so nothing else needs configuring on Render.
 
