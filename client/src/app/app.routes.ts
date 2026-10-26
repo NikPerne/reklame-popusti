@@ -24,5 +24,10 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () => import('./features/settings/settings-page').then((m) => m.SettingsPage),
   },
+  {
+    path: 'skeniraj',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/scanner/scanner-page').then((m) => m.ScannerPage),
+  },
   { path: '**', redirectTo: '' },
 ];

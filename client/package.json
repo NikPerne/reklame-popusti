@@ -20,6 +20,8 @@
     "@angular/router": "^22.2.0",
     "@angular/service-worker": "^22.2.0",
     "@jsverse/transloco": "^8.4.0",
+    "@zxing/browser": "^0.2.1",
+    "@zxing/library": "^0.23.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },

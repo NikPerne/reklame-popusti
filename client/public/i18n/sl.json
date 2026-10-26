@@ -112,5 +112,20 @@
   "home": {
     "newThisWeek": "Novo ta teden",
     "endingSoon": "Kmalu poteče"
+  },
+  "scan": {
+    "open": "Skeniraj črtno kodo",
+    "title": "Skeniraj izdelek",
+    "hint": "Usmeri kamero v črtno kodo izdelka.",
+    "noCamera": "Kamera ni na voljo (ali dostop ni dovoljen). Črtno kodo lahko vpišeš spodaj.",
+    "loading": "Iščem ponudbe za {{ code }} …",
+    "error": "Iskanje ni uspelo. Poskusi znova.",
+    "found": "Ponudbe za {{ code }}",
+    "notOnOffer": "Izdelek {{ code }} ta teden ni v akciji.",
+    "onlySomeStores": "Črtne kode objavljajo le Mercator, Spar in Tuš; Lidl, Hofer in Eurospin tu niso zajeti.",
+    "again": "Skeniraj znova",
+    "manual": "Ali vpiši črtno kodo",
+    "search": "Poišči",
+    "invalid": "To ni veljavna črtna koda (8 ali 13 števk)."
   }
 }

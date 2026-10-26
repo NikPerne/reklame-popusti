@@ -13,6 +13,14 @@
       [value]="params().q"
       (input)="onQueryInput($event)"
     />
+    <a
+      class="scan"
+      routerLink="/skeniraj"
+      [attr.aria-label]="t('scan.open')"
+      [title]="t('scan.open')"
+    >
+      <span aria-hidden="true">📷</span>
+    </a>
     @if (params().q) {
       <button
         type="button"

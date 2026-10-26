@@ -112,5 +112,20 @@
   "home": {
     "newThisWeek": "New this week",
     "endingSoon": "Ending soon"
+  },
+  "scan": {
+    "open": "Scan a barcode",
+    "title": "Scan a product",
+    "hint": "Point the camera at the product barcode.",
+    "noCamera": "The camera isn't available (or access was denied). You can type the barcode below.",
+    "loading": "Looking up offers for {{ code }} …",
+    "error": "The search failed. Please try again.",
+    "found": "Offers for {{ code }}",
+    "notOnOffer": "Product {{ code }} is not on offer this week.",
+    "onlySomeStores": "Only Mercator, Spar and Tuš publish barcodes; Lidl, Hofer and Eurospin are not covered here.",
+    "again": "Scan again",
+    "manual": "Or type the barcode",
+    "search": "Search",
+    "invalid": "Not a valid barcode (8 or 13 digits)."
   }
 }

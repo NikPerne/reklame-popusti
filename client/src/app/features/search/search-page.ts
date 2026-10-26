@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoDirective } from '@jsverse/transloco';
 import {
   Subject,
@@ -54,7 +54,7 @@ function lastSuccess(store: StoreInfo): string | undefined {
 
 @Component({
   selector: 'app-search-page',
-  imports: [TranslocoDirective, OfferCard, SearchFilters, HomeSections, ShortDatePipe],
+  imports: [TranslocoDirective, RouterLink, OfferCard, SearchFilters, HomeSections, ShortDatePipe],
   templateUrl: './search-page.html',
   styleUrl: './search-page.scss',
 })

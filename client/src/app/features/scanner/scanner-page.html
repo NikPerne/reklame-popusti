@@ -1,0 +1,59 @@
+<section class="page" *transloco="let t; prefix: 'scan'">
+  <h1>{{ t('title') }}</h1>
+
+  <div class="viewfinder" [hidden]="state() !== 'starting' && state() !== 'scanning'">
+    <video #video muted playsinline></video>
+    <div class="target" aria-hidden="true"></div>
+  </div>
+
+  @switch (state()) {
+    @case ('scanning') {
+      <p class="hint">{{ t('hint') }}</p>
+    }
+    @case ('no-camera') {
+      <p class="hint">{{ t('noCamera') }}</p>
+    }
+    @case ('loading') {
+      <p class="hint">{{ t('loading', { code: code() }) }}</p>
+    }
+    @case ('error') {
+      <p class="hint">{{ t('error') }}</p>
+    }
+    @case ('results') {
+      @if (offers().length) {
+        <h2>{{ t('found', { code: code() }) }}</h2>
+        <ul class="results">
+          @for (offer of offers(); track offer.id) {
+            <li><app-offer-card [offer]="offer" [lang]="lang()" /></li>
+          }
+        </ul>
+      } @else {
+        <p class="none">{{ t('notOnOffer', { code: code() }) }}</p>
+      }
+      <p class="note">{{ t('onlySomeStores') }}</p>
+    }
+  }
+
+  @if (state() !== 'scanning' && state() !== 'starting' && state() !== 'loading') {
+    <button type="button" class="button" (click)="scan()">{{ t('again') }}</button>
+  }
+
+  <form class="manual" (submit)="submitManual($event, manualInput)">
+    <label for="manual-code">{{ t('manual') }}</label>
+    <div class="manual-row">
+      <input
+        #manualInput
+        id="manual-code"
+        class="field"
+        inputmode="numeric"
+        autocomplete="off"
+        placeholder="3838975531314"
+        [attr.aria-invalid]="invalidCode()"
+      />
+      <button type="submit" class="button secondary">{{ t('search') }}</button>
+    </div>
+    @if (invalidCode()) {
+      <p class="invalid" role="alert">{{ t('invalid') }}</p>
+    }
+  </form>
+</section>
