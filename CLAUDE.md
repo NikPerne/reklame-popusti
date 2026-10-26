@@ -58,6 +58,8 @@ Tests never need a database or network: routes run through `app.inject()` with `
 
 Node ≥ 24.15 is required (Angular 22). The version is pinned in `.node-version`, which Render also reads.
 
+The root `package.json` has `"overrides": { "vite": "8.3.5" }` because `@angular/build` 22.2.4 pins Vite 8.3.0, which has dev-server advisories. Remove the override once an Angular release ships a fixed Vite.
+
 ## Conventions
 
 - TypeScript `strict`, plus `noUncheckedIndexedAccess` and `exactOptionalPropertyTypes`. No `any`; parse unknown input with zod.
