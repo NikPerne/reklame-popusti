@@ -1,1 +1,31 @@
-<router-outlet />
+<ng-container *transloco="let t">
+  <header class="app-header">
+    <a class="brand" routerLink="/">
+      <span class="brand-mark" aria-hidden="true">%</span>
+      <span>{{ t('app.title') }}</span>
+    </a>
+
+    <div class="header-actions">
+      <div class="lang-switch" role="group" [attr.aria-label]="t('app.language')">
+        @for (lang of languages; track lang) {
+          <button
+            type="button"
+            [class.active]="language.current() === lang"
+            [attr.aria-pressed]="language.current() === lang"
+            (click)="setLanguage(lang)"
+          >
+            {{ lang.toUpperCase() }}
+          </button>
+        }
+      </div>
+
+      @if (authStatus() === 'authenticated') {
+        <button type="button" class="link-button" (click)="logout()">{{ t('app.logout') }}</button>
+      }
+    </div>
+  </header>
+</ng-container>
+
+<main class="app-main">
+  <router-outlet />
+</main>

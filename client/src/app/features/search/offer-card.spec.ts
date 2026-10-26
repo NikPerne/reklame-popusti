@@ -1,0 +1,87 @@
+import { TestBed } from '@angular/core/testing';
+import { TranslocoService } from '@jsverse/transloco';
+import type { Offer } from '../../core/api/models';
+import type { Language } from '../../core/i18n/language';
+import { makeOffer } from '../../../testing/offers';
+import { translocoTesting } from '../../../testing/transloco-testing';
+import { OfferCard } from './offer-card';
+
+describe('OfferCard', () => {
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [OfferCard, translocoTesting()],
+    }).compileComponents();
+  });
+
+  async function render(offer: Offer, lang: Language = 'sl') {
+    const fixture = TestBed.createComponent(OfferCard);
+    fixture.componentRef.setInput('offer', offer);
+    fixture.componentRef.setInput('lang', lang);
+    await fixture.whenStable();
+    const element = fixture.nativeElement as HTMLElement;
+    const text = (selector: string) =>
+      element.querySelector(selector)?.textContent?.replace(/\s+/g, ' ').trim();
+    return { element, text };
+  }
+
+  it('shows prices, discount, unit price, condition and validity in Slovenian', async () => {
+    const { text } = await render(makeOffer());
+
+    expect(text('.name')).toBe('Mleta kava Classic, Barcaffe, 200 g');
+    expect(text('.store')).toBe('Mercator');
+    expect(text('.price')).toBe('3,59 €');
+    expect(text('.regular')).toBe('Prej 4,79 €');
+    expect(text('.discount')).toBe('−25 %');
+    expect(text('.unit-price')).toBe('17,95 €/kg');
+    expect(text('.condition')).toBe('Ob nakupu 2 ali več');
+    expect(text('.validity')).toBe('do 5. 11.');
+  });
+
+  it('formats for English', async () => {
+    TestBed.inject(TranslocoService).setActiveLang('en');
+    const { text } = await render(makeOffer({ unitPrice: { amount: 0.89, unit: 'piece' } }), 'en');
+
+    expect(text('.price')).toBe('€3.59');
+    expect(text('.unit-price')).toBe('€0.89/piece');
+  });
+
+  it('shows the start date for offers that have not started yet', async () => {
+    const { text } = await render(makeOffer({ validFrom: '2099-01-10T00:00:00Z' }));
+
+    expect(text('.validity')).toBe('od 10. 1.');
+  });
+
+  it('leaves out what the store does not provide', async () => {
+    const minimal = makeOffer();
+    delete minimal.regularPrice;
+    delete minimal.discountPercent;
+    delete minimal.unitPrice;
+    delete minimal.condition;
+    delete minimal.validFrom;
+    delete minimal.validTo;
+    delete minimal.imageUrl;
+    delete minimal.sourceUrl;
+
+    const { element } = await render(minimal);
+
+    for (const selector of [
+      '.regular',
+      '.discount',
+      '.unit-price',
+      '.condition',
+      '.validity',
+      'img',
+      'a',
+    ]) {
+      expect(element.querySelector(selector), selector).toBeNull();
+    }
+  });
+
+  it('opens the store page in a new tab without leaking the opener', async () => {
+    const { element } = await render(makeOffer());
+    const link = element.querySelector('a')!;
+
+    expect(link.target).toBe('_blank');
+    expect(link.rel).toBe('noopener noreferrer');
+  });
+});

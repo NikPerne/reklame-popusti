@@ -1,0 +1,65 @@
+<div class="filters" *transloco="let t">
+  @if (storeIds().length > 1) {
+    <div class="stores" role="group" [attr.aria-label]="t('filters.stores')">
+      @for (store of storeIds(); track store) {
+        <button
+          type="button"
+          class="chip"
+          [attr.data-store]="store"
+          [attr.aria-pressed]="params().stores.includes(store)"
+          (click)="toggleStore(store)"
+        >
+          {{ storeNames[store] }}
+        </button>
+      }
+    </div>
+  }
+
+  <div class="selects">
+    <label>
+      <span>{{ t('filters.category') }}</span>
+      <select class="field" [value]="params().category ?? ''" (change)="onCategory($event)">
+        <option value="">{{ t('filters.allCategories') }}</option>
+        @for (c of categories(); track c.category) {
+          <option [value]="c.category" [selected]="c.category === params().category">
+            {{ t('categories.' + c.category) }} ({{ c.count }})
+          </option>
+        }
+      </select>
+    </label>
+
+    <label>
+      <span>{{ t('filters.minDiscount') }}</span>
+      <select class="field" (change)="onMinDiscount($event)">
+        <option value="" [selected]="params().minDiscount === null">
+          {{ t('filters.anyDiscount') }}
+        </option>
+        @for (step of discountSteps; track step) {
+          <option [value]="step" [selected]="params().minDiscount === step">≥ {{ step }} %</option>
+        }
+      </select>
+    </label>
+
+    <label>
+      <span>{{ t('filters.sort') }}</span>
+      <select class="field" (change)="onSort($event)">
+        <option value="" [selected]="params().sort === null">
+          {{ t(params().q ? 'sort.relevance' : 'sort.discount') }}
+        </option>
+        @for (sort of sorts(); track sort) {
+          @if (sort !== (params().q ? 'relevance' : 'discount')) {
+            <option [value]="sort" [selected]="params().sort === sort">
+              {{ t('sort.' + sort) }}
+            </option>
+          }
+        }
+      </select>
+    </label>
+  </div>
+
+  @if (filtered()) {
+    <button type="button" class="link-button reset" (click)="resetRequested.emit()">
+      {{ t('filters.reset') }}
+    </button>
+  }
+</div>

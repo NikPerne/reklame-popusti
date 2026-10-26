@@ -1,0 +1,101 @@
+<ng-container *transloco="let t">
+  <form class="search-bar" role="search" (submit)="$event.preventDefault()">
+    <label for="q" class="visually-hidden">{{ t('search.label') }}</label>
+    <input
+      #queryField
+      id="q"
+      class="field"
+      type="search"
+      inputmode="search"
+      autocomplete="off"
+      enterkeyhint="search"
+      [placeholder]="t('search.placeholder')"
+      [value]="params().q"
+      (input)="onQueryInput($event)"
+    />
+    @if (params().q) {
+      <button
+        type="button"
+        class="clear"
+        [attr.aria-label]="t('search.clear')"
+        (click)="clearQuery(queryField)"
+      >
+        ×
+      </button>
+    }
+  </form>
+
+  <details class="filters-panel" [open]="filtersOpen">
+    <summary>{{ t('filters.title') }}</summary>
+    <app-search-filters
+      [params]="params()"
+      [stores]="stores()"
+      [categories]="categories()"
+      (changed)="update($event)"
+      (resetRequested)="resetFilters()"
+    />
+  </details>
+
+  <div class="results-header" aria-live="polite">
+    @if (status() !== 'error' && status() !== 'offline') {
+      <h2>
+        @if (!params().q) {
+          {{ t('search.topDeals') }} ·
+        }
+        {{ t('search.results', { count: total() }) }}
+      </h2>
+    }
+  </div>
+
+  @switch (status()) {
+    @case ('error') {
+      <p class="message">
+        {{ t('search.error') }}
+        <button type="button" class="link-button" (click)="retry()">{{ t('search.retry') }}</button>
+      </p>
+    }
+    @case ('offline') {
+      <p class="message">
+        {{ t('search.offline') }}
+        <button type="button" class="link-button" (click)="retry()">{{ t('search.retry') }}</button>
+      </p>
+    }
+  }
+
+  @if (status() === 'ready' && items().length === 0) {
+    <p class="message">{{ t('search.noResults') }}</p>
+  }
+
+  <ul class="results" [class.stale]="status() === 'loading'">
+    @for (offer of items(); track offer.id) {
+      <li><app-offer-card [offer]="offer" [lang]="lang()" /></li>
+    }
+  </ul>
+
+  @if (status() === 'loading') {
+    <p class="message">{{ t('search.loading') }}</p>
+  } @else if (status() === 'ready' && hasMore()) {
+    <div class="more">
+      <button type="button" class="button secondary" (click)="loadMore()">
+        {{ t('search.loadMore') }}
+      </button>
+    </div>
+  }
+
+  @if (refreshedStores().length) {
+    <footer class="store-status">
+      @for (store of refreshedStores(); track store.id) {
+        @if (store.status; as status) {
+          <span [class.failed]="!status.ok">
+            {{ store.name }}:
+            @if (status.ok) {
+              {{ t('stores.lastRefresh', { date: status.lastRunAt | shortDate: lang() }) }}
+            } @else {
+              {{ t('stores.refreshFailed') }}
+            }
+          </span>
+        }
+      }
+    </footer>
+  }
+</ng-container>

@@ -1,0 +1,60 @@
+<article class="card" *transloco="let t; prefix: 'offer'">
+  <div class="image">
+    @if (offer().imageUrl; as src) {
+      <img [src]="src" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+    }
+    @if (offer().discountPercent; as percent) {
+      <span class="discount">−{{ percent }} %</span>
+    }
+  </div>
+
+  <div class="body">
+    <div class="meta">
+      <span class="store" [attr.data-store]="offer().store">{{ storeName() }}</span>
+      @if (offer().validTo || offer().validFrom) {
+        <span class="validity">
+          @if (startsLater()) {
+            {{ t('validFrom', { date: offer().validFrom | shortDate: lang() }) }}
+          } @else if (offer().validTo; as validTo) {
+            {{ t('validTo', { date: validTo | shortDate: lang() }) }}
+          }
+        </span>
+      }
+    </div>
+
+    <h3 class="name">{{ offer().productName }}</h3>
+
+    <div class="prices">
+      <span class="price">{{ offer().price | eur: lang() }}</span>
+      @if (hasSaving()) {
+        <s class="regular">
+          <span class="visually-hidden">{{ t('regularPrice') }}</span>
+          {{ offer().regularPrice | eur: lang() }}
+        </s>
+      }
+    </div>
+
+    <div class="details">
+      @if (offer().unitPrice; as unit) {
+        <span class="unit-price"
+          >{{ unit.amount | eur: lang() }}/{{ t('units.' + unit.unit) }}</span
+        >
+      }
+      @if (offer().condition; as condition) {
+        <span
+          class="condition"
+          [attr.data-kind]="condition.kind"
+          [title]="t('conditions.' + condition.kind)"
+        >
+          {{ condition.text }}
+        </span>
+      }
+    </div>
+
+    @if (offer().sourceUrl; as url) {
+      <a class="source" [href]="url" target="_blank" rel="noopener noreferrer">
+        {{ t('toStore') }} ↗
+      </a>
+    }
+  </div>
+</article>
