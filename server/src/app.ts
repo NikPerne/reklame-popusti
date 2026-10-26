@@ -8,14 +8,17 @@ import type { Logger } from './lib/logger.js';
 import { authPlugin } from './plugins/auth.js';
 import { clientAppPlugin } from './plugins/client-app.js';
 import type { OfferRepository } from './repositories/offer-repository.js';
+import type { ShoppingListRepository } from './repositories/shopping-list-repository.js';
 import { adminRoutes } from './routes/admin.js';
 import { authRoutes } from './routes/auth.js';
 import { healthRoutes } from './routes/health.js';
 import { offerRoutes } from './routes/offers.js';
+import { shoppingListRoutes } from './routes/shopping-list.js';
 
 export interface AppDependencies {
   env: Env;
   repository: OfferRepository;
+  shoppingList: ShoppingListRepository;
   /** Runs one refresh of all stores; started by POST /api/admin/refresh. */
   refresh: (log: Logger) => Promise<RefreshSummary>;
   /** Directory of the built Angular app to serve; omitted in development and API-only tests. */
@@ -42,6 +45,7 @@ const CONTENT_SECURITY_POLICY = {
 export async function buildApp({
   env,
   repository,
+  shoppingList,
   refresh,
   clientRoot,
 }: AppDependencies): Promise<FastifyInstance> {
@@ -93,6 +97,7 @@ export async function buildApp({
   await app.register(healthRoutes);
   await app.register(authRoutes, env);
   await app.register(offerRoutes, { repository });
+  await app.register(shoppingListRoutes, { shoppingList });
   await app.register(adminRoutes, {
     refreshTrigger: new RefreshTrigger(() => refresh(app.log), app.log),
   });

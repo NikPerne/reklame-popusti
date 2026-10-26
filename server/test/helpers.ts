@@ -5,7 +5,12 @@ import { loadEnv, type Env } from '../src/config/env.js';
 import type { CategoryId } from '../src/domain/categories.js';
 import { finalizeOffer, type Offer, type ScrapedOffer } from '../src/domain/offer.js';
 import type { StoreId } from '../src/domain/stores.js';
+import type { ShoppingItem } from '../src/domain/shopping-list.js';
 import type { RefreshSummary } from '../src/jobs/refresh-runner.js';
+import type {
+  SaveResult,
+  ShoppingListRepository,
+} from '../src/repositories/shopping-list-repository.js';
 import type {
   OfferPage,
   OfferQuery,
@@ -89,22 +94,56 @@ export class FakeOfferRepository implements OfferRepository {
   }
 }
 
+/** In-memory shopping list with the same "newer write wins" rule as the Mongo one. */
+export class FakeShoppingListRepository implements ShoppingListRepository {
+  items = new Map<string, ShoppingItem>();
+
+  async list(): Promise<ShoppingItem[]> {
+    return [...this.items.values()];
+  }
+
+  async count(): Promise<number> {
+    return this.items.size;
+  }
+
+  async save(item: ShoppingItem): Promise<SaveResult> {
+    const existing = this.items.get(item.id);
+    if (existing && existing.updatedAt > item.updatedAt) return 'stale';
+    this.items.set(item.id, item);
+    return 'saved';
+  }
+
+  async remove(id: string): Promise<void> {
+    this.items.delete(id);
+  }
+
+  async removeChecked(): Promise<number> {
+    const checked = [...this.items.values()].filter((i) => i.checked);
+    for (const item of checked) this.items.delete(item.id);
+    return checked.length;
+  }
+}
+
 export interface TestApp {
   app: FastifyInstance;
   repository: FakeOfferRepository;
+  shoppingList: FakeShoppingListRepository;
   refreshCalls: number;
 }
 
 export async function buildTestApp(env?: Env, clientRoot?: string): Promise<TestApp> {
   const repository = new FakeOfferRepository();
+  const shoppingList = new FakeShoppingListRepository();
   const result: TestApp = {
     app: undefined as unknown as FastifyInstance,
     repository,
+    shoppingList,
     refreshCalls: 0,
   };
   result.app = await buildApp({
     env: env ?? (await testEnv()),
     repository,
+    shoppingList,
     refresh: async (): Promise<RefreshSummary> => {
       result.refreshCalls++;
       return { startedAt: new Date(), finishedAt: new Date(), results: [] };
