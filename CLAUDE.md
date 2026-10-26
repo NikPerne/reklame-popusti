@@ -80,7 +80,18 @@ interface StoreAdapter {
 }
 ```
 
-An adapter returns `ScrapedOffer`s: externalId (stable, unique per store), productName, brand?, category (a shared id from `domain/categories.ts`), sourceCategory? (the store's own label), price, regularPrice?, discountPercent?, unitPrice? `{ amount, unit }`, validFrom?, validTo?, imageUrl?, sourceUrl?.
+An adapter returns `ScrapedOffer`s: externalId (stable, unique per store), productName, brand?, category (a shared id from `domain/categories.ts`), sourceCategory? (the store's own label), price, regularPrice?, discountPercent?, unitPrice? `{ amount, unit: 'kg' | 'l' | 'piece' }` (at the offer price), condition? `{ kind: 'loyalty-card' | 'multi-buy' | 'coupon' | 'other', text }`, validFrom?, validTo?, imageUrl?, sourceUrl?.
+
+- **Scope is discounts only** (owner's decision): adapters return products that are currently cheaper than usual, not full catalogues.
+- `price` is always the deal price. The owner has every store's loyalty card (Pika, Lidl Plus, Spar Plus, dm, Müller), so card prices count as the real price and are marked with a `loyalty-card` condition. Multi-buy deals use the per-item price when the condition is met (`multi-buy`, e.g. "Ob nakupu 2 ali več").
+- Normalize unit prices to €/kg, €/l or €/piece so "where is milk cheapest" works with `sort=unitPrice`.
+- Store dates are Ljubljana local time: convert with `fromStoreLocalTime` (`lib/time.ts`). Drop end dates that are already in the past if the store still shows the offer.
+- Shared text helpers (`toSentenceCase`, `toTitleCase`, `parseDecimal`, `roundMoney`) live in `lib/text.ts`.
+
+Store-specific notes (see the README store table for data sources):
+
+- **Mercator**: `adapters/mercator/`. Discount types: straight cut (normal_price > current_price), Pika card (marker 104), multi-buy ("Ob nakupu N izdelkov ali več je vsak P % ceneje"). Other markers (extra points, quality labels, combos) are not price cuts and are skipped. When several apply, the cheapest wins.
+- **dm**: do not scrape; its only data source is disallowed by robots.txt.
 
 The refresh runner then validates each offer with `scrapedOfferSchema`, skipping and logging invalid ones. `finalizeOffer` adds store, scrapedAt, searchText, expiresAt, and discountPercent when it can be computed. Each store's offers are replaced by upsert on `(store, externalId)`, and the offers not seen in this run are deleted. If an adapter throws or returns no valid offers, the store's previous offers are kept and its status is recorded as failed (`GET /api/stores` shows it).
 

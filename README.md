@@ -4,18 +4,18 @@
 
 Search for a product such as `kava` or `pralni prašek` and see every current offer across stores: price, regular price, discount %, unit price, validity dates, store, image and a link to the source.
 
-> **Status:** Phases 1–2 are complete: the API (auth, search, listings, refresh) is in place, but no store adapters exist yet, so there is no data. The Angular app is still empty. See the [Roadmap](#roadmap).
+> **Status:** Phases 1–3 are complete: the API and the Mercator adapter are in place. The Angular app is still empty. See the [Roadmap](#roadmap).
 
 ## Supported stores
 
-| Store    | Adapter | Data source        |
-| -------- | ------- | ------------------ |
-| Mercator | planned | to be investigated |
-| Lidl     | planned | to be investigated |
-| Hofer    | planned | to be investigated |
-| Spar     | planned | to be investigated |
-| dm       | planned | to be investigated |
-| Müller   | planned | to be investigated |
+| Store    | Adapter     | Data source                                                                                                                                                                                                                                  |
+| -------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Mercator | ✔ done      | JSON endpoint behind the online shop's product grid (`mercatoronline.si/products/browseProducts/getProducts`), filtered to discounted products. About 3,500 offers, 45 requests per run. Online-shop prices, which usually match the stores. |
+| Lidl     | planned     | Weekly offer pages (`/c/super-ponudba-…`) embed full product JSON (`data-grid-data`), including the Lidl Plus price. Their JSON API needs authentication and is not used.                                                                    |
+| Hofer    | planned     | Special-offer pages embed Nuxt JSON. Offer price and on-sale date only; no regular price, so no discount %.                                                                                                                                  |
+| Spar     | planned     | Online shop `online.spar.si`, "Iz letaka" category; data inside the Next.js page payload. www.spar.si asks for 10 s between requests and visits 04:00–08:45 UTC only.                                                                        |
+| dm       | not planned | Offers only come from `product-search.services.dmtech.com`, whose robots.txt disallows everything.                                                                                                                                           |
+| Müller   | postponed   | No product offers online, only campaign texts and PDF leaflets.                                                                                                                                                                              |
 
 Each store's data source (public JSON endpoint, HTML page or online flyer) is investigated and documented here before its adapter is written.
 
@@ -123,14 +123,14 @@ All responses are JSON. Offer lists return `{ items, total, page, pageSize }`.
 
 Query parameters for offer lists:
 
-| Parameter          | Example         | Notes                                                                                     |
-| ------------------ | --------------- | ----------------------------------------------------------------------------------------- |
-| `q`                | `pralni prašek` | Text search, 2–100 characters, ignores diacritics                                         |
-| `store`            | `lidl,dm`       | One or more of `mercator`, `lidl`, `hofer`, `spar`, `dm`, `mueller`                       |
-| `category`         | `drogerija`     | One of the category ids in `server/src/domain/categories.ts`                              |
-| `minDiscount`      | `30`            | Minimum discount in %                                                                     |
-| `sort`             | `price`         | `relevance` (default when `q` is set), `discount` (default otherwise), `price`, `validTo` |
-| `page`, `pageSize` | `1`, `24`       | `pageSize` is at most 100                                                                 |
+| Parameter          | Example         | Notes                                                                                                                                                  |
+| ------------------ | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `q`                | `pralni prašek` | Text search, 2–100 characters, ignores diacritics                                                                                                      |
+| `store`            | `lidl,dm`       | One or more of `mercator`, `lidl`, `hofer`, `spar`, `dm`, `mueller`                                                                                    |
+| `category`         | `drogerija`     | One of the category ids in `server/src/domain/categories.ts`                                                                                           |
+| `minDiscount`      | `30`            | Minimum discount in %                                                                                                                                  |
+| `sort`             | `price`         | `relevance` (default when `q` is set), `discount` (default otherwise), `price`, `unitPrice` (€/kg, €/l or €/piece; offers without one last), `validTo` |
+| `page`, `pageSize` | `1`, `24`       | `pageSize` is at most 100                                                                                                                              |
 
 ## Adding a new store adapter
 
@@ -192,7 +192,7 @@ This is a personal tool. Scrapers respect `robots.txt`, identify themselves with
 
 1. Scaffold ✔
 2. Data model, API and auth ✔
-3. First store adapter end to end ← _next_
-4. Frontend (login, search, filters, sorting, SL/EN)
+3. First store adapter (Mercator) ✔
+4. Frontend (login, search, filters, sorting, SL/EN) ← _next_
 5. Remaining store adapters
 6. PWA and deployment
