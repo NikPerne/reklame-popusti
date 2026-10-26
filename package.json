@@ -1,0 +1,28 @@
+{
+  "name": "reklame-popusti",
+  "private": true,
+  "description": "One search, every discount. Aggregates offers from Slovenian retailers into a single PWA.",
+  "type": "module",
+  "workspaces": [
+    "server"
+  ],
+  "engines": {
+    "node": ">=24.15.0"
+  },
+  "scripts": {
+    "dev:server": "npm run dev -w server",
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.13.0",
+    "globals": "^17.13.0",
+    "prettier": "^3.9.10",
+    "typescript-eslint": "^8.72.0"
+  }
+}

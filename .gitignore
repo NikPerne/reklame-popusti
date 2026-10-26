@@ -147,3 +147,17 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+# Angular
+.angular/
+client/dist/
+
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# IDE folders
+.vscode/
+.idea/
+*.swp
