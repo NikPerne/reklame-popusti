@@ -50,7 +50,8 @@
     "anyDiscount": "Any",
     "sort": "Sort by",
     "reset": "Reset filters",
-    "upcoming": "Show upcoming offers"
+    "upcoming": "Show upcoming offers",
+    "onlyDeals": "Discounts only"
   },
   "sort": {
     "relevance": "Best match",
@@ -78,7 +79,9 @@
     },
     "alsoAt": "Also at",
     "addToList": "Add to list",
-    "removeFromList": "Remove from list"
+    "removeFromList": "Remove from list",
+    "everyday": "Regular price",
+    "everydayHint": "Not on sale – the usual price from the online shop"
   },
   "stores": {
     "lastRefresh": "Updated {{ date }}",

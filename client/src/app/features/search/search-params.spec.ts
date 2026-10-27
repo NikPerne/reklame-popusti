@@ -27,6 +27,7 @@ describe('search params', () => {
       minDiscount: 30,
       sort: 'unitPrice',
       upcoming: false,
+      onlyDeals: false,
     });
     expect(
       parseSearchParams(convertToParamMap({ category: 'nope', minDiscount: '500', sort: 'x' })),
@@ -41,6 +42,7 @@ describe('search params', () => {
       minDiscount: null,
       sort: null,
       upcoming: null,
+      deals: null,
     });
   });
 
@@ -52,6 +54,7 @@ describe('search params', () => {
       minDiscount: 20,
       sort: 'price',
       upcoming: true,
+      onlyDeals: true,
     };
 
     expect(toApiParams(params, 2)).toEqual({
@@ -61,6 +64,7 @@ describe('search params', () => {
       minDiscount: '20',
       sort: 'price',
       upcoming: 'true',
+      deals: 'only',
       page: '2',
       pageSize: '24',
     });

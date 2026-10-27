@@ -50,7 +50,8 @@
     "anyDiscount": "Kateri koli",
     "sort": "Razvrsti",
     "reset": "Ponastavi filtre",
-    "upcoming": "Pokaži prihodnje ponudbe"
+    "upcoming": "Pokaži prihodnje ponudbe",
+    "onlyDeals": "Samo akcije"
   },
   "sort": {
     "relevance": "Najboljše ujemanje",
@@ -78,7 +79,9 @@
     },
     "alsoAt": "Tudi",
     "addToList": "Dodaj na seznam",
-    "removeFromList": "Odstrani s seznama"
+    "removeFromList": "Odstrani s seznama",
+    "everyday": "Redna cena",
+    "everydayHint": "Ni v akciji – običajna cena iz spletne trgovine"
   },
   "stores": {
     "lastRefresh": "Osveženo {{ date }}",

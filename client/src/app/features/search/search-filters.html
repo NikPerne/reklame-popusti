@@ -62,6 +62,11 @@
     <span>{{ t('filters.upcoming') }}</span>
   </label>
 
+  <label class="toggle">
+    <input type="checkbox" [checked]="params().onlyDeals" (change)="onOnlyDeals($event)" />
+    <span>{{ t('filters.onlyDeals') }}</span>
+  </label>
+
   @if (filtered()) {
     <button type="button" class="link-button reset" (click)="resetRequested.emit()">
       {{ t('filters.reset') }}

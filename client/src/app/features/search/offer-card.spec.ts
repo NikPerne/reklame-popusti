@@ -54,6 +54,25 @@ describe('OfferCard', () => {
     expect(text('.validity')).toBe('od 10. 1.');
   });
 
+  it('marks an everyday price from the online shop, without a sale colour or discount', async () => {
+    const everyday = makeOffer({ price: 1.19, regular: true });
+    delete everyday.regularPrice;
+    delete everyday.discountPercent;
+    delete everyday.condition;
+
+    const { element, text } = await render(everyday);
+
+    expect(text('.everyday')).toBe('Redna cena');
+    expect(element.querySelector('.card')?.classList).toContain('everyday-price');
+    expect(element.querySelector('.discount')).toBeNull();
+  });
+
+  it('does not mark discounts as everyday prices', async () => {
+    const { element } = await render(makeOffer());
+
+    expect(element.querySelector('.everyday')).toBeNull();
+  });
+
   it('leaves out what the store does not provide', async () => {
     const minimal = makeOffer();
     delete minimal.regularPrice;

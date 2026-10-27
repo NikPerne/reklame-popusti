@@ -69,6 +69,8 @@ export interface Offer {
   sourceCategory?: string;
   price: number;
   regularPrice?: number;
+  /** Not on sale: the everyday price from the store's online catalogue (Mercator, Spar). */
+  regular?: boolean;
   discountPercent?: number;
   unitPrice?: { amount: number; unit: UnitPriceUnit };
   condition?: { kind: ConditionKind; text: string };

@@ -1,4 +1,4 @@
-<article class="card" *transloco="let t; prefix: 'offer'">
+<article class="card" [class.everyday-price]="offer().regular" *transloco="let t; prefix: 'offer'">
   <button
     type="button"
     class="add"
@@ -50,6 +50,9 @@
         <span class="unit-price"
           >{{ unit.amount | eur: lang() }}/{{ t('units.' + unit.unit) }}</span
         >
+      }
+      @if (offer().regular) {
+        <span class="everyday" [title]="t('everydayHint')">{{ t('everyday') }}</span>
       }
       @if (offer().condition; as condition) {
         <span

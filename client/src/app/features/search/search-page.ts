@@ -206,7 +206,14 @@ export class SearchPage {
   }
 
   protected resetFilters(): void {
-    this.update({ stores: null, category: null, minDiscount: null, sort: null, upcoming: false });
+    this.update({
+      stores: null,
+      category: null,
+      minDiscount: null,
+      sort: null,
+      upcoming: false,
+      onlyDeals: false,
+    });
   }
 
   protected loadMore(): void {

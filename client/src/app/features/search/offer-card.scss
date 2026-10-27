@@ -115,6 +115,18 @@
   font-weight: 600;
 }
 
+/* An everyday price, not a discount: no sale colour. */
+.card.everyday-price .price {
+  color: var(--text);
+}
+
+.everyday {
+  padding: 0.05rem 0.4rem;
+  border-radius: 0.35rem;
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+
 .source {
   margin-top: auto;
   padding-top: var(--space-1);

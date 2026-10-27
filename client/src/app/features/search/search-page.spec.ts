@@ -161,6 +161,7 @@ describe('SearchPage', () => {
         minDiscount: 40,
         sort: null,
         upcoming: null,
+        deals: null,
       },
       queryParamsHandling: 'merge',
       replaceUrl: false,
