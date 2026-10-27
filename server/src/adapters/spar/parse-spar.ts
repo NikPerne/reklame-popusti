@@ -102,7 +102,10 @@ export function parseSparProduct(
     price,
     ...(promoPrice !== undefined && product.price > promoPrice && { regularPrice: product.price }),
     ...(promoPrice === undefined && source === 'catalogue' && { regular: true as const }),
-    ...(unit && perUnit && perUnit > 0 && { unitPrice: { amount: roundMoney(perUnit), unit } }),
+    // A price per piece under half a cent (cotton buds, 160 pieces) rounds to 0: leave it out.
+    ...(unit &&
+      perUnit &&
+      roundMoney(perUnit) > 0 && { unitPrice: { amount: roundMoney(perUnit), unit } }),
     ...(validFrom && { validFrom }),
     ...(validTo && { validTo }),
     ...(image && { imageUrl: image }),

@@ -81,6 +81,16 @@ describe('Spar parsing', () => {
     expect(extractSparPageCount('no pagination here')).toBeUndefined();
   });
 
+  it('leaves out a unit price that rounds to zero instead of losing the product', () => {
+    const shampoo = { ...products.find((p) => p.sku === '626037')!, pricePerSubUnit: 0.0034 };
+
+    const offer = parseSparProduct(shampoo, now, 'catalogue');
+
+    expect(offer).toMatchObject({ price: 1.49 });
+    expect(offer?.unitPrice).toBeUndefined();
+    expect(scrapedOfferSchema.safeParse(offer).success).toBe(true);
+  });
+
   it('maps Spar categories', () => {
     expect(bySku('629295')?.category).toBe('gospodinjstvo');
     expect(bySku('670685')?.category).toBe('otroci');
