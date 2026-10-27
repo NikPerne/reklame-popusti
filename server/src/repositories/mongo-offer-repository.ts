@@ -1,4 +1,4 @@
-import type { PipelineStage, QueryFilter } from 'mongoose';
+import { isValidObjectId, type PipelineStage, type QueryFilter } from 'mongoose';
 import type { CategoryId } from '../domain/categories.js';
 import { normalizeSearchText, type Offer } from '../domain/offer.js';
 import type { StoreId } from '../domain/stores.js';
@@ -6,6 +6,7 @@ import { OfferModel, StoreStatusModel } from '../db/models.js';
 import searchIndex from '../db/atlas-search-index.json' with { type: 'json' };
 import { computeGroups } from '../domain/grouping.js';
 import type {
+  CandidateQuery,
   OfferAlternative,
   OfferPage,
   OfferQuery,
@@ -211,6 +212,35 @@ export class MongoOfferRepository implements OfferRepository {
       items: (result?.items ?? []).map(toView),
       total: result?.total[0]?.count ?? 0,
     };
+  }
+
+  async findCandidates({ text, stores, now, limit }: CandidateQuery): Promise<OfferView[]> {
+    // A plain word match on searchText, also with Atlas Search: the comparison needs every
+    // product containing the words, not the best-scoring fuzzy matches.
+    const docs = await OfferModel.find(
+      { $and: [buildFilter({ now, ...(stores && { stores }) }), buildTextFilter(text)] },
+      { searchText: 0, expiresAt: 0, groupKey: 0 },
+    )
+      .limit(limit)
+      .lean<OfferDoc[]>();
+    return docs.map(toView);
+  }
+
+  async findById(id: string): Promise<OfferView | undefined> {
+    if (!isValidObjectId(id)) return undefined;
+    const doc = await OfferModel.findById(id, {
+      searchText: 0,
+      expiresAt: 0,
+      groupKey: 0,
+    }).lean<OfferDoc | null>();
+    return doc ? toView(doc) : undefined;
+  }
+
+  async productNames(category: CategoryId): Promise<string[]> {
+    const docs = await OfferModel.find({ category }, { productName: 1, _id: 0 }).lean<
+      { productName: string }[]
+    >();
+    return docs.map((d) => d.productName);
   }
 
   async categoryCounts(now: Date): Promise<{ category: CategoryId; count: number }[]> {

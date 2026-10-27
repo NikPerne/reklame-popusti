@@ -33,7 +33,13 @@
       }
     </div>
 
-    <h3 class="name">{{ offer().productName }}</h3>
+    <h3 class="name">
+      @if (linked()) {
+        <a class="name-link" [routerLink]="['/izdelek', offer().id]">{{ offer().productName }}</a>
+      } @else {
+        {{ offer().productName }}
+      }
+    </h3>
 
     <div class="prices">
       <span class="price">{{ offer().price | eur: lang() }}</span>

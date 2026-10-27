@@ -13,6 +13,7 @@ import type { ShoppingListRepository } from './repositories/shopping-list-reposi
 import type { UserRepository } from './repositories/user-repository.js';
 import { adminRoutes } from './routes/admin.js';
 import { authRoutes } from './routes/auth.js';
+import { compareRoutes } from './routes/compare.js';
 import { healthRoutes } from './routes/health.js';
 import { offerRoutes } from './routes/offers.js';
 import { settingsRoutes } from './routes/settings.js';
@@ -104,6 +105,7 @@ export async function buildApp({
   await app.register(healthRoutes);
   await app.register(authRoutes, { ...env, users });
   await app.register(offerRoutes, { repository });
+  await app.register(compareRoutes, { repository });
   await app.register(shoppingListRoutes, { shoppingList, sharedLists: env.SHARED_LISTS });
   await app.register(settingsRoutes, { settings });
   await app.register(adminRoutes, {

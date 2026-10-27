@@ -131,6 +131,28 @@ describe('MongoOfferRepository (real MongoDB)', () => {
     expect(deals.items[0]?.alsoAt).toBeUndefined();
   });
 
+  it('finds comparison candidates by word, ungrouped and with every listing', async () => {
+    const candidates = await repository.findCandidates({ text: 'mleko', now, limit: 50 });
+
+    expect(candidates).toHaveLength(2);
+    expect(candidates.every((c) => typeof c.id === 'string' && !('groupKey' in c))).toBe(true);
+    expect(
+      await repository.findCandidates({ text: 'mleko', stores: ['spar'], now, limit: 50 }),
+    ).toEqual([]);
+  });
+
+  it('finds one offer by id and lists the names in a category', async () => {
+    const [first] = (await repository.find(query({ text: 'majica' }))).items;
+
+    expect(await repository.findById(first!.id)).toMatchObject({ productName: 'Majica' });
+    expect(await repository.findById('000000000000000000000000')).toBeUndefined();
+    expect(await repository.findById('not-an-id')).toBeUndefined();
+    expect((await repository.productNames('mlecni-izdelki')).sort()).toEqual([
+      'Trajno mleko, 1 l',
+      'Trajno mleko, 1 l',
+    ]);
+  });
+
   it('sorts by unit price and paginates', async () => {
     const first = await repository.find(query({ sort: 'unitPrice', pageSize: 2 }));
     const second = await repository.find(query({ sort: 'unitPrice', pageSize: 2, page: 2 }));

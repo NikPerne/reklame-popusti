@@ -114,3 +114,35 @@ export interface CategoryCount {
   category: CategoryId;
   count: number;
 }
+
+/** An offer that has a unit price (everything in a price comparison does). */
+export type ComparedOffer = Offer & { unitPrice: { amount: number; unit: UnitPriceUnit } };
+
+/** GET /api/compare: the same type of product (e.g. butter) compared across stores per unit. */
+export interface Comparison {
+  /** Unit of all compared prices; missing when nothing matched. */
+  unit?: UnitPriceUnit;
+  /** Each store's cheapest product per unit, cheapest store first. */
+  stores: { store: StoreId; cheapest: ComparedOffer; count: number }[];
+  /** Compared products, cheapest per unit first (at most 100). */
+  items: ComparedOffer[];
+  /** All compared products. */
+  total: number;
+  /** Matches without a unit price, or in another unit. */
+  notComparable: number;
+}
+
+/** A ready-made comparison (quick pick); `id` is the translation key under `compare.presets`. */
+export interface ComparePreset {
+  id: string;
+  q: string;
+  exclude: string[];
+}
+
+/** GET /api/offers/:id/related: one offer and products of the same type in all stores. */
+export interface RelatedOffers {
+  offer: Offer;
+  /** The type the offer was compared as; null when none could be found in its name. */
+  query: { text: string; exclude: string[]; presetId?: string } | null;
+  comparison: Comparison | null;
+}

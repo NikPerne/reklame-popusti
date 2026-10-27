@@ -26,6 +26,14 @@
             <span class="count">{{ shoppingList.openCount() }}</span>
           }
         </a>
+        <a
+          class="icon-link"
+          routerLink="/primerjava"
+          [attr.aria-label]="t('compare.title')"
+          [title]="t('compare.title')"
+        >
+          <span aria-hidden="true">⚖️</span>
+        </a>
         <a class="icon-link" routerLink="/nastavitve" [attr.aria-label]="t('settings.title')">
           <span aria-hidden="true">⚙️</span>
         </a>

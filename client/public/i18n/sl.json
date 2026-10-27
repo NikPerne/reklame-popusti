@@ -143,5 +143,52 @@
     "manual": "Ali vpiši črtno kodo",
     "search": "Poišči",
     "invalid": "To ni veljavna črtna koda (8 ali 13 števk)."
+  },
+  "compare": {
+    "title": "Primerjava cen",
+    "intro": "Isti izdelek ne glede na znamko – npr. maslo – primerjan po ceni na kg, liter ali kos.",
+    "label": "Izdelek za primerjavo",
+    "placeholder": "npr. maslo, sladka smetana, moka",
+    "submit": "Primerjaj",
+    "start": "Izberi izdelek zgoraj ali vpiši svojega.",
+    "cheapestPer": "Najceneje na {{ unit }}",
+    "more": "+{{ percent }} %",
+    "onSale": "V akciji",
+    "onlyDealsStores": "Mercator in Spar vključujeta tudi redne cene; Lidl, Hofer, Eurospin in Tuš le izdelke v akciji.",
+    "preferredOnly": "Primerjane so le tvoje priljubljene trgovine (Nastavitve).",
+    "notComparable": "Brez primerljive cene na enoto (niso vključeni): {{ count }}",
+    "all": "Vsi primerjani izdelki ({{ count }})",
+    "removeHint": "Napačen izdelek odstraniš s ×.",
+    "remove": "Odstrani iz primerjave",
+    "restore": "Vrni odstranjene ({{ count }})",
+    "none": "Za »{{ q }}« ni izdelkov s ceno na enoto.",
+    "error": "Primerjave ni bilo mogoče naložiti.",
+    "forQuery": "Primerjaj cene za »{{ q }}«",
+    "presets": {
+      "butter": "Maslo",
+      "cream": "Sladka smetana",
+      "sourCream": "Kisla smetana",
+      "milk": "Mleko",
+      "yogurt": "Jogurt",
+      "eggs": "Jajca",
+      "flour": "Moka",
+      "sugar": "Sladkor",
+      "sunflowerOil": "Sončnično olje",
+      "oliveOil": "Oljčno olje",
+      "coffee": "Mleta kava",
+      "rice": "Riž",
+      "spaghetti": "Špageti",
+      "bananas": "Banane"
+    }
+  },
+  "product": {
+    "thisOne": "Ta izdelek",
+    "related": "Primerjava: {{ type }}",
+    "adjust": "Prilagodi primerjavo",
+    "noUnitPrice": "Za ta izdelek ni podobnih izdelkov s ceno na enoto.",
+    "noType": "Za ta izdelek ni bilo mogoče najti podobnih izdelkov.",
+    "notFound": "Te ponudbe ni več (morda je potekla).",
+    "back": "Nazaj na iskanje",
+    "error": "Izdelka ni bilo mogoče naložiti."
   }
 }

@@ -1,3 +1,4 @@
+import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
@@ -11,7 +12,7 @@ describe('ScannerPage', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [ScannerPage, translocoTesting()],
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
     http = TestBed.inject(HttpTestingController);
   });

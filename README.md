@@ -10,6 +10,8 @@ Search for a product such as `kava` or `pralni prašek` and see every current of
 
 - **Search** across all stores, diacritic-insensitive, with filters (store, category, minimum discount) and sorting (price, **price per unit**, discount, ending soon, newest).
 - **Everyday prices (Mercator, Spar)**: the full online catalogues are read too, so a search compares the discounts with what a product normally costs elsewhere. These products are marked _Redna cena_; browsing (home page, categories) and the _Samo akcije_ filter show discounts only. Tuš has no online shop with its full range, so only its discounts are known.
+- **Price comparison by type** (⚖️, `/primerjava`): the same _kind_ of product whatever the brand (butter, sweet cream, flour, …) compared per kg, l or piece, with each store's cheapest one. Quick picks for common products, or type any product; wrong matches can be removed with ×. Also reachable from a search ("Primerjaj cene za »…«").
+- **Product page** (`/izdelek/:id`, tap a product's name): the offer, plus the same kind of product in all stores, compared per unit like the price comparison. The type comes from the matching quick pick, otherwise it is guessed from the name (the type word most common among products of that category, e.g. "maslo" from "Slovensko surovo maslo").
 - **Same product across stores**: offers sharing a barcode (Mercator, Spar, Tuš) are shown as one result, cheapest first, with "Tudi: Spar 1,99 € · Tuš 2,09 €".
 - **Shopping list**: a **+** on every offer; the list is grouped by store with subtotals, items are crossed off in the shop, and it syncs between devices (works offline).
 - **Start page**: "Novo ta teden" and "Kmalu poteče" rows; next week's offers on request.
@@ -121,24 +123,27 @@ The refresh job (GitHub Actions) only needs `MONGODB_URI` and, optionally, the `
 
 All responses are JSON. Offer lists return `{ items, total, page, pageSize }`; offers for the same product are one item with the others in `alsoAt`.
 
-| Method and path                         | Auth                 | Description                                                                  |
-| --------------------------------------- | -------------------- | ---------------------------------------------------------------------------- |
-| `GET /api/health`                       | public               | Liveness check                                                               |
-| `POST /api/auth/signup`                 | public, rate-limited | Body `{ "email", "password", "code" }`; creates the account, sets the cookie |
-| `POST /api/auth/login`                  | public, rate-limited | Body `{ "email", "password" }`; sets the session cookie                      |
-| `POST /api/auth/logout`                 | session              | Clears the session cookie                                                    |
-| `GET /api/auth/me`                      | session              | `{ "email" }` if logged in, `401` otherwise                                  |
-| `GET /api/offers`                       | session              | Search and filter all offers (query parameters below)                        |
-| `GET /api/stores/:store/offers`         | session              | Offers of one store; same query parameters                                   |
-| `GET /api/categories/:category/offers`  | session              | Offers in one category; same query parameters                                |
-| `GET /api/stores`                       | session              | All stores, with the result of their last refresh                            |
-| `GET /api/categories`                   | session              | Categories that have offers, with counts                                     |
-| `GET /api/shopping-list`                | session              | The account's (or shared) list: `{ items, sharedWith }`                      |
-| `PUT /api/shopping-list/items/:id`      | session              | Add or update an item (older writes than the stored one are ignored)         |
-| `DELETE /api/shopping-list/items/:id`   | session              | Remove an item                                                               |
-| `POST /api/shopping-list/clear-checked` | session              | Remove the crossed-off items                                                 |
-| `GET` / `PUT /api/settings`             | session              | Preferred stores and hidden categories                                       |
-| `POST /api/admin/refresh`               | `X-Refresh-Token`    | Starts a refresh in the background (`202`; `409` if one is already running)  |
+| Method and path                         | Auth                 | Description                                                                    |
+| --------------------------------------- | -------------------- | ------------------------------------------------------------------------------ |
+| `GET /api/health`                       | public               | Liveness check                                                                 |
+| `POST /api/auth/signup`                 | public, rate-limited | Body `{ "email", "password", "code" }`; creates the account, sets the cookie   |
+| `POST /api/auth/login`                  | public, rate-limited | Body `{ "email", "password" }`; sets the session cookie                        |
+| `POST /api/auth/logout`                 | session              | Clears the session cookie                                                      |
+| `GET /api/auth/me`                      | session              | `{ "email" }` if logged in, `401` otherwise                                    |
+| `GET /api/offers`                       | session              | Search and filter all offers (query parameters below)                          |
+| `GET /api/stores/:store/offers`         | session              | Offers of one store; same query parameters                                     |
+| `GET /api/categories/:category/offers`  | session              | Offers in one category; same query parameters                                  |
+| `GET /api/compare`                      | session              | Price comparison by type: `q`, optional `exclude`, `skip`, `store` (see below) |
+| `GET /api/compare/presets`              | session              | The quick picks (`id`, `q`, `exclude`)                                         |
+| `GET /api/offers/:id/related`           | session              | One offer, its type (`query`) and the comparison for that type                 |
+| `GET /api/stores`                       | session              | All stores, with the result of their last refresh                              |
+| `GET /api/categories`                   | session              | Categories that have offers, with counts                                       |
+| `GET /api/shopping-list`                | session              | The account's (or shared) list: `{ items, sharedWith }`                        |
+| `PUT /api/shopping-list/items/:id`      | session              | Add or update an item (older writes than the stored one are ignored)           |
+| `DELETE /api/shopping-list/items/:id`   | session              | Remove an item                                                                 |
+| `POST /api/shopping-list/clear-checked` | session              | Remove the crossed-off items                                                   |
+| `GET` / `PUT /api/settings`             | session              | Preferred stores and hidden categories                                         |
+| `POST /api/admin/refresh`               | `X-Refresh-Token`    | Starts a refresh in the background (`202`; `409` if one is already running)    |
 
 Query parameters for offer lists:
 
@@ -155,6 +160,10 @@ Query parameters for offer lists:
 | `deals`                               | `only` / `all`  | `only`: discounts only; `all`: also everyday catalogue prices. Default: `all` with `q` or `ean`, otherwise `only`                                                |
 | `startedWithinDays`, `endsWithinDays` | `7`, `2`        | Offers that started / end within that many days                                                                                                                  |
 | `page`, `pageSize`                    | `1`, `24`       | `pageSize` is at most 100                                                                                                                                        |
+
+### Price comparison
+
+`GET /api/compare?q=maslo&exclude=arasidov,kakav` returns `{ unit, stores, items, total, notComparable }`: each store's cheapest matching product per unit (`stores`, cheapest first) and up to 100 compared products. A product matches when every word of `q` begins a word in the first part of its name (before the first comma and before a preposition such as _z_, _s_, _za_, _iz_), so "Margarina z maslom" is not butter. `exclude` lists word beginnings that rule a product out anywhere in its name, `skip` lists offer ids removed by hand, `store` limits the stores. Prices are compared in the unit most matches use; the rest count as `notComparable`.
 
 ## Adding a new store adapter
 

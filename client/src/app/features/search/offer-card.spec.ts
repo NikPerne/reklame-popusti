@@ -1,3 +1,4 @@
+import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
@@ -12,7 +13,7 @@ describe('OfferCard', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [OfferCard, translocoTesting()],
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
   });
 
@@ -93,15 +94,27 @@ describe('OfferCard', () => {
       '.condition',
       '.validity',
       'img',
-      'a',
+      'a.source',
     ]) {
       expect(element.querySelector(selector), selector).toBeNull();
     }
   });
 
+  it("links the name to the product's page, unless told not to", async () => {
+    const linked = await render(makeOffer({ id: 'o1' }));
+    expect(linked.element.querySelector('a.name-link')?.getAttribute('href')).toBe('/izdelek/o1');
+
+    const fixture = TestBed.createComponent(OfferCard);
+    fixture.componentRef.setInput('offer', makeOffer({ id: 'o1' }));
+    fixture.componentRef.setInput('lang', 'sl');
+    fixture.componentRef.setInput('linked', false);
+    await fixture.whenStable();
+    expect((fixture.nativeElement as HTMLElement).querySelector('a.name-link')).toBeNull();
+  });
+
   it('opens the store page in a new tab without leaking the opener', async () => {
     const { element } = await render(makeOffer());
-    const link = element.querySelector('a')!;
+    const link = element.querySelector<HTMLAnchorElement>('a.source')!;
 
     expect(link.target).toBe('_blank');
     expect(link.rel).toBe('noopener noreferrer');
@@ -112,7 +125,7 @@ describe('OfferCard alternatives', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [OfferCard, translocoTesting()],
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
   });
 
@@ -153,7 +166,7 @@ describe('OfferCard shopping list button', () => {
     localStorage.clear();
     await TestBed.configureTestingModule({
       imports: [OfferCard, translocoTesting()],
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
   });
 

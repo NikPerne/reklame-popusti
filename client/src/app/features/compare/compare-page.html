@@ -1,0 +1,65 @@
+<section class="page" *transloco="let t">
+  <h1>{{ t('compare.title') }}</h1>
+  <p class="intro">{{ t('compare.intro') }}</p>
+
+  <form class="compare-form" role="search" (submit)="submit($event, field)">
+    <label for="compare-q" class="visually-hidden">{{ t('compare.label') }}</label>
+    <input
+      #field
+      id="compare-q"
+      class="field"
+      type="search"
+      enterkeyhint="search"
+      autocomplete="off"
+      [placeholder]="t('compare.placeholder')"
+      [value]="state().q"
+    />
+    <button class="button" type="submit">{{ t('compare.submit') }}</button>
+  </form>
+
+  <div class="presets">
+    @for (preset of presets(); track preset.id) {
+      <button
+        type="button"
+        class="chip"
+        [class.active]="activePreset()?.id === preset.id"
+        [attr.aria-pressed]="activePreset()?.id === preset.id"
+        (click)="choose(preset)"
+      >
+        {{ t('compare.presets.' + preset.id) }}
+      </button>
+    }
+  </div>
+
+  @switch (status()) {
+    @case ('loading') {
+      <p class="hint" role="status">{{ t('search.loading') }}</p>
+    }
+    @case ('error') {
+      <p class="hint" role="alert">{{ t('compare.error') }}</p>
+    }
+    @case ('ok') {
+      @if (result(); as r) {
+        <app-comparison-view
+          [comparison]="r"
+          [lang]="lang()"
+          [removable]="true"
+          (removed)="remove($event)"
+        >
+          <p class="none">{{ t('compare.none', { q: state().q }) }}</p>
+        </app-comparison-view>
+        @if (preferredStores().length) {
+          <p class="note">{{ t('compare.preferredOnly') }}</p>
+        }
+        @if (state().skip.length) {
+          <button type="button" class="link-button" (click)="restore()">
+            {{ t('compare.restore', { count: state().skip.length }) }}
+          </button>
+        }
+      }
+    }
+    @default {
+      <p class="hint">{{ t('compare.start') }}</p>
+    }
+  }
+</section>

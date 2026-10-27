@@ -69,6 +69,13 @@ export interface StoreStatus {
   lastSuccessAt?: Date;
 }
 
+export interface CandidateQuery {
+  text: string;
+  stores?: StoreId[];
+  now: Date;
+  limit: number;
+}
+
 export interface ReplaceResult {
   upserted: number;
   removed: number;
@@ -77,6 +84,15 @@ export interface ReplaceResult {
 /** Persistence boundary. The Mongo implementation is used in production, a fake in tests. */
 export interface OfferRepository {
   find(query: OfferQuery): Promise<OfferPage>;
+  /**
+   * Current offers whose name, brand or category contains every word of `text` (ungrouped,
+   * unsorted, at most `limit`), as candidates for the price comparison.
+   */
+  findCandidates(query: CandidateQuery): Promise<OfferView[]>;
+  /** One offer by its id (as in OfferView), or undefined. */
+  findById(id: string): Promise<OfferView | undefined>;
+  /** Names of all offers in a category, to learn which words name product types. */
+  productNames(category: CategoryId): Promise<string[]>;
   categoryCounts(now: Date): Promise<{ category: CategoryId; count: number }[]>;
   /** Upserts the store's current offers and removes the ones not seen in this run. */
   replaceStoreOffers(store: StoreId, offers: Offer[], runStartedAt: Date): Promise<ReplaceResult>;

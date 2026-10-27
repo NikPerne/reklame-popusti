@@ -16,9 +16,11 @@ import type {
   ShoppingListRepository,
 } from '../src/repositories/shopping-list-repository.js';
 import type {
+  CandidateQuery,
   OfferPage,
   OfferQuery,
   OfferRepository,
+  OfferView,
   ReplaceResult,
   StoreStatus,
 } from '../src/repositories/offer-repository.js';
@@ -73,6 +75,32 @@ export class FakeOfferRepository implements OfferRepository {
       .filter((o) => !query.text || o.searchText.includes(query.text.toLowerCase()))
       .map(({ searchText: _s, expiresAt: _e, ...rest }) => ({ id: rest.externalId, ...rest }));
     return { items, total: items.length };
+  }
+
+  candidateQueries: CandidateQuery[] = [];
+
+  async findCandidates(query: CandidateQuery): Promise<OfferView[]> {
+    this.candidateQueries.push(query);
+    const words = query.text.toLowerCase().split(/\s+/);
+    return this.offers
+      .filter((o) => words.every((w) => o.searchText.includes(w)))
+      .filter((o) => !query.stores || query.stores.includes(o.store))
+      .slice(0, query.limit)
+      .map(({ searchText: _s, expiresAt: _e, groupKey: _g, ...rest }) => ({
+        id: `${rest.store}:${rest.externalId}`,
+        ...rest,
+      }));
+  }
+
+  async findById(id: string): Promise<OfferView | undefined> {
+    const found = this.offers.find((o) => `${o.store}:${o.externalId}` === id);
+    if (!found) return undefined;
+    const { searchText: _s, expiresAt: _e, groupKey: _g, ...rest } = found;
+    return { id, ...rest };
+  }
+
+  async productNames(category: CategoryId): Promise<string[]> {
+    return this.offers.filter((o) => o.category === category).map((o) => o.productName);
   }
 
   async categoryCounts(): Promise<{ category: CategoryId; count: number }[]> {

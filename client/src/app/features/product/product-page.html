@@ -1,0 +1,39 @@
+<section class="page" *transloco="let t">
+  @switch (status()) {
+    @case ('loading') {
+      <p class="hint" role="status">{{ t('search.loading') }}</p>
+    }
+    @case ('not-found') {
+      <p class="hint">{{ t('product.notFound') }}</p>
+      <a routerLink="/">{{ t('product.back') }}</a>
+    }
+    @case ('error') {
+      <p class="hint" role="alert">{{ t('product.error') }}</p>
+    }
+    @case ('ok') {
+      @if (data(); as d) {
+        <app-offer-card [offer]="d.offer" [lang]="lang()" [linked]="false" />
+
+        @if (d.query && d.comparison; as comparison) {
+          <section class="related">
+            <h1>
+              {{
+                t('product.related', {
+                  type: d.query.presetId ? t('compare.presets.' + d.query.presetId) : d.query.text,
+                })
+              }}
+            </h1>
+            <app-comparison-view [comparison]="comparison" [lang]="lang()" [currentId]="d.offer.id">
+              <p class="hint">{{ t('product.noUnitPrice') }}</p>
+            </app-comparison-view>
+            <a class="adjust" routerLink="/primerjava" [queryParams]="compareParams(d.query)">
+              {{ t('product.adjust') }}
+            </a>
+          </section>
+        } @else {
+          <p class="hint">{{ t('product.noType') }}</p>
+        }
+      }
+    }
+  }
+</section>

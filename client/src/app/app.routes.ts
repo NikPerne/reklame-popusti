@@ -25,6 +25,16 @@ export const routes: Routes = [
     loadComponent: () => import('./features/settings/settings-page').then((m) => m.SettingsPage),
   },
   {
+    path: 'primerjava',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/compare/compare-page').then((m) => m.ComparePage),
+  },
+  {
+    path: 'izdelek/:id',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/product/product-page').then((m) => m.ProductPage),
+  },
+  {
     path: 'skeniraj',
     canActivate: [authGuard],
     loadComponent: () => import('./features/scanner/scanner-page').then((m) => m.ScannerPage),

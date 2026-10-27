@@ -143,5 +143,52 @@
     "manual": "Or type the barcode",
     "search": "Search",
     "invalid": "Not a valid barcode (8 or 13 digits)."
+  },
+  "compare": {
+    "title": "Price comparison",
+    "intro": "The same kind of product whatever the brand – e.g. butter – compared per kg, litre or piece.",
+    "label": "Product to compare",
+    "placeholder": "e.g. maslo, sladka smetana, moka (Slovenian names)",
+    "submit": "Compare",
+    "start": "Pick a product above or type your own.",
+    "cheapestPer": "Cheapest per {{ unit }}",
+    "more": "+{{ percent }} %",
+    "onSale": "On sale",
+    "onlyDealsStores": "Mercator and Spar include everyday prices; Lidl, Hofer, Eurospin and Tuš only products on sale.",
+    "preferredOnly": "Only your preferred stores are compared (Settings).",
+    "notComparable": "Left out, no comparable unit price: {{ count }}",
+    "all": "All compared products ({{ count }})",
+    "removeHint": "Remove a wrong product with ×.",
+    "remove": "Remove from comparison",
+    "restore": "Bring back removed ({{ count }})",
+    "none": "No products with a unit price for “{{ q }}”.",
+    "error": "The comparison could not be loaded.",
+    "forQuery": "Compare prices for “{{ q }}”",
+    "presets": {
+      "butter": "Butter",
+      "cream": "Whipping cream",
+      "sourCream": "Sour cream",
+      "milk": "Milk",
+      "yogurt": "Yogurt",
+      "eggs": "Eggs",
+      "flour": "Flour",
+      "sugar": "Sugar",
+      "sunflowerOil": "Sunflower oil",
+      "oliveOil": "Olive oil",
+      "coffee": "Ground coffee",
+      "rice": "Rice",
+      "spaghetti": "Spaghetti",
+      "bananas": "Bananas"
+    }
+  },
+  "product": {
+    "thisOne": "This product",
+    "related": "Compared: {{ type }}",
+    "adjust": "Adjust the comparison",
+    "noUnitPrice": "No similar products with a unit price.",
+    "noType": "No similar products could be found for this product.",
+    "notFound": "This offer is gone (it may have expired).",
+    "back": "Back to search",
+    "error": "The product could not be loaded."
   }
 }

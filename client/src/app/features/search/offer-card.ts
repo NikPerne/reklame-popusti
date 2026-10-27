@@ -1,4 +1,5 @@
 import { Component, computed, inject, input } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { TranslocoDirective } from '@jsverse/transloco';
 import type { Offer, StoreId } from '../../core/api/models';
 import type { Language } from '../../core/i18n/language';
@@ -18,7 +19,7 @@ export const STORE_NAMES: Record<StoreId, string> = {
 
 @Component({
   selector: 'app-offer-card',
-  imports: [TranslocoDirective, EurPipe, ShortDatePipe],
+  imports: [TranslocoDirective, EurPipe, ShortDatePipe, RouterLink],
   templateUrl: './offer-card.html',
   styleUrl: './offer-card.scss',
 })
@@ -27,6 +28,8 @@ export class OfferCard {
 
   readonly offer = input.required<Offer>();
   readonly lang = input.required<Language>();
+  /** Whether the name links to the product's page (not on that page itself). */
+  readonly linked = input(true);
 
   protected readonly storeNames = STORE_NAMES;
   protected readonly inList = computed(() => this.shoppingList.ids().has(this.offer().id));

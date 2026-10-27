@@ -1,0 +1,120 @@
+<ng-container *transloco="let t">
+  @let r = comparison();
+  @if (r.unit && r.stores[0]; as best) {
+    <h2>{{ t('compare.cheapestPer', { unit: t('offer.units.' + r.unit) }) }}</h2>
+    <ol class="ranking">
+      @for (row of r.stores; track row.store; let first = $first) {
+        <li [class.best]="first" [class.current]="row.cheapest.id === currentId()">
+          <div class="row-head">
+            <span class="store" [attr.data-store]="row.store">{{ storeNames[row.store] }}</span>
+            <strong class="unit-price"
+              >{{ row.cheapest.unitPrice.amount | eur: lang() }}/{{
+                t('offer.units.' + r.unit)
+              }}</strong
+            >
+            @if (!first) {
+              <span class="more">{{
+                t('compare.more', {
+                  percent: percentMore(
+                    row.cheapest.unitPrice.amount,
+                    best.cheapest.unitPrice.amount
+                  ),
+                })
+              }}</span>
+            }
+          </div>
+          <div class="row-product">
+            <a class="name" [routerLink]="['/izdelek', row.cheapest.id]">{{
+              row.cheapest.productName
+            }}</a>
+            <span class="details">
+              {{ row.cheapest.price | eur: lang() }}
+              @if (row.cheapest.regular) {
+                <span class="everyday">{{ t('offer.everyday') }}</span>
+              } @else if (row.cheapest.condition; as condition) {
+                <span class="condition">{{ condition.text }}</span>
+              } @else {
+                <span class="condition">{{ t('compare.onSale') }}</span>
+              }
+              @if (row.cheapest.id === currentId()) {
+                <span class="this">{{ t('product.thisOne') }}</span>
+              }
+            </span>
+          </div>
+          <button
+            type="button"
+            class="add"
+            [class.in-list]="shoppingList.has(row.cheapest.id)"
+            [attr.aria-pressed]="shoppingList.has(row.cheapest.id)"
+            [attr.aria-label]="t('offer.addToList')"
+            (click)="shoppingList.toggle(row.cheapest)"
+          >
+            {{ shoppingList.has(row.cheapest.id) ? '✓' : '+' }}
+          </button>
+        </li>
+      }
+    </ol>
+
+    <p class="note">{{ t('compare.onlyDealsStores') }}</p>
+    @if (r.notComparable) {
+      <p class="note">{{ t('compare.notComparable', { count: r.notComparable }) }}</p>
+    }
+
+    <details class="all">
+      <summary>{{ t('compare.all', { count: r.total }) }}</summary>
+      @if (removable()) {
+        <p class="note">{{ t('compare.removeHint') }}</p>
+      }
+      <ul>
+        @for (item of r.items; track item.id) {
+          <li [class.current]="item.id === currentId()">
+            <span class="store small" [attr.data-store]="item.store">{{
+              storeNames[item.store]
+            }}</span>
+            <span class="item-text">
+              <a class="name" [routerLink]="['/izdelek', item.id]">{{ item.productName }}</a>
+              <span class="details">
+                <strong
+                  >{{ item.unitPrice.amount | eur: lang() }}/{{
+                    t('offer.units.' + r.unit)
+                  }}</strong
+                >
+                · {{ item.price | eur: lang() }}
+                @if (item.regular) {
+                  <span class="everyday">{{ t('offer.everyday') }}</span>
+                } @else if (item.condition; as condition) {
+                  <span class="condition">{{ condition.text }}</span>
+                }
+                @if (item.id === currentId()) {
+                  <span class="this">{{ t('product.thisOne') }}</span>
+                }
+              </span>
+            </span>
+            <button
+              type="button"
+              class="icon"
+              [attr.aria-label]="t('offer.addToList')"
+              [attr.aria-pressed]="shoppingList.has(item.id)"
+              (click)="shoppingList.toggle(item)"
+            >
+              {{ shoppingList.has(item.id) ? '✓' : '+' }}
+            </button>
+            @if (removable()) {
+              <button
+                type="button"
+                class="icon remove"
+                [attr.aria-label]="t('compare.remove')"
+                [title]="t('compare.remove')"
+                (click)="removed.emit(item)"
+              >
+                ×
+              </button>
+            }
+          </li>
+        }
+      </ul>
+    </details>
+  } @else {
+    <ng-content />
+  }
+</ng-container>

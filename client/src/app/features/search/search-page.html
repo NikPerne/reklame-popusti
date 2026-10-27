@@ -33,6 +33,12 @@
     }
   </form>
 
+  @if (params().q.length >= 2) {
+    <a class="compare-link" routerLink="/primerjava" [queryParams]="{ q: params().q }">
+      <span aria-hidden="true">⚖️</span> {{ t('compare.forQuery', { q: params().q }) }}
+    </a>
+  }
+
   <details class="filters-panel" [open]="filtersOpen">
     <summary>{{ t('filters.title') }}</summary>
     <app-search-filters
