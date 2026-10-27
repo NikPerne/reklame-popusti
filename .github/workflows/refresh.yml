@@ -2,8 +2,10 @@ name: Refresh offers
 
 on:
   schedule:
-    # 05:17, 11:17 and 17:17 Slovenian winter time (cron is UTC; off the hour to avoid peak load).
-    - cron: '17 4,10,16 * * *'
+    # Once a day at 04:05 UTC (05:05/06:05 Slovenian time). Discounts run for days, so once is
+    # enough, and Spar's robots.txt only allows visits between 04:00 and 08:45 UTC. Its full
+    # catalogue (10 s per page) takes about 75 minutes; Spar stops by itself at 08:45.
+    - cron: '5 4 * * *'
   workflow_dispatch:
 
 concurrency:
@@ -13,7 +15,8 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # Mercator ~10 min, Spar ~75 min, the rest a few minutes.
+    timeout-minutes: 150
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
