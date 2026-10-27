@@ -35,6 +35,11 @@ const offerQuerySchema = z.object({
   excludeCategory: commaList(CATEGORY_IDS).optional(),
   minDiscount: z.coerce.number().min(0).max(100).optional(),
   ean: z.string().regex(EAN_PATTERN, 'must be an 8–14 digit barcode').optional(),
+  /**
+   * `only` = discounts only, `all` = also everyday prices from the full catalogues. Default:
+   * `all` when searching by text or barcode (to compare prices), `only` when browsing.
+   */
+  deals: z.enum(['only', 'all']).optional(),
   upcoming: z
     .enum(['true', 'false'])
     .transform((v) => v === 'true')
@@ -59,6 +64,7 @@ function toOfferQuery(input: OfferQueryInput, now: Date): OfferQuery {
     ...(input.excludeCategory !== undefined && { excludeCategories: input.excludeCategory }),
     ...(input.minDiscount !== undefined && { minDiscount: input.minDiscount }),
     ...(input.ean !== undefined && { ean: input.ean }),
+    onlyDeals: input.deals ? input.deals === 'only' : !input.q && !input.ean,
     ...(input.upcoming !== undefined && { upcoming: input.upcoming }),
     ...(input.startedWithinDays !== undefined && { startedWithinDays: input.startedWithinDays }),
     ...(input.endsWithinDays !== undefined && { endsWithinDays: input.endsWithinDays }),

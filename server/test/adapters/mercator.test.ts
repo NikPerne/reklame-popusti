@@ -1,6 +1,10 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { mercatorAdapter, mercatorPageUrl } from '../../src/adapters/mercator/mercator-adapter.js';
+import {
+  MERCATOR_CATEGORIES,
+  mercatorAdapter,
+  mercatorPageUrl,
+} from '../../src/adapters/mercator/mercator-adapter.js';
 import {
   mercatorProductsResponseSchema,
   type MercatorProduct,
@@ -35,12 +39,21 @@ const product = (id: string): MercatorProduct =>
   structuredClone(products.find((p) => p.itemId === id)!);
 
 describe('parseMercatorProducts', () => {
-  it('turns every price-reduced product into a valid offer and skips the rest', () => {
+  it('turns every product into a valid offer, discounted or at its everyday price', () => {
     expect(products).toHaveLength(12);
-    expect(offers).toHaveLength(11);
-    // "Pivo Union" only carries an action marker without a lower price.
-    expect(byId('313163')).toBeUndefined();
+    expect(offers).toHaveLength(12);
+    expect(offers.filter((o) => o.regular)).toHaveLength(1);
     for (const offer of offers) expect(scrapedOfferSchema.safeParse(offer).success).toBe(true);
+  });
+
+  it('keeps a product that is not cheaper than usual at its everyday price, marked regular', () => {
+    // "Pivo Union" only carries an action marker without a lower price.
+    const beer = byId('313163');
+    expect(beer).toMatchObject({ regular: true });
+    expect(beer?.regularPrice).toBeUndefined();
+    expect(beer?.condition).toBeUndefined();
+    expect(beer?.validTo).toBeUndefined();
+    expect(byId('1436803')?.regular).toBeUndefined();
   });
 
   it('reads a straight price cut ("Ugodno")', () => {
@@ -122,17 +135,22 @@ describe('Mercator helpers', () => {
     expect(parseMercatorDate('nonsense')).toBeUndefined();
   });
 
-  it('builds page URLs with page index as offset and item index as from', () => {
-    const url = new URL(mercatorPageUrl(2));
+  it('builds page URLs per category, with page index as offset and item index as from', () => {
+    const url = new URL(mercatorPageUrl(14535405, 2));
     expect(url.pathname).toBe('/products/browseProducts/getProducts');
     expect(url.searchParams.get('offset')).toBe('2');
     expect(url.searchParams.get('from')).toBe('160');
-    expect(url.searchParams.get('filterData[discounts]')).toContain('104');
+    expect(url.searchParams.get('filterData[categories]')).toBe('14535405');
   });
 });
 
 describe('mercatorAdapter.fetchOffers', () => {
-  /** Serves pages of clones of the fixture products: `sizes[i]` products on page i. */
+  const [firstCategory, secondCategory] = MERCATOR_CATEGORIES as [number, number];
+
+  /**
+   * Serves pages of clones of the fixture products: `sizes[i]` products on page i of the first
+   * category; the second category repeats the first page's products; the rest are empty.
+   */
   function fakeHttp(sizes: number[], total: number) {
     const calls: { url: string; options: RequestOptions | undefined }[] = [];
     const template = products[0]!;
@@ -140,8 +158,11 @@ describe('mercatorAdapter.fetchOffers', () => {
       fetchText: () => Promise.reject(new Error('unexpected')),
       fetchJson: async (url, options) => {
         calls.push({ url, options });
-        const page = Number(new URL(url).searchParams.get('offset'));
-        const count = sizes[page] ?? 0;
+        const params = new URL(url).searchParams;
+        const category = Number(params.get('filterData[categories]'));
+        const page = Number(params.get('offset'));
+        const count =
+          category === firstCategory ? (sizes[page] ?? 0) : category === secondCategory ? 3 : 0;
         return {
           products: Array.from({ length: count }, (_, i) => ({
             ...template,
@@ -154,22 +175,39 @@ describe('mercatorAdapter.fetchOffers', () => {
     return { http, calls };
   }
 
-  it('fetches pages until a short page and sends the XHR header', async () => {
+  it('fetches every category until a short page and sends the XHR header', async () => {
     const { http, calls } = fakeHttp([80, 80, 5], 999);
 
     const result = await mercatorAdapter.fetchOffers({ http, log: silentLogger, now });
 
-    expect(calls).toHaveLength(3);
+    // 3 pages of the first category, then one page of each other category.
+    expect(calls).toHaveLength(3 + MERCATOR_CATEGORIES.length - 1);
     expect(calls[0]?.options?.headers).toEqual({ 'x-requested-with': 'XMLHttpRequest' });
+    // The second category's products were already listed under the first: kept once.
     expect(result).toHaveLength(165);
   });
 
-  it('stops once the reported total is reached', async () => {
+  it('stops a category once its reported total is reached', async () => {
     const { http, calls } = fakeHttp([80, 80, 80], 160);
 
     await mercatorAdapter.fetchOffers({ http, log: silentLogger, now });
 
-    expect(calls).toHaveLength(2);
+    expect(calls.filter((c) => c.url.includes(`=${firstCategory}`))).toHaveLength(2);
+  });
+
+  it('skips grid entries that are not products (e.g. banners)', async () => {
+    const template = products[0]!;
+    const http: HttpClient = {
+      fetchText: () => Promise.reject(new Error('unexpected')),
+      fetchJson: async (url) =>
+        new URL(url).searchParams.get('filterData[categories]') === String(firstCategory)
+          ? { products: [{ ...template, itemId: 'a' }, { banner: true }] }
+          : { products: [] },
+    };
+
+    const result = await mercatorAdapter.fetchOffers({ http, log: silentLogger, now });
+
+    expect(result.map((o) => o.externalId)).toEqual(['a']);
   });
 
   it('fails loudly when the response shape changes', async () => {

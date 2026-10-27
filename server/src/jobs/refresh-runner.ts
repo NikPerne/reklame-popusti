@@ -41,7 +41,8 @@ export async function runRefresh(deps: RefreshDependencies): Promise<RefreshSumm
   const results: StoreRefreshResult[] = [];
 
   for (const adapter of deps.adapters) {
-    if (adapter.isAllowedAt && !adapter.isAllowedAt(startedAt)) {
+    // Checked per store: a full-catalogue run takes over an hour, so later stores start later.
+    if (adapter.isAllowedAt && !adapter.isAllowedAt(now())) {
       // Not a failure: the store only allows visits at certain times. Its offers stay as they are.
       deps.log.info({ store: adapter.store }, 'outside the store’s allowed time window; skipped');
       results.push({
@@ -82,7 +83,12 @@ async function refreshStore(
   let invalidCount = 0;
 
   try {
-    const scraped = await adapter.fetchOffers({ http: deps.http, log, now: runStartedAt });
+    const scraped = await adapter.fetchOffers({
+      http: deps.http,
+      log,
+      now: runStartedAt,
+      clock: now,
+    });
 
     const offers: Offer[] = [];
     for (const raw of scraped) {

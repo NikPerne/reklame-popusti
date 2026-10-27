@@ -47,6 +47,21 @@ export const mercatorProductsResponseSchema = z.looseObject({
   products: z.array(mercatorProductSchema),
 });
 
+/** The page envelope only; entries are checked one by one (the grid mixes in other tiles). */
+export const mercatorPageSchema = z.looseObject({ products: z.array(z.unknown()) });
+
+/** Splits a page into valid products and the number of entries that aren't products. */
+export function readMercatorPage(body: unknown): { products: MercatorProduct[]; skipped: number } {
+  const products: MercatorProduct[] = [];
+  let skipped = 0;
+  for (const entry of mercatorPageSchema.parse(body).products) {
+    const parsed = mercatorProductSchema.safeParse(entry);
+    if (parsed.success) products.push(parsed.data);
+    else skipped++;
+  }
+  return { products, skipped };
+}
+
 export type MercatorDiscount = z.infer<typeof mercatorDiscountSchema>;
 export type MercatorProduct = z.infer<typeof mercatorProductSchema>;
 export type MercatorProductsResponse = z.infer<typeof mercatorProductsResponseSchema>;

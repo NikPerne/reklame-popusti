@@ -64,6 +64,11 @@ export const scrapedOfferSchema = z
     validTo: z.date().optional(),
     imageUrl: z.url().optional(),
     sourceUrl: z.url().optional(),
+    /**
+     * Not on sale: the product's everyday price from the store's full online catalogue
+     * (Mercator, Spar), so searches can compare prices. Absent for discounts.
+     */
+    regular: z.literal(true).optional(),
     /** EAN/GTIN barcodes, where the store publishes them (Mercator, Spar, Tuš). */
     eans: z.array(z.string().regex(EAN_PATTERN)).min(1).optional(),
   })

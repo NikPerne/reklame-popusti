@@ -109,7 +109,8 @@ function findDeals(product: MercatorProduct, current: number): Deal[] {
 }
 
 /**
- * Converts one product from the API into an offer, or undefined if it isn't actually cheaper.
+ * Converts one product from the API into an offer: its cheapest deal, or (when it isn't cheaper
+ * than usual) its everyday price marked `regular`. Undefined only without a usable price.
  * `now` is the scrape time: some discounts carry an end date in the past although the shop still
  * shows the reduced price, so such end dates are dropped rather than hiding a live offer.
  */
@@ -121,13 +122,13 @@ export function parseMercatorProduct(
   if (current === undefined || current <= 0) return undefined;
 
   const deal = findDeals(product, current).sort((a, b) => a.price - b.price)[0];
-  if (!deal) return undefined;
+  const price = deal?.price ?? current;
 
   const { data } = product;
   const unit = data.price_per_unit_base ? UNIT_MAP[data.price_per_unit_base] : undefined;
   const perUnit = parseDecimal(data.price_per_unit);
-  const validFrom = deal.discount && parseMercatorDate(deal.discount.valid_from);
-  const statedValidTo = deal.discount && parseMercatorDate(deal.discount.valid_to);
+  const validFrom = deal?.discount && parseMercatorDate(deal.discount.valid_from);
+  const statedValidTo = deal?.discount && parseMercatorDate(deal.discount.valid_to);
   const validTo = statedValidTo && statedValidTo > now ? statedValidTo : undefined;
   const sourceCategory = [data.category1, data.category2, data.category3]
     .filter((c): c is string => Boolean(c?.trim()))
@@ -140,15 +141,15 @@ export function parseMercatorProduct(
     ...(data.brand_name?.trim() && { brand: toTitleCase(data.brand_name) }),
     category: mapMercatorCategory(data.category1),
     ...(sourceCategory && { sourceCategory }),
-    price: deal.price,
-    regularPrice: deal.regularPrice,
+    price,
+    ...(deal ? { regularPrice: deal.regularPrice } : { regular: true as const }),
     ...(unit &&
       perUnit &&
       perUnit > 0 && {
         // The API's unit price is for the shelf price; scale it to the deal price.
-        unitPrice: { amount: Math.round(((perUnit * deal.price) / current) * 1000) / 1000, unit },
+        unitPrice: { amount: Math.round(((perUnit * price) / current) * 1000) / 1000, unit },
       }),
-    ...(deal.condition && { condition: deal.condition }),
+    ...(deal?.condition && { condition: deal.condition }),
     ...(validFrom && { validFrom }),
     ...(validTo && { validTo }),
     ...(product.mainImageSrc && { imageUrl: product.mainImageSrc }),

@@ -15,6 +15,7 @@ const offerSchema = new Schema<Offer>(
     price: { type: Number, required: true },
     regularPrice: Number,
     discountPercent: Number,
+    regular: Boolean,
     unitPrice: {
       _id: false,
       type: { amount: Number, unit: { type: String, enum: UNIT_PRICE_UNITS } },

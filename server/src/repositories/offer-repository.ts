@@ -18,6 +18,8 @@ export interface OfferQuery {
   category?: CategoryId;
   excludeCategories?: CategoryId[];
   minDiscount?: number;
+  /** Leave out products at their everyday price (`regular`), i.e. discounts only. */
+  onlyDeals?: boolean;
   /** Only offers for this barcode (barcode scanner). */
   ean?: string;
   /** Include offers that start in the future (e.g. next week's flyer). Default: only started ones. */

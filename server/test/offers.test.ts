@@ -37,6 +37,25 @@ describe('offer endpoints', () => {
     });
   });
 
+  it('includes everyday prices when searching, but only discounts when browsing', async () => {
+    await get('/api/offers?q=mleko');
+    expect(t.repository.queries.at(-1)?.onlyDeals).toBe(false);
+
+    await get('/api/offers?ean=3838975531314');
+    expect(t.repository.queries.at(-1)?.onlyDeals).toBe(false);
+
+    await get('/api/offers');
+    expect(t.repository.queries.at(-1)?.onlyDeals).toBe(true);
+
+    await get('/api/offers?q=mleko&deals=only');
+    expect(t.repository.queries.at(-1)?.onlyDeals).toBe(true);
+
+    await get('/api/offers?deals=all');
+    expect(t.repository.queries.at(-1)?.onlyDeals).toBe(false);
+
+    expect((await get('/api/offers?deals=some')).statusCode).toBe(400);
+  });
+
   it('sorts by relevance when searching and by discount otherwise', async () => {
     await get('/api/offers?q=kava');
     expect(t.repository.queries.at(-1)?.sort).toBe('relevance');

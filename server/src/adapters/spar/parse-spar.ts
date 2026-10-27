@@ -31,6 +31,10 @@ const CATEGORY_MAP: Record<string, CategoryId | 'guess-food'> = {
   elektronika: 'tehnika',
   'gospodinjski aparati': 'gospodinjstvo',
   'hrana in oprema za zivali': 'zivali',
+  'vse za male zivali': 'zivali',
+  'vse za zajtrk': 'shramba',
+  kuhinja: 'gospodinjstvo',
+  'vrt in prosti cas': 'dom-vrt',
 };
 
 const UNIT_MAP: Record<string, UnitPriceUnit> = { KG: 'kg', L: 'l', KOS: 'piece' };
@@ -46,6 +50,12 @@ export function extractSparProducts(html: string): { products: SparProduct[]; in
   return { products, invalid };
 }
 
+/** Number of pages in the listing, from the page's pagination data (escaped in the payload). */
+export function extractSparPageCount(html: string): number | undefined {
+  const match = /\\?"pagination\\?":\{\\?"page\\?":\d+,\\?"pages\\?":(\d+)/.exec(html);
+  return match ? Number(match[1]) : undefined;
+}
+
 export function mapSparCategory(product: SparProduct): CategoryId {
   const name = toSentenceCase(product.name);
   for (const data of product.categoriesData ?? []) {
@@ -59,11 +69,15 @@ export function mapSparCategory(product: SparProduct): CategoryId {
 }
 
 /**
- * Converts one product from the "Iz letaka" / "Akcije" categories. The promotion carries the
- * offer price and its dates; products in those categories without a promotion are flyer items
- * at their normal price (kept, without a discount).
+ * Converts one product. The promotion carries the offer price and its dates. Without one, a
+ * product from the "Iz letaka" / "Akcije" pages (`flyer`) is a flyer item at its normal price
+ * (kept, without a discount); one from the rest of the catalogue is marked `regular`.
  */
-export function parseSparProduct(product: SparProduct, now: Date): ScrapedOffer | undefined {
+export function parseSparProduct(
+  product: SparProduct,
+  now: Date,
+  source: 'flyer' | 'catalogue' = 'flyer',
+): ScrapedOffer | undefined {
   const promotion = product.promotion?.isActive === false ? undefined : product.promotion;
   const promoPrice = promotion?.conditions?.find((c) => !c.quantity)?.price;
   const price = promoPrice ?? product.price;
@@ -87,6 +101,7 @@ export function parseSparProduct(product: SparProduct, now: Date): ScrapedOffer 
     category: mapSparCategory(product),
     price,
     ...(promoPrice !== undefined && product.price > promoPrice && { regularPrice: product.price }),
+    ...(promoPrice === undefined && source === 'catalogue' && { regular: true as const }),
     ...(unit && perUnit && perUnit > 0 && { unitPrice: { amount: roundMoney(perUnit), unit } }),
     ...(validFrom && { validFrom }),
     ...(validTo && { validTo }),

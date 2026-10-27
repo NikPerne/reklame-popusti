@@ -56,6 +56,7 @@ export function buildFilter(
   else if (query.excludeCategories?.length) filter.category = { $nin: query.excludeCategories };
   if (query.minDiscount !== undefined) filter.discountPercent = { $gte: query.minDiscount };
   if (query.ean) filter.eans = query.ean;
+  if (query.onlyDeals) filter.regular = { $ne: true };
   return filter;
 }
 

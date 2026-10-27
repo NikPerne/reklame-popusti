@@ -7,7 +7,10 @@ export interface AdapterContext {
   /** Polite HTTP client; adapters must not call fetch directly. */
   http: HttpClient;
   log: Logger;
+  /** When the run started. */
   now: Date;
+  /** The current time, for adapters whose crawl must stop at a deadline (Spar). */
+  clock?: () => Date;
 }
 
 /**

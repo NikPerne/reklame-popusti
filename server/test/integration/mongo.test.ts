@@ -108,6 +108,29 @@ describe('MongoOfferRepository (real MongoDB)', () => {
     ).toEqual(['Trajno mleko, 1 l']);
   });
 
+  it('compares a discount with an everyday price elsewhere, or hides everyday prices', async () => {
+    // Spar sells the coffee at its everyday price, cheaper than Mercator's discount.
+    await seed('spar', [
+      {
+        productName: 'Mleta kava classic barcaffe 200g',
+        price: 3.19,
+        regularPrice: undefined,
+        regular: true,
+        eans: ['3838975531314'],
+      },
+    ]);
+    await repository.regroup();
+
+    const all = await repository.find(query({ text: 'kava' }));
+    expect(all.items[0]).toMatchObject({ store: 'spar', price: 3.19, regular: true });
+    expect(all.items[0]?.alsoAt).toEqual([expect.objectContaining({ store: 'mercator' })]);
+
+    const deals = await repository.find(query({ text: 'kava', onlyDeals: true }));
+    expect(deals.items).toHaveLength(1);
+    expect(deals.items[0]).toMatchObject({ store: 'mercator', price: 3.59 });
+    expect(deals.items[0]?.alsoAt).toBeUndefined();
+  });
+
   it('sorts by unit price and paginates', async () => {
     const first = await repository.find(query({ sort: 'unitPrice', pageSize: 2 }));
     const second = await repository.find(query({ sort: 'unitPrice', pageSize: 2, page: 2 }));
