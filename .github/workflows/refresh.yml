@@ -2,11 +2,22 @@ name: Refresh offers
 
 on:
   schedule:
-    # Once a day at 04:05 UTC (05:05/06:05 Slovenian time). Discounts run for days, so once is
-    # enough, and Spar's robots.txt only allows visits between 04:00 and 08:45 UTC. Its full
-    # catalogue (10 s per page) takes about 75 minutes; Spar stops by itself at 08:45.
+    # Discounts run for days, so one refresh a day is enough, and Spar's robots.txt only allows
+    # visits between 04:00 and 08:45 UTC (its full catalogue takes about 70 minutes).
+    # GitHub starts scheduled runs late, sometimes by hours (10:30 instead of 04:05 was seen), so
+    # this tries several times; each run skips stores refreshed in the last 12 hours, so the
+    # extra runs only fetch what is still missing. The reliable trigger is an external cron
+    # calling workflow_dispatch with only_stale=true at 04:05 UTC (see README).
     - cron: '5 4 * * *'
+    - cron: '35 5 * * *'
+    - cron: '5 7 * * *'
+    - cron: '5 12 * * *'
   workflow_dispatch:
+    inputs:
+      only_stale:
+        description: Skip stores refreshed in the last 12 hours
+        type: boolean
+        default: false
 
 concurrency:
   group: refresh
@@ -15,7 +26,7 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    # Mercator ~10 min, Spar ~75 min, the rest a few minutes.
+    # Mercator ~10 min, Spar ~70 min, the rest a few minutes.
     timeout-minutes: 150
     steps:
       - uses: actions/checkout@v5
@@ -30,3 +41,6 @@ jobs:
           NODE_ENV: production
           LOG_LEVEL: info
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          # Scheduled runs and only_stale dispatches skip fresh stores; a plain manual run
+          # refreshes everything.
+          REFRESH_ONLY_STALE_HOURS: ${{ (github.event_name == 'schedule' || inputs.only_stale) && '12' || '' }}

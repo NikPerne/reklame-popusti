@@ -54,6 +54,15 @@ const envSchema = z.object({
     ),
   SCRAPER_MIN_DELAY_MS: z.coerce.number().int().min(500).default(2000),
   SCRAPER_CACHE_TTL_MINUTES: z.coerce.number().int().nonnegative().default(60),
+
+  /**
+   * Refresh job only: skip stores refreshed successfully within this many hours (set by the
+   * scheduled workflow runs, which may come several times a day). Empty = refresh everything.
+   */
+  REFRESH_ONLY_STALE_HOURS: z.preprocess(
+    (value) => (value === '' ? undefined : value),
+    z.coerce.number().positive().optional(),
+  ),
 });
 
 /** The refresh job (GitHub Actions) only needs the database and scraper settings. */
@@ -64,6 +73,7 @@ const refreshEnvSchema = envSchema.pick({
   SCRAPER_USER_AGENT: true,
   SCRAPER_MIN_DELAY_MS: true,
   SCRAPER_CACHE_TTL_MINUTES: true,
+  REFRESH_ONLY_STALE_HOURS: true,
 });
 
 export type Env = z.infer<typeof envSchema>;

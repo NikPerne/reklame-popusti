@@ -26,6 +26,9 @@ try {
     repository: new MongoOfferRepository('atlas'),
     http: createHttpClient(env),
     log,
+    ...(env.REFRESH_ONLY_STALE_HOURS !== undefined && {
+      onlyStaleAfterHours: env.REFRESH_ONLY_STALE_HOURS,
+    }),
   });
 
   const failed = summary.results.filter((r) => !r.ok);

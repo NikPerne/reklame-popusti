@@ -13,7 +13,10 @@ export interface StoreRefreshResult {
   removedCount: number;
   durationMs: number;
   error?: string;
-  /** The adapter's `isAllowedAt` said no; nothing was fetched or changed. */
+  /**
+   * Nothing was fetched or changed: the store's `isAllowedAt` said no, or it was refreshed
+   * recently (`onlyStaleAfterHours`).
+   */
   skipped?: boolean;
 }
 
@@ -29,6 +32,11 @@ export interface RefreshDependencies {
   http: HttpClient;
   log: Logger;
   now?: () => Date;
+  /**
+   * Skip stores whose last successful refresh is more recent than this. Lets the workflow try
+   * several times a day (GitHub's schedule can be hours late) without fetching everything again.
+   */
+  onlyStaleAfterHours?: number;
 }
 
 /**
@@ -39,21 +47,37 @@ export async function runRefresh(deps: RefreshDependencies): Promise<RefreshSumm
   const now = deps.now ?? (() => new Date());
   const startedAt = now();
   const results: StoreRefreshResult[] = [];
+  const lastSuccess = new Map(
+    deps.onlyStaleAfterHours === undefined
+      ? []
+      : (await deps.repository.storeStatuses()).map((s) => [s.store, s.lastSuccessAt]),
+  );
+  const skip = (store: StoreId): StoreRefreshResult => ({
+    store,
+    ok: true,
+    skipped: true,
+    offerCount: 0,
+    invalidCount: 0,
+    removedCount: 0,
+    durationMs: 0,
+  });
 
   for (const adapter of deps.adapters) {
+    const last = lastSuccess.get(adapter.store);
+    if (
+      deps.onlyStaleAfterHours !== undefined &&
+      last &&
+      now().getTime() - last.getTime() < deps.onlyStaleAfterHours * 3_600_000
+    ) {
+      deps.log.info({ store: adapter.store, lastSuccessAt: last }, 'refreshed recently; skipped');
+      results.push(skip(adapter.store));
+      continue;
+    }
     // Checked per store: a full-catalogue run takes over an hour, so later stores start later.
     if (adapter.isAllowedAt && !adapter.isAllowedAt(now())) {
       // Not a failure: the store only allows visits at certain times. Its offers stay as they are.
       deps.log.info({ store: adapter.store }, 'outside the store’s allowed time window; skipped');
-      results.push({
-        store: adapter.store,
-        ok: true,
-        skipped: true,
-        offerCount: 0,
-        invalidCount: 0,
-        removedCount: 0,
-        durationMs: 0,
-      });
+      results.push(skip(adapter.store));
       continue;
     }
     results.push(await refreshStore(adapter, deps, now));

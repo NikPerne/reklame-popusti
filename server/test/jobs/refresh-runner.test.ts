@@ -145,4 +145,42 @@ describe('runRefresh with visiting hours', () => {
     expect(repository.offers).toHaveLength(1);
     expect(repository.statuses).toHaveLength(0);
   });
+
+  it('with onlyStaleAfterHours, skips stores refreshed recently and refreshes the rest', async () => {
+    const now = new Date('2026-10-30T05:05:00Z');
+    const repository = new FakeOfferRepository();
+    const status = (store: StoreId, lastSuccessAt: string) => ({
+      store,
+      lastRunAt: new Date(lastSuccessAt),
+      lastSuccessAt: new Date(lastSuccessAt),
+      ok: true,
+      offerCount: 1,
+      durationMs: 1,
+    });
+    repository.statuses = [
+      status('mercator', '2026-10-30T04:20:00Z'), // this morning's earlier run
+      status('lidl', '2026-10-29T10:50:00Z'), // yesterday
+    ];
+    const mercator = vi.fn(async () => [scrapedOffer()]);
+    const lidl = vi.fn(async () => [scrapedOffer()]);
+    const spar = vi.fn(async () => [scrapedOffer()]); // never refreshed yet
+
+    const summary = await runRefresh({
+      adapters: [adapter('mercator', mercator), adapter('lidl', lidl), adapter('spar', spar)],
+      repository,
+      http,
+      log: silentLogger,
+      now: () => now,
+      onlyStaleAfterHours: 12,
+    });
+
+    expect(mercator).not.toHaveBeenCalled();
+    expect(lidl).toHaveBeenCalled();
+    expect(spar).toHaveBeenCalled();
+    expect(summary.results.map((r) => [r.store, r.skipped ?? false])).toEqual([
+      ['mercator', true],
+      ['lidl', false],
+      ['spar', false],
+    ]);
+  });
 });

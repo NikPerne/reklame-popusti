@@ -230,7 +230,17 @@ Free web services sleep after about 15 minutes without traffic.
 
 ### Scheduled refresh
 
-Render free web services sleep, so an in-process scheduler would not fire reliably. Instead, a **GitHub Actions scheduled workflow** ([`.github/workflows/refresh.yml`](.github/workflows/refresh.yml)) runs the refresh job directly against Atlas once a day at 04:05 UTC (timeout 150 minutes). Discounts last days, so once is enough, and Spar may only be visited until 08:45 UTC.
+Render free web services sleep, so an in-process scheduler would not fire reliably. Instead, a **GitHub Actions scheduled workflow** ([`.github/workflows/refresh.yml`](.github/workflows/refresh.yml)) runs the refresh job directly against Atlas once a day (timeout 150 minutes). Discounts last days, so once is enough, but Spar may only be visited between 04:00 and 08:45 UTC.
+
+GitHub starts scheduled workflows late, often by hours in the early morning, which would miss Spar's window. So:
+
+- The workflow is scheduled at 04:05, 05:35, 07:05 and 12:05 UTC. Scheduled runs (and dispatches with `only_stale`) skip every store that was refreshed successfully in the last 12 hours, so the later runs only fetch what is still missing and finish in a minute or two.
+- **Reliable trigger (recommended):** let an external cron start the workflow on time. For example, on [cron-job.org](https://cron-job.org) (free):
+  1. On GitHub: **Settings → Developer settings → Personal access tokens → Fine-grained tokens → Generate new token**. Repository access: only this repository. Permissions: **Actions: Read and write**. Copy the token.
+  2. On cron-job.org create a job: URL `https://api.github.com/repos/NikPerne/reklame-popusti/actions/workflows/refresh.yml/dispatches`, schedule daily at 04:05, time zone **UTC**.
+  3. Under _Advanced_: request method **POST**; headers `Authorization: Bearer <token>`, `Accept: application/vnd.github+json`, `X-GitHub-Api-Version: 2022-11-28`; request body `{"ref":"main","inputs":{"only_stale":"true"}}`.
+  4. _Test run_: GitHub answers `204` and a run appears under **Actions**.
+- GitHub turns off schedules in repositories without any activity for 60 days; the external trigger keeps working regardless.
 
 Setup: in the GitHub repo go to **Settings → Secrets and variables → Actions → New repository secret**, name it `MONGODB_URI`, and paste the same connection string as in `.env`. No other secrets are needed.
 
