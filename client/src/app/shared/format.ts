@@ -33,3 +33,18 @@ export class ShortDatePipe implements PipeTransform {
     }).format(new Date(value));
   }
 }
+
+/** `'2026-11-03T04:12:00Z' | dateTime: lang` -> "3. 11. 05:12" (sl), in Ljubljana time. */
+@Pipe({ name: 'dateTime' })
+export class DateTimePipe implements PipeTransform {
+  transform(value: string | null | undefined, lang: Language): string {
+    if (!value) return '';
+    return new Intl.DateTimeFormat(localeFor(lang), {
+      day: 'numeric',
+      month: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'Europe/Ljubljana',
+    }).format(new Date(value));
+  }
+}

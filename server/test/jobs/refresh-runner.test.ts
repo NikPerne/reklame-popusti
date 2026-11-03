@@ -4,7 +4,13 @@ import type { ScrapedOffer } from '../../src/domain/offer.js';
 import type { StoreId } from '../../src/domain/stores.js';
 import { RefreshTrigger, runRefresh } from '../../src/jobs/refresh-runner.js';
 import type { HttpClient } from '../../src/scraping/polite-http-client.js';
-import { FakeOfferRepository, offer, scrapedOffer, silentLogger } from '../helpers.js';
+import {
+  FakeOfferRepository,
+  FakePriceHistoryRepository,
+  offer,
+  scrapedOffer,
+  silentLogger,
+} from '../helpers.js';
 
 const http: HttpClient = {
   fetchText: () => Promise.reject(new Error('no network in tests')),
@@ -182,5 +188,44 @@ describe('runRefresh with visiting hours', () => {
       ['lidl', false],
       ['spar', false],
     ]);
+  });
+});
+
+describe('runRefresh price history', () => {
+  it('records the prices of refreshed stores only', async () => {
+    const history = new FakePriceHistoryRepository();
+    const now = new Date('2026-11-03T04:05:00Z');
+
+    await runRefresh({
+      adapters: [
+        adapter('hofer', async () => [
+          scrapedOffer({ externalId: 'a' }),
+          scrapedOffer({ externalId: 'b' }),
+        ]),
+        adapter('lidl', () => Promise.reject(new Error('down'))),
+      ],
+      repository: new FakeOfferRepository(),
+      history,
+      http,
+      log: silentLogger,
+      now: () => now,
+    });
+
+    expect(history.recorded).toEqual([{ store: 'hofer', count: 2, at: now }]);
+  });
+
+  it('keeps the refresh successful when recording fails', async () => {
+    const history = new FakePriceHistoryRepository();
+    history.record = () => Promise.reject(new Error('db down'));
+
+    const summary = await runRefresh({
+      adapters: [adapter('hofer', async () => [scrapedOffer()])],
+      repository: new FakeOfferRepository(),
+      history,
+      http,
+      log: silentLogger,
+    });
+
+    expect(summary.results[0]?.ok).toBe(true);
   });
 });

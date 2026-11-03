@@ -6,17 +6,18 @@ import type { RelatedOffers } from '../../core/api/models';
 import { OffersApi } from '../../core/api/offers-api';
 import { LanguageService } from '../../core/i18n/language';
 import { ComparisonView } from '../compare/comparison-view';
-import { OfferCard } from '../search/offer-card';
+import { OfferCard, STORE_NAMES } from '../search/offer-card';
+import { PriceHistoryView } from './price-history';
 
 type Status = 'loading' | 'ok' | 'not-found' | 'error';
 
 /**
  * A product's page (/izdelek/:id): the offer, and products of the same type (e.g. other
- * butter) in all stores, compared per unit like on the comparison page.
+ * butter) in all stores, compared per unit like on the comparison page, and its price history.
  */
 @Component({
   selector: 'app-product-page',
-  imports: [TranslocoDirective, RouterLink, OfferCard, ComparisonView],
+  imports: [TranslocoDirective, RouterLink, OfferCard, ComparisonView, PriceHistoryView],
   templateUrl: './product-page.html',
   styleUrl: './product-page.scss',
 })
@@ -27,6 +28,7 @@ export class ProductPage {
   /** Bound from the route parameter. */
   readonly id = input.required<string>();
 
+  protected readonly storeNames = STORE_NAMES;
   protected readonly status = signal<Status>('loading');
   protected readonly data = signal<RelatedOffers | null>(null);
   private request = 0;

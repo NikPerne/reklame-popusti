@@ -8,6 +8,7 @@ import type { Logger } from './lib/logger.js';
 import { authPlugin } from './plugins/auth.js';
 import { clientAppPlugin } from './plugins/client-app.js';
 import type { OfferRepository } from './repositories/offer-repository.js';
+import type { PriceHistoryRepository } from './repositories/price-history-repository.js';
 import type { SettingsRepository } from './repositories/settings-repository.js';
 import type { ShoppingListRepository } from './repositories/shopping-list-repository.js';
 import type { UserRepository } from './repositories/user-repository.js';
@@ -15,6 +16,7 @@ import { adminRoutes } from './routes/admin.js';
 import { authRoutes } from './routes/auth.js';
 import { compareRoutes } from './routes/compare.js';
 import { healthRoutes } from './routes/health.js';
+import { historyRoutes } from './routes/history.js';
 import { offerRoutes } from './routes/offers.js';
 import { settingsRoutes } from './routes/settings.js';
 import { shoppingListRoutes } from './routes/shopping-list.js';
@@ -22,6 +24,7 @@ import { shoppingListRoutes } from './routes/shopping-list.js';
 export interface AppDependencies {
   env: Env;
   repository: OfferRepository;
+  history: PriceHistoryRepository;
   users: UserRepository;
   shoppingList: ShoppingListRepository;
   settings: SettingsRepository;
@@ -51,6 +54,7 @@ const CONTENT_SECURITY_POLICY = {
 export async function buildApp({
   env,
   repository,
+  history,
   users,
   shoppingList,
   settings,
@@ -106,6 +110,7 @@ export async function buildApp({
   await app.register(authRoutes, { ...env, users });
   await app.register(offerRoutes, { repository });
   await app.register(compareRoutes, { repository });
+  await app.register(historyRoutes, { repository, history });
   await app.register(shoppingListRoutes, { shoppingList, sharedLists: env.SHARED_LISTS });
   await app.register(settingsRoutes, { settings });
   await app.register(adminRoutes, {

@@ -3,6 +3,7 @@ import { finalizeOffer, scrapedOfferSchema, type Offer } from '../domain/offer.j
 import type { StoreId } from '../domain/stores.js';
 import type { Logger } from '../lib/logger.js';
 import type { OfferRepository } from '../repositories/offer-repository.js';
+import type { PriceHistoryRepository } from '../repositories/price-history-repository.js';
 import type { HttpClient } from '../scraping/polite-http-client.js';
 
 export interface StoreRefreshResult {
@@ -29,6 +30,8 @@ export interface RefreshSummary {
 export interface RefreshDependencies {
   adapters: readonly StoreAdapter[];
   repository: OfferRepository;
+  /** Where each refreshed store's prices are recorded for the product page's price history. */
+  history?: PriceHistoryRepository;
   http: HttpClient;
   log: Logger;
   now?: () => Date;
@@ -130,6 +133,7 @@ async function refreshStore(
     }
 
     const { removed } = await deps.repository.replaceStoreOffers(store, offers, runStartedAt);
+    await recordHistory(deps, store, offers, runStartedAt);
     const result: StoreRefreshResult = {
       store,
       ok: true,
@@ -154,6 +158,21 @@ async function refreshStore(
     log.error({ ...result, err: error }, 'store refresh failed');
     await saveStatus(deps, result, runStartedAt);
     return result;
+  }
+}
+
+/** Missing history is a gap in a chart, not a reason to fail the store. */
+async function recordHistory(
+  deps: RefreshDependencies,
+  store: StoreId,
+  offers: Offer[],
+  at: Date,
+): Promise<void> {
+  if (!deps.history) return;
+  try {
+    await deps.history.record(store, offers, at);
+  } catch (error) {
+    deps.log.error({ store, err: error }, 'could not record price history');
   }
 }
 

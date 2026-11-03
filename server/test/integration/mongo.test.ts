@@ -12,6 +12,10 @@ import { finalizeOffer, type ScrapedOffer } from '../../src/domain/offer.js';
 import type { StoreId } from '../../src/domain/stores.js';
 import { MongoOfferRepository } from '../../src/repositories/mongo-offer-repository.js';
 import type { OfferQuery } from '../../src/repositories/offer-repository.js';
+import {
+  MongoPriceHistoryRepository,
+  PriceHistoryModel,
+} from '../../src/repositories/price-history-repository.js';
 import { MongoSettingsRepository } from '../../src/repositories/settings-repository.js';
 import { MongoShoppingListRepository } from '../../src/repositories/shopping-list-repository.js';
 import { MongoUserRepository } from '../../src/repositories/user-repository.js';
@@ -319,5 +323,47 @@ describe('store status (real MongoDB)', () => {
     const [recovered] = await repository.storeStatuses();
     expect(recovered).toMatchObject({ ok: true, lastSuccessAt: new Date('2026-10-26T16:17:00Z') });
     expect(recovered).not.toHaveProperty('error');
+  });
+});
+
+describe('MongoPriceHistoryRepository', () => {
+  const history = new MongoPriceHistoryRepository();
+  const day = (d: number) => new Date(Date.UTC(2026, 10, d, 4, 10));
+  const spar = (price: number, regularPrice?: number) =>
+    finalizeOffer('spar', scrapedOffer({ externalId: '334863', price, regularPrice }), now);
+
+  beforeEach(async () => {
+    await PriceHistoryModel.deleteMany({});
+  });
+
+  it('extends the last point while the price stays and adds one when it changes', async () => {
+    await history.record('spar', [spar(1.49)], day(1));
+    await history.record('spar', [spar(1.49)], day(2));
+    await history.record('spar', [spar(1.09, 1.49)], day(3));
+    await history.record('spar', [spar(1.09, 1.49)], day(4));
+    await history.record('spar', [spar(1.49)], day(5));
+
+    expect(await history.find('spar', '334863')).toEqual([
+      { price: 1.49, from: day(1), to: day(2) },
+      { price: 1.09, regularPrice: 1.49, from: day(3), to: day(4) },
+      { price: 1.49, from: day(5), to: day(5) },
+    ]);
+    expect(await history.find('spar', 'other')).toEqual([]);
+  });
+
+  it('keeps stores apart and skips offers that have not started', async () => {
+    const upcoming = finalizeOffer(
+      'spar',
+      scrapedOffer({ externalId: 'next-week', validFrom: day(10) }),
+      now,
+    );
+    await history.record('spar', [spar(1.49), upcoming], day(1));
+    await history.record('mercator', [{ ...spar(2), store: 'mercator' }], day(1));
+
+    expect(await history.find('spar', '334863')).toHaveLength(1);
+    expect(await history.find('mercator', '334863')).toEqual([
+      { price: 2, from: day(1), to: day(1) },
+    ]);
+    expect(await history.find('spar', 'next-week')).toEqual([]);
   });
 });

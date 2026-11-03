@@ -6,6 +6,7 @@ import type {
   ComparePreset,
   Comparison,
   OfferPage,
+  PriceHistory,
   RelatedOffers,
   StoreInfo,
 } from './models';
@@ -31,6 +32,11 @@ export class OffersApi {
   /** One offer with products of the same type in all stores (the product page). */
   related(id: string): Observable<RelatedOffers> {
     return this.http.get<RelatedOffers>(`/api/offers/${encodeURIComponent(id)}/related`);
+  }
+
+  /** The offer's price over time (product page chart). */
+  history(id: string): Observable<PriceHistory> {
+    return this.http.get<PriceHistory>(`/api/offers/${encodeURIComponent(id)}/history`);
   }
 
   stores(): Observable<StoreInfo[]> {

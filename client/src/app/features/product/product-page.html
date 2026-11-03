@@ -13,6 +13,11 @@
     @case ('ok') {
       @if (data(); as d) {
         <app-offer-card [offer]="d.offer" [lang]="lang()" [linked]="false" />
+        <app-price-history
+          [offerId]="d.offer.id"
+          [storeName]="storeNames[d.offer.store]"
+          [lang]="lang()"
+        />
 
         @if (d.query && d.comparison; as comparison) {
           <section class="related">

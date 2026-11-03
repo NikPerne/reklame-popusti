@@ -16,6 +16,7 @@ import {
 } from 'rxjs';
 import type { Offer, StoreInfo } from '../../core/api/models';
 import { OffersApi } from '../../core/api/offers-api';
+import { isStale, lastSuccess } from '../../core/api/store-status';
 import { LanguageService } from '../../core/i18n/language';
 import { SettingsService } from '../../core/settings/settings-service';
 import { ShortDatePipe } from '../../shared/format';
@@ -44,13 +45,6 @@ interface PageRequest {
 
 const SEARCH_DEBOUNCE_MS = 300;
 const SLOW_REQUEST_MS = 5000;
-/** Refreshes run 3x a day (Spar once); more than this without success means something broke. */
-const STALE_AFTER_MS = 30 * 3_600_000;
-
-/** Older statuses have no lastSuccessAt yet; a successful last run counts too. */
-function lastSuccess(store: StoreInfo): string | undefined {
-  return store.status?.lastSuccessAt ?? (store.status?.ok ? store.status.lastRunAt : undefined);
-}
 
 @Component({
   selector: 'app-search-page',
@@ -98,11 +92,8 @@ export class SearchPage {
   /** Stores without fresh data: probably their website changed and the adapter needs fixing. */
   protected readonly staleStores = computed(() =>
     this.refreshedStores()
-      .map((store) => ({ store, lastSuccess: lastSuccess(store) }))
-      .filter(
-        ({ lastSuccess }) =>
-          !lastSuccess || Date.now() - new Date(lastSuccess).getTime() > STALE_AFTER_MS,
-      ),
+      .filter((store) => isStale(store))
+      .map((store) => ({ store, lastSuccess: lastSuccess(store) })),
   );
   /** What the filters show: the stores actually searched (preferred ones by default). */
   protected readonly filterParams = computed<SearchParams>(() => ({

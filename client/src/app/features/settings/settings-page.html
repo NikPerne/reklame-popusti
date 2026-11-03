@@ -37,4 +37,50 @@
       }
     </div>
   </fieldset>
+
+  <section class="refresh" *transloco="let r; prefix: 'settings.refresh'">
+    <h2>{{ r('title') }}</h2>
+    <p class="hint">{{ r('hint') }}</p>
+    @if (refreshHealth(); as rows) {
+      <ul class="health">
+        @for (row of rows; track row.store.id) {
+          <li [class.problem]="row.failed || row.stale">
+            <span class="store">
+              <span aria-hidden="true">{{ row.failed || row.stale ? '⚠️' : '✅' }}</span>
+              {{ row.store.name }}
+            </span>
+            @if (row.store.status; as status) {
+              @if (status.ok) {
+                <span>
+                  {{ r('ok', { date: status.lastRunAt | dateTime: lang() }) }} ·
+                  {{ r('offers', { count: status.offerCount }) }}
+                </span>
+                @if (row.stale) {
+                  <span>{{ r('stale') }}</span>
+                }
+              } @else {
+                <span>{{ r('failed', { date: status.lastRunAt | dateTime: lang() }) }}</span>
+                @if (status.error) {
+                  <code>{{ status.error }}</code>
+                }
+                <span>
+                  @if (row.lastSuccess; as last) {
+                    {{ r('lastOk', { date: last | dateTime: lang() }) }}
+                  } @else {
+                    {{ r('never') }}
+                  }
+                </span>
+              }
+            } @else {
+              <span>{{ r('never') }}</span>
+            }
+          </li>
+        }
+      </ul>
+    } @else if (storeInfo() === null) {
+      <p class="hint" role="alert">{{ r('loadError') }}</p>
+    } @else {
+      <p class="hint" role="status">{{ t('search.loading') }}</p>
+    }
+  </section>
 </section>

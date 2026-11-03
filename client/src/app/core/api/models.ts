@@ -146,3 +146,25 @@ export interface RelatedOffers {
   query: { text: string; exclude: string[]; presetId?: string } | null;
   comparison: Comparison | null;
 }
+
+/** A price that held from `from` to `to` (ISO dates of the first and last refresh that saw it). */
+export interface PricePoint {
+  price: number;
+  /** Set while the product was on sale. */
+  regularPrice?: number;
+  from: string;
+  to: string;
+}
+
+/** GET /api/offers/:id/history: the offer's price over time in its store. */
+export interface PriceHistory {
+  points: PricePoint[];
+  summary: {
+    trackedSince: string;
+    lowest: number;
+    highest: number;
+    current: number;
+    /** The last time the price was lower than now; missing if it never was. */
+    lastLower?: { price: number; on: string };
+  } | null;
+}

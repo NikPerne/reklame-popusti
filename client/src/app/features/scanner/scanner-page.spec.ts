@@ -54,7 +54,7 @@ describe('ScannerPage', () => {
     expect(element.querySelectorAll('app-offer-card')).toHaveLength(2);
   });
 
-  it('says so when the product is not on offer', async () => {
+  it('says so when no store has the product', async () => {
     const { fixture, element } = await render();
 
     await typeCode(fixture, element, '5411188141488');
@@ -62,7 +62,7 @@ describe('ScannerPage', () => {
     await new Promise((resolve) => setTimeout(resolve));
     await fixture.whenStable();
 
-    expect(element.querySelector('.none')?.textContent).toContain('ta teden ni v akciji');
+    expect(element.querySelector('.none')?.textContent).toContain('nismo našli v nobeni trgovini');
   });
 
   it('rejects codes with a wrong check digit without searching', async () => {

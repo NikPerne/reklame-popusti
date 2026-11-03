@@ -8,6 +8,8 @@ import type { StoreId } from '../src/domain/stores.js';
 import { DEFAULT_SETTINGS, type Settings } from '../src/domain/settings.js';
 import type { ShoppingItem } from '../src/domain/shopping-list.js';
 import type { User } from '../src/domain/account.js';
+import type { PricePoint } from '../src/domain/price-history.js';
+import type { PriceHistoryRepository } from '../src/repositories/price-history-repository.js';
 import type { SettingsRepository } from '../src/repositories/settings-repository.js';
 import type { UserRepository } from '../src/repositories/user-repository.js';
 import type { RefreshSummary } from '../src/jobs/refresh-runner.js';
@@ -205,9 +207,24 @@ export class FakeSettingsRepository implements SettingsRepository {
   }
 }
 
+/** Records calls; `points` is what find returns, keyed by `store/externalId`. */
+export class FakePriceHistoryRepository implements PriceHistoryRepository {
+  recorded: { store: StoreId; count: number; at: Date }[] = [];
+  points = new Map<string, PricePoint[]>();
+
+  async record(store: StoreId, offers: readonly Offer[], at: Date): Promise<void> {
+    this.recorded.push({ store, count: offers.length, at });
+  }
+
+  async find(store: StoreId, externalId: string): Promise<PricePoint[]> {
+    return this.points.get(`${store}/${externalId}`) ?? [];
+  }
+}
+
 export interface TestApp {
   app: FastifyInstance;
   repository: FakeOfferRepository;
+  history: FakePriceHistoryRepository;
   users: FakeUserRepository;
   shoppingList: FakeShoppingListRepository;
   settings: FakeSettingsRepository;
@@ -216,6 +233,7 @@ export interface TestApp {
 
 export async function buildTestApp(env?: Env, clientRoot?: string): Promise<TestApp> {
   const repository = new FakeOfferRepository();
+  const history = new FakePriceHistoryRepository();
   const users = new FakeUserRepository();
   // One account exists from the start; tests sign up others through the API.
   await users.create({
@@ -228,6 +246,7 @@ export async function buildTestApp(env?: Env, clientRoot?: string): Promise<Test
   const result: TestApp = {
     app: undefined as unknown as FastifyInstance,
     repository,
+    history,
     users,
     shoppingList,
     settings,
@@ -236,6 +255,7 @@ export async function buildTestApp(env?: Env, clientRoot?: string): Promise<Test
   result.app = await buildApp({
     env: env ?? testEnv(),
     repository,
+    history,
     users,
     shoppingList,
     settings,

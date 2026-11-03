@@ -11,13 +11,13 @@ Search for a product such as `kava` or `pralni prašek` and see every current of
 - **Search** across all stores, diacritic-insensitive, with filters (store, category, minimum discount) and sorting (price, **price per unit**, discount, ending soon, newest).
 - **Everyday prices (Mercator, Spar)**: the full online catalogues are read too, so a search compares the discounts with what a product normally costs elsewhere. These products are marked _Redna cena_; browsing (home page, categories) and the _Samo akcije_ filter show discounts only. Tuš has no online shop with its full range, so only its discounts are known.
 - **Price comparison by type** (⚖️, `/primerjava`): the same _kind_ of product whatever the brand (butter, sweet cream, flour, …) compared per kg, l or piece, with each store's cheapest one. Quick picks for common products, or type any product; wrong matches can be removed with ×. Also reachable from a search ("Primerjaj cene za »…«").
-- **Product page** (`/izdelek/:id`, tap a product's name): the offer, plus the same kind of product in all stores, compared per unit like the price comparison. The type comes from the matching quick pick, otherwise it is guessed from the name (the type word most common among products of that category, e.g. "maslo" from "Slovensko surovo maslo").
+- **Product page** (`/izdelek/:id`, tap a product's name): the offer, plus the same kind of product in all stores, compared per unit like the price comparison, and its **price history**: a chart of the store's price over time (sale prices in red), the lowest and highest price and when it was last cheaper. The type comes from the matching quick pick, otherwise it is guessed from the name (the type word most common among products of that category, e.g. "maslo" from "Slovensko surovo maslo").
 - **Same product across stores**: offers sharing a barcode (Mercator, Spar, Tuš) are shown as one result, cheapest first, with "Tudi: Spar 1,99 € · Tuš 2,09 €".
 - **Shopping list**: a **+** on every offer; the list is grouped by store with subtotals, items are crossed off in the shop, and it syncs between devices (works offline).
 - **Start page**: "Novo ta teden" and "Kmalu poteče" rows; next week's offers on request.
 - **Settings**: preferred stores (the default filter) and hidden categories, synced between devices.
-- **Barcode scanner**: scan a product in the shop to see its offers in all stores.
-- **Store health**: a warning when a store has had no fresh data for over a day.
+- **Barcode scanner** (📷 in the header): scan a product in the shop to see its price in all stores, offers and everyday prices.
+- **Store health**: a warning on the start page when a store has had no fresh data for over a day; settings list every store's last refresh, product count and error.
 - Loyalty-card prices (Pika, Lidl Plus, Tuš klub) and multi-buy deals are marked; Slovenian UI with English; installable PWA.
 
 ## Supported stores
@@ -136,6 +136,7 @@ All responses are JSON. Offer lists return `{ items, total, page, pageSize }`; o
 | `GET /api/compare`                      | session              | Price comparison by type: `q`, optional `exclude`, `skip`, `store` (see below) |
 | `GET /api/compare/presets`              | session              | The quick picks (`id`, `q`, `exclude`)                                         |
 | `GET /api/offers/:id/related`           | session              | One offer, its type (`query`) and the comparison for that type                 |
+| `GET /api/offers/:id/history`           | session              | The offer's price over time in its store (`points`, `summary`)                 |
 | `GET /api/stores`                       | session              | All stores, with the result of their last refresh                              |
 | `GET /api/categories`                   | session              | Categories that have offers, with counts                                       |
 | `GET /api/shopping-list`                | session              | The account's (or shared) list: `{ items, sharedWith }`                        |

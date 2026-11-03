@@ -123,7 +123,18 @@
     "preferredStoresHint": "Iskanje privzeto prikaže le te trgovine (filter lahko vedno spremeniš). Brez izbire: vse trgovine.",
     "hiddenCategories": "Skrite kategorije",
     "hiddenCategoriesHint": "Ponudbe iz teh kategorij se nikoli ne prikažejo, razen če kategorijo izbereš v filtru.",
-    "account": "Prijavljen kot {{ email }}"
+    "account": "Prijavljen kot {{ email }}",
+    "refresh": {
+      "title": "Osveževanje podatkov",
+      "hint": "Ponudbe se osvežijo enkrat na dan, zgodaj zjutraj.",
+      "ok": "Osveženo {{ date }}",
+      "offers": "{{ count }} izdelkov",
+      "failed": "Osvežitev {{ date }} ni uspela",
+      "lastOk": "Zadnja uspešna osvežitev: {{ date }}",
+      "never": "Še ni bilo uspešne osvežitve.",
+      "stale": "Podatki so starejši od enega dne.",
+      "loadError": "Stanja ni bilo mogoče naložiti."
+    }
   },
   "home": {
     "newThisWeek": "Novo ta teden",
@@ -137,7 +148,7 @@
     "loading": "Iščem ponudbe za {{ code }} …",
     "error": "Iskanje ni uspelo. Poskusi znova.",
     "found": "Ponudbe za {{ code }}",
-    "notOnOffer": "Izdelek {{ code }} ta teden ni v akciji.",
+    "notOnOffer": "Izdelka {{ code }} nismo našli v nobeni trgovini.",
     "onlySomeStores": "Črtne kode objavljajo le Mercator, Spar in Tuš; Lidl, Hofer in Eurospin tu niso zajeti.",
     "again": "Skeniraj znova",
     "manual": "Ali vpiši črtno kodo",
@@ -190,5 +201,16 @@
     "notFound": "Te ponudbe ni več (morda je potekla).",
     "back": "Nazaj na iskanje",
     "error": "Izdelka ni bilo mogoče naložiti."
+  },
+  "history": {
+    "title": "Zgodovina cene ({{ store }})",
+    "chartLabel": "Graf cene od {{ from }} do {{ to }}",
+    "sale": "v akciji",
+    "empty": "Zgodovino cene za ta izdelek šele začenjamo beležiti.",
+    "unchanged": "Cena se ni spremenila, odkar jo spremljamo.",
+    "lowestNow": "Najnižja cena, odkar jo spremljamo.",
+    "lastLower": "Nazadnje ceneje {{ date }}: {{ price }}",
+    "range": "Najnižja {{ lowest }} · najvišja {{ highest }}",
+    "since": "Ceno spremljamo od {{ date }}."
   }
 }

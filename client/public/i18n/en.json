@@ -123,7 +123,18 @@
     "preferredStoresHint": "Search shows only these stores by default (you can always change the filter). None selected: all stores.",
     "hiddenCategories": "Hidden categories",
     "hiddenCategoriesHint": "Offers in these categories never show up, unless you pick the category in the filter.",
-    "account": "Logged in as {{ email }}"
+    "account": "Logged in as {{ email }}",
+    "refresh": {
+      "title": "Data refresh",
+      "hint": "Offers are refreshed once a day, early in the morning.",
+      "ok": "Updated {{ date }}",
+      "offers": "{{ count }} products",
+      "failed": "Refresh on {{ date }} failed",
+      "lastOk": "Last successful refresh: {{ date }}",
+      "never": "No successful refresh yet.",
+      "stale": "The data is more than a day old.",
+      "loadError": "The status could not be loaded."
+    }
   },
   "home": {
     "newThisWeek": "New this week",
@@ -137,7 +148,7 @@
     "loading": "Looking up offers for {{ code }} …",
     "error": "The search failed. Please try again.",
     "found": "Offers for {{ code }}",
-    "notOnOffer": "Product {{ code }} is not on offer this week.",
+    "notOnOffer": "Product {{ code }} was not found in any store.",
     "onlySomeStores": "Only Mercator, Spar and Tuš publish barcodes; Lidl, Hofer and Eurospin are not covered here.",
     "again": "Scan again",
     "manual": "Or type the barcode",
@@ -190,5 +201,16 @@
     "notFound": "This offer is gone (it may have expired).",
     "back": "Back to search",
     "error": "The product could not be loaded."
+  },
+  "history": {
+    "title": "Price history ({{ store }})",
+    "chartLabel": "Price chart from {{ from }} to {{ to }}",
+    "sale": "on sale",
+    "empty": "Price history for this product has only just started.",
+    "unchanged": "The price has not changed since tracking started.",
+    "lowestNow": "The lowest price since tracking started.",
+    "lastLower": "Last cheaper on {{ date }}: {{ price }}",
+    "range": "Lowest {{ lowest }} · highest {{ highest }}",
+    "since": "Price tracked since {{ date }}."
   }
 }

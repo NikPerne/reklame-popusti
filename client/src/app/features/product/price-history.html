@@ -1,0 +1,69 @@
+<section class="history" *transloco="let t; prefix: 'history'">
+  <h2>{{ t('title', { store: storeName() }) }}</h2>
+
+  @if (status() === 'ok') {
+    @if (history()?.summary; as summary) {
+      @if (chart(); as chart) {
+        <div class="chart">
+          <span class="axis-price top">{{ chart.highest | eur: lang() }}</span>
+          <svg
+            role="img"
+            [attr.viewBox]="'0 0 ' + width + ' ' + height"
+            preserveAspectRatio="none"
+            [attr.aria-label]="
+              t('chartLabel', {
+                from: chart.from | shortDate: lang(),
+                to: chart.to | shortDate: lang(),
+              })
+            "
+          >
+            <path class="steps" [attr.d]="chart.steps" />
+            @for (segment of chart.segments; track $index) {
+              <line
+                [class.sale]="segment.sale"
+                [attr.x1]="segment.x1"
+                [attr.x2]="segment.x2"
+                [attr.y1]="segment.y"
+                [attr.y2]="segment.y"
+              />
+            }
+          </svg>
+          <span class="axis-price bottom">{{ chart.lowest | eur: lang() }}</span>
+          <span class="axis-date start">{{ chart.from | shortDate: lang() }}</span>
+          <span class="axis-date end">{{ chart.to | shortDate: lang() }}</span>
+        </div>
+        <p class="legend"><span class="swatch sale"></span>{{ t('sale') }}</p>
+      }
+
+      <ul class="facts">
+        @if (history()!.points.length === 1) {
+          <li>{{ t('unchanged') }}</li>
+        } @else {
+          @if (summary.lastLower; as lower) {
+            <li>
+              {{
+                t('lastLower', {
+                  date: lower.on | shortDate: lang(),
+                  price: lower.price | eur: lang(),
+                })
+              }}
+            </li>
+          } @else {
+            <li class="good">{{ t('lowestNow') }}</li>
+          }
+          <li>
+            {{
+              t('range', {
+                lowest: summary.lowest | eur: lang(),
+                highest: summary.highest | eur: lang(),
+              })
+            }}
+          </li>
+        }
+      </ul>
+      <p class="hint">{{ t('since', { date: summary.trackedSince | shortDate: lang() }) }}</p>
+    } @else {
+      <p class="hint">{{ t('empty') }}</p>
+    }
+  }
+</section>
