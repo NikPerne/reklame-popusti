@@ -34,6 +34,15 @@ export class HttpStatusError extends Error {
   }
 }
 
+export class TooManyRedirectsError extends Error {
+  constructor(readonly chain: string[]) {
+    super(`too many redirects: ${chain.join(' -> ')}`);
+    this.name = 'TooManyRedirectsError';
+  }
+}
+
+const MAX_REDIRECTS = 10;
+
 export interface PoliteHttpClientOptions {
   userAgent: string;
   /** Minimum gap between two requests to the same host. */
@@ -52,7 +61,7 @@ const defaultSleep = (ms: number): Promise<void> =>
 
 function isRetryable(error: unknown): boolean {
   if (error instanceof HttpStatusError) return error.status === 429 || error.status >= 500;
-  return !(error instanceof RobotsDisallowedError);
+  return !(error instanceof RobotsDisallowedError || error instanceof TooManyRedirectsError);
 }
 
 /**
@@ -70,6 +79,8 @@ export class PoliteHttpClient implements HttpClient {
   /** Tail of each host's request queue and when its last request started. */
   private readonly hostQueues = new Map<string, Promise<unknown>>();
   private readonly lastRequestAt = new Map<string, number>();
+  /** Cookies each host set, sent back like a browser would (some sites redirect until they get one). */
+  private readonly cookies = new Map<string, Map<string, string>>();
 
   constructor(private readonly options: PoliteHttpClientOptions) {
     this.fetchImpl = options.fetch ?? globalThis.fetch;
@@ -151,14 +162,65 @@ export class PoliteHttpClient implements HttpClient {
     return next;
   }
 
+  /** Follows redirects itself so cookies set along the way are kept and each hop obeys robots.txt. */
   private async send(url: string, options: RequestOptions): Promise<string> {
-    const response = await this.fetchImpl(url, {
-      method: options.method ?? 'GET',
-      headers: { 'user-agent': this.options.userAgent, ...options.headers },
-      ...(options.body !== undefined && { body: options.body }),
-      signal: AbortSignal.timeout(this.timeoutMs),
-    });
-    if (!response.ok) throw new HttpStatusError(url, response.status);
-    return response.text();
+    const chain = [url];
+    let current = url;
+    let method = options.method ?? 'GET';
+    let body = options.body;
+
+    for (;;) {
+      const host = new URL(current).host;
+      const cookie = this.cookieHeader(host);
+      const response = await this.fetchImpl(current, {
+        method,
+        headers: {
+          'user-agent': this.options.userAgent,
+          ...options.headers,
+          ...(cookie && { cookie }),
+        },
+        ...(body !== undefined && { body }),
+        redirect: 'manual',
+        signal: AbortSignal.timeout(this.timeoutMs),
+      });
+      this.storeCookies(host, response.headers);
+
+      const location = response.headers.get('location');
+      if (response.status < 300 || response.status >= 400 || !location) {
+        if (!response.ok) throw new HttpStatusError(current, response.status);
+        return response.text();
+      }
+
+      await response.body?.cancel();
+      if (chain.length > MAX_REDIRECTS) throw new TooManyRedirectsError(chain);
+      current = new URL(location, current).toString();
+      chain.push(current);
+      const robots = await this.robotsFor(new URL(current).origin);
+      if (robots.isDisallowed(current, this.options.userAgent)) {
+        throw new RobotsDisallowedError(current);
+      }
+      // Like browsers: 307/308 repeat the request, the others turn it into a GET.
+      if (response.status !== 307 && response.status !== 308) {
+        method = 'GET';
+        body = undefined;
+      }
+    }
+  }
+
+  private cookieHeader(host: string): string | undefined {
+    const jar = this.cookies.get(host);
+    if (!jar?.size) return undefined;
+    return [...jar].map(([name, value]) => `${name}=${value}`).join('; ');
+  }
+
+  private storeCookies(host: string, headers: Headers): void {
+    for (const setCookie of headers.getSetCookie()) {
+      const [pair = ''] = setCookie.split(';');
+      const separator = pair.indexOf('=');
+      if (separator <= 0) continue;
+      let jar = this.cookies.get(host);
+      if (!jar) this.cookies.set(host, (jar = new Map<string, string>()));
+      jar.set(pair.slice(0, separator).trim(), pair.slice(separator + 1).trim());
+    }
   }
 }

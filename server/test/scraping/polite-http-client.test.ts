@@ -3,6 +3,7 @@ import {
   HttpStatusError,
   PoliteHttpClient,
   RobotsDisallowedError,
+  TooManyRedirectsError,
 } from '../../src/scraping/polite-http-client.js';
 
 interface Site {
@@ -138,5 +139,77 @@ describe('PoliteHttpClient per-request delay', () => {
     await client.fetchText('https://shop.test/b', { minDelayMs: 10_000 });
 
     expect(requests[2]!.at - requests[1]!.at).toBeGreaterThanOrEqual(10_000);
+  });
+});
+
+describe('PoliteHttpClient redirects', () => {
+  /** A page that redirects to itself with a cookie until the request carries it back. */
+  function cookieSite(setCookie: boolean) {
+    const requests: {
+      url: string;
+      cookie: string | null;
+      redirect: RequestInit['redirect'];
+    }[] = [];
+    const fetch = async (input: string | URL | Request, init?: RequestInit): Promise<Response> => {
+      const url = input instanceof Request ? input.url : input.toString();
+      const cookie = new Headers(init?.headers).get('cookie');
+      requests.push({ url, cookie, redirect: init?.redirect });
+      const { pathname } = new URL(url);
+      if (pathname === '/robots.txt') return new Response('User-agent: *\nDisallow: /private');
+      if (pathname === '/old')
+        return new Response(null, { status: 301, headers: { location: '/offers' } });
+      if (pathname === '/to-private') {
+        return new Response(null, { status: 302, headers: { location: '/private/x' } });
+      }
+      if (cookie?.includes('geo=si')) return new Response('offers');
+      const headers = new Headers({ location: url });
+      if (setCookie) headers.append('set-cookie', 'geo=si; Path=/; HttpOnly');
+      return new Response(null, { status: 302, headers });
+    };
+    const client = new PoliteHttpClient({
+      userAgent: 'test-bot/1.0',
+      minDelayMs: 1000,
+      cacheTtlMs: 0,
+      fetch,
+      sleep: async () => undefined,
+    });
+    return { client, requests };
+  }
+
+  it('keeps cookies set while redirecting and sends them back', async () => {
+    const { client, requests } = cookieSite(true);
+
+    await expect(client.fetchText('https://shop.test/old')).resolves.toBe('offers');
+
+    expect(requests.slice(1).map((r) => [new URL(r.url).pathname, r.cookie])).toEqual([
+      ['/old', null],
+      ['/offers', null],
+      ['/offers', 'geo=si'],
+    ]);
+    expect(requests.every((r) => r.redirect === 'manual')).toBe(true);
+  });
+
+  it('gives up on a redirect loop and names the hops', async () => {
+    const { client, requests } = cookieSite(false);
+
+    const error: unknown = await client
+      .fetchText('https://shop.test/offers')
+      .catch((e: unknown) => e);
+
+    expect(error).toBeInstanceOf(TooManyRedirectsError);
+    expect((error as Error).message).toContain(
+      'https://shop.test/offers -> https://shop.test/offers',
+    );
+    // Not retried: 1 robots.txt + the original request + 10 redirects.
+    expect(requests).toHaveLength(12);
+  });
+
+  it('does not follow a redirect to a path robots.txt disallows', async () => {
+    const { client, requests } = cookieSite(true);
+
+    await expect(client.fetchText('https://shop.test/to-private')).rejects.toBeInstanceOf(
+      RobotsDisallowedError,
+    );
+    expect(requests.some((r) => r.url.includes('/private/'))).toBe(false);
   });
 });
