@@ -1,4 +1,8 @@
 <ng-container *transloco="let t">
+  @if (!params().q) {
+    <app-flyer-links />
+  }
+
   <form class="search-bar" role="search" (submit)="$event.preventDefault()">
     <label for="q" class="visually-hidden">{{ t('search.label') }}</label>
     <input

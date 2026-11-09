@@ -65,7 +65,28 @@ describe('SearchPage', () => {
     await fixture.whenStable();
 
     expect(element.querySelectorAll('app-offer-card')).toHaveLength(1);
-    expect(element.querySelector('h2')?.textContent).toContain('Največji popusti');
+    expect(element.querySelector('.results-header h2')?.textContent).toContain('Največji popusti');
+  });
+
+  it('links to the current flyers of every store on the start page only', async () => {
+    const { fixture, element } = await create();
+    expectOffers({ page: '1' }).flush(makePage([], 0));
+    await fixture.whenStable();
+
+    const links = [...element.querySelectorAll<HTMLAnchorElement>('app-flyer-links a')];
+    expect(links.map((a) => a.querySelector('.name')?.textContent)).toEqual([
+      'Mercator',
+      'Lidl',
+      'Hofer',
+      'Spar',
+      'Tuš',
+      'Eurospin',
+    ]);
+    expect(links.every((a) => a.target === '_blank' && a.href.startsWith('https://'))).toBe(true);
+
+    queryParams.next({ q: 'kava' });
+    await fixture.whenStable();
+    expect(element.querySelector('app-flyer-links')).toBeNull();
   });
 
   it('searches with the filters from the URL', async () => {

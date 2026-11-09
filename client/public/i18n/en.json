@@ -212,5 +212,10 @@
     "lastLower": "Last cheaper on {{ date }}: {{ price }}",
     "range": "Lowest {{ lowest }} · highest {{ highest }}",
     "since": "Price tracked since {{ date }}."
+  },
+  "flyers": {
+    "title": "Current flyers",
+    "label": "Flyer",
+    "open": "{{ store }}: current flyers (opens the store website)"
   }
 }

@@ -20,6 +20,7 @@ import { isStale, lastSuccess } from '../../core/api/store-status';
 import { LanguageService } from '../../core/i18n/language';
 import { SettingsService } from '../../core/settings/settings-service';
 import { ShortDatePipe } from '../../shared/format';
+import { FlyerLinks } from './flyer-links';
 import { HomeSections } from './home-sections';
 import { OfferCard } from './offer-card';
 import { SearchFilters } from './search-filters';
@@ -48,7 +49,15 @@ const SLOW_REQUEST_MS = 5000;
 
 @Component({
   selector: 'app-search-page',
-  imports: [TranslocoDirective, RouterLink, OfferCard, SearchFilters, HomeSections, ShortDatePipe],
+  imports: [
+    TranslocoDirective,
+    RouterLink,
+    OfferCard,
+    SearchFilters,
+    HomeSections,
+    FlyerLinks,
+    ShortDatePipe,
+  ],
   templateUrl: './search-page.html',
   styleUrl: './search-page.scss',
 })

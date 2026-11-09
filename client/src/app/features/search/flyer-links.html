@@ -1,0 +1,19 @@
+<section class="flyers" *transloco="let t; prefix: 'flyers'">
+  <h2>{{ t('title') }}</h2>
+  <ul>
+    @for (flyer of flyers; track flyer.store) {
+      <li>
+        <a
+          [href]="flyer.url"
+          [attr.data-store]="flyer.store"
+          target="_blank"
+          rel="noopener noreferrer"
+          [attr.aria-label]="t('open', { store: flyer.name })"
+        >
+          <span class="name">{{ flyer.name }}</span>
+          <span class="label">{{ t('label') }} <span aria-hidden="true">↗</span></span>
+        </a>
+      </li>
+    }
+  </ul>
+</section>

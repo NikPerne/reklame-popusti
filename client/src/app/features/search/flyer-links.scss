@@ -1,0 +1,55 @@
+.flyers {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+
+  h2 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--muted);
+  }
+}
+
+ul {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(6.5rem, 1fr);
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0 0 var(--space-1);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  list-style: none;
+}
+
+a {
+  display: grid;
+  gap: 0.125rem;
+  min-height: 3.25rem;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius);
+  background: var(--store-color, var(--muted));
+  color: #fff;
+  text-decoration: none;
+
+  @each $store in mercator, lidl, hofer, spar, eurospin, tus {
+    &[data-store='#{$store}'] {
+      --store-color: var(--store-#{$store});
+    }
+  }
+
+  &:hover,
+  &:focus-visible {
+    filter: brightness(1.1);
+  }
+}
+
+.name {
+  font-weight: 700;
+}
+
+.label {
+  font-size: 0.8rem;
+  opacity: 0.9;
+}

@@ -14,7 +14,7 @@ Search for a product such as `kava` or `pralni prašek` and see every current of
 - **Product page** (`/izdelek/:id`, tap a product's name): the offer, plus the same kind of product in all stores, compared per unit like the price comparison, and its **price history**: a chart of the store's price over time (sale prices in red), the lowest and highest price and when it was last cheaper. The type comes from the matching quick pick, otherwise it is guessed from the name (the type word most common among products of that category, e.g. "maslo" from "Slovensko surovo maslo").
 - **Same product across stores**: offers sharing a barcode (Mercator, Spar, Tuš) are shown as one result, cheapest first, with "Tudi: Spar 1,99 € · Tuš 2,09 €".
 - **Shopping list**: a **+** on every offer; the list is grouped by store with subtotals, items are crossed off in the shop, and it syncs between devices (works offline).
-- **Start page**: "Novo ta teden" and "Kmalu poteče" rows; next week's offers on request.
+- **Start page**: links to every store's current flyers (they open on the store's website), "Novo ta teden" and "Kmalu poteče" rows; next week's offers on request.
 - **Settings**: preferred stores (the default filter) and hidden categories, synced between devices.
 - **Barcode scanner** (📷 in the header): scan a product in the shop to see its price in all stores, offers and everyday prices.
 - **Store health**: a warning on the start page when a store has had no fresh data for over a day; settings list every store's last refresh, product count and error.

@@ -212,5 +212,10 @@
     "lastLower": "Nazadnje ceneje {{ date }}: {{ price }}",
     "range": "Najnižja {{ lowest }} · najvišja {{ highest }}",
     "since": "Ceno spremljamo od {{ date }}."
+  },
+  "flyers": {
+    "title": "Aktualni letaki",
+    "label": "Letak",
+    "open": "{{ store }}: aktualni letaki (odpre se spletna stran trgovine)"
   }
 }
