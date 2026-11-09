@@ -1,16 +1,9 @@
-.page {
+.viewer {
   display: grid;
   gap: var(--space-3);
-  max-width: 56rem;
-  margin: 0 auto;
 }
 
 .head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: end;
-  justify-content: space-between;
-  gap: var(--space-2) var(--space-4);
   padding-left: var(--space-3);
   border-left: 4px solid var(--store-color, var(--muted));
 
@@ -22,7 +15,7 @@
 
   h1 {
     margin: 0;
-    font-size: 1.3rem;
+    font-size: 1.2rem;
   }
 
   p {
@@ -42,24 +35,15 @@
   color: var(--muted);
 }
 
-.source {
-  font-size: 0.9rem;
-  color: var(--accent);
-}
-
 .pages {
   display: grid;
-  gap: var(--space-4);
+  gap: var(--space-3);
   margin: 0;
   padding: 0;
   list-style: none;
 
-  li {
-    display: grid;
-    gap: var(--space-1);
-  }
-
   img {
+    display: block;
     width: 100%;
     height: auto;
     border-radius: var(--radius);
@@ -68,17 +52,11 @@
   }
 }
 
-.zoom {
-  justify-self: end;
-  font-size: 0.8rem;
-  color: var(--muted);
-}
-
-.viewer {
+.frame {
   width: 100%;
-  // The page minus the app header, so the store's viewer fills the screen.
+  // Fills the popup (or the page) below the flyer's title.
   height: calc(100dvh - 9rem);
-  min-height: 28rem;
+  min-height: 24rem;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--surface);

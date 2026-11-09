@@ -10,6 +10,9 @@ import { connectDatabase, disconnectDatabase } from '../../src/db/connect.js';
 import { OfferModel } from '../../src/db/models.js';
 import { finalizeOffer, type ScrapedOffer } from '../../src/domain/offer.js';
 import type { StoreId } from '../../src/domain/stores.js';
+import type { Flyer } from '../../src/domain/flyer.js';
+import { EUROSPIN_FLYER } from '../../src/flyers/parse-flyers.js';
+import { FlyerModel, MongoFlyerRepository } from '../../src/repositories/flyer-repository.js';
 import { MongoOfferRepository } from '../../src/repositories/mongo-offer-repository.js';
 import type { OfferQuery } from '../../src/repositories/offer-repository.js';
 import {
@@ -365,5 +368,40 @@ describe('MongoPriceHistoryRepository', () => {
       { price: 2, from: day(1), to: day(1) },
     ]);
     expect(await history.find('spar', 'next-week')).toEqual([]);
+  });
+});
+
+describe('MongoFlyerRepository', () => {
+  const flyers = new MongoFlyerRepository();
+  const lidl: Flyer = {
+    id: 'lidl-lidlov-katalog-2026-kw45',
+    store: 'lidl',
+    title: 'Lidlov katalog od 5. 11.',
+    validFrom: new Date('2026-11-04T23:00:00Z'),
+    validTo: new Date('2026-11-11T22:59:59Z'),
+    sourceUrl: 'https://www.lidl.si/l/sl/katalog/lidlov-katalog-2026-kw45',
+    viewer: 'pages',
+    pages: [
+      { image: 'https://imgproxy.leaflets.schwarz/p1.jpg', width: 1416, height: 2400 },
+      { image: 'https://imgproxy.leaflets.schwarz/p2.jpg' },
+    ],
+  };
+
+  beforeEach(async () => {
+    await FlyerModel.deleteMany({});
+  });
+
+  it('replaces a store’s flyers and lists them without pages', async () => {
+    await flyers.replaceStore('lidl', [{ ...lidl, id: 'lidl-old' }, lidl]);
+    await flyers.replaceStore('eurospin', [EUROSPIN_FLYER]);
+    await flyers.replaceStore('lidl', [lidl]);
+
+    const list = await flyers.list();
+    expect(list.map((f) => f.id).sort()).toEqual(['eurospin-letak', lidl.id]);
+    const { pages: _pages, ...summary } = lidl;
+    expect(list.find((f) => f.id === lidl.id)).toEqual({ ...summary, pageCount: 2 });
+    expect(list.find((f) => f.id === 'eurospin-letak')).toEqual(EUROSPIN_FLYER);
+    expect(await flyers.findById(lidl.id)).toEqual(lidl);
+    expect(await flyers.findById('nope')).toBeUndefined();
   });
 });

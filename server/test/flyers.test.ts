@@ -67,6 +67,74 @@ describe('flyer routes', () => {
     expect((await get('/api/flyers', {})).statusCode).toBe(401);
   });
 
+  describe('GET /api/flyers/:id/pdf', () => {
+    const tus: Flyer = {
+      id: 'tus-571',
+      store: 'tus',
+      title: 'Akcijski katalog',
+      sourceUrl: 'https://www.tus.si/katalogi/?uid=571',
+      viewer: 'pdf',
+      url: 'https://www.tus.si/app/uploads/catalogues/a45.pdf',
+    };
+
+    it('passes the PDF through with its range', async () => {
+      t.flyers.flyers.push(tus);
+      const requests: { url: string; headers: Headers }[] = [];
+      t.fetchFlyerFile = async (input, init) => {
+        requests.push({
+          url: input instanceof Request ? input.url : input.toString(),
+          headers: new Headers(init?.headers),
+        });
+        return new Response('%PDF-1.7', {
+          status: 206,
+          headers: {
+            'content-type': 'application/pdf',
+            'content-length': '8',
+            'content-range': 'bytes 0-7/46645074',
+            'accept-ranges': 'bytes',
+            'set-cookie': 'tracking=1',
+          },
+        });
+      };
+
+      const response = await get('/api/flyers/tus-571/pdf', { cookie, range: 'bytes=0-7' });
+
+      expect(response.statusCode).toBe(206);
+      expect(response.body).toBe('%PDF-1.7');
+      expect(response.headers).toMatchObject({
+        'content-type': 'application/pdf',
+        'content-range': 'bytes 0-7/46645074',
+        'accept-ranges': 'bytes',
+      });
+      expect(response.headers['set-cookie']).toBeUndefined();
+      expect(requests).toHaveLength(1);
+      expect(requests[0]!.url).toBe(tus.url);
+      expect(requests[0]!.headers.get('range')).toBe('bytes=0-7');
+      expect(requests[0]!.headers.get('user-agent')).toMatch(/reklame-popusti/);
+    });
+
+    it('only serves stored PDF flyers on allowed hosts', async () => {
+      t.flyers.flyers.push({ ...tus, id: 'tus-evil', url: 'https://evil.example/a.pdf' });
+      let fetched = false;
+      t.fetchFlyerFile = async () => {
+        fetched = true;
+        return new Response('');
+      };
+
+      expect((await get('/api/flyers/tus-evil/pdf')).statusCode).toBe(404);
+      expect((await get('/api/flyers/hofer-letaki/pdf')).statusCode).toBe(404);
+      expect((await get('/api/flyers/nope/pdf')).statusCode).toBe(404);
+      expect(fetched).toBe(false);
+    });
+
+    it('reports a failing store as a bad gateway', async () => {
+      t.flyers.flyers.push(tus);
+      t.fetchFlyerFile = async () => new Response('gone', { status: 404 });
+
+      expect((await get('/api/flyers/tus-571/pdf')).statusCode).toBe(502);
+    });
+  });
+
   it('lets the app frame only the stores’ flyer viewers', async () => {
     const response = await get('/api/flyers');
 

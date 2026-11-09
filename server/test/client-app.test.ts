@@ -14,6 +14,10 @@ describe('serving the web app', () => {
     writeFileSync(join(root, 'main-7MAUWQK5.js'), 'console.log(1)');
     writeFileSync(join(root, 'ngsw.json'), '{}');
     writeFileSync(join(root, 'ngsw-worker.js'), '// worker');
+    mkdirSync(join(root, 'pdfjs', 'build'), { recursive: true });
+    writeFileSync(join(root, 'pdfjs', 'build', 'pdf.worker.min.mjs'), 'export {};');
+    mkdirSync(join(root, 'pdfjs', 'wasm'));
+    writeFileSync(join(root, 'pdfjs', 'wasm', 'jbig2.wasm'), '');
     mkdirSync(join(root, 'i18n'));
     writeFileSync(join(root, 'i18n', 'sl.json'), '{}');
     t = await buildTestApp(undefined, root);
@@ -34,6 +38,15 @@ describe('serving the web app', () => {
     expect(response.headers['content-type']).toContain('text/html');
     expect(response.body).toContain('<title>Popusti</title>');
     expect(response.headers['cache-control']).toBe('no-cache');
+  });
+
+  it('serves pdf.js’s worker as JavaScript and its decoders as WebAssembly', async () => {
+    const worker = await get('/pdfjs/build/pdf.worker.min.mjs');
+    const wasm = await get('/pdfjs/wasm/jbig2.wasm');
+
+    expect(worker.statusCode).toBe(200);
+    expect(worker.headers['content-type']).toMatch(/javascript/);
+    expect(wasm.headers['content-type']).toContain('application/wasm');
   });
 
   it('serves index.html for Angular routes', async () => {

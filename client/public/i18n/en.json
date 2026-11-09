@@ -223,8 +223,8 @@
     "notFound": "This flyer is no longer available.",
     "error": "The flyer could not be loaded.",
     "back": "Back to the start page",
-    "openOnSite": "Open on the store website",
     "page": "Page {{ n }} of {{ count }}",
-    "zoom": "zoom"
+    "close": "Close the flyer",
+    "notInApp": "This flyer cannot be shown in the app."
   }
 }

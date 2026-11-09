@@ -223,8 +223,8 @@
     "notFound": "Tega letaka ni več.",
     "error": "Letaka ni bilo mogoče naložiti.",
     "back": "Nazaj na začetno stran",
-    "openOnSite": "Odpri na strani trgovine",
     "page": "Stran {{ n }} od {{ count }}",
-    "zoom": "povečaj"
+    "close": "Zapri letak",
+    "notInApp": "Tega letaka ni mogoče prikazati v aplikaciji."
   }
 }

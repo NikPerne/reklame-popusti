@@ -29,6 +29,8 @@ export interface AppDependencies {
   repository: OfferRepository;
   history: PriceHistoryRepository;
   flyers: FlyerRepository;
+  /** Fetches flyer PDFs for GET /api/flyers/:id/pdf; tests pass a fake. */
+  fetchFlyerFile?: typeof globalThis.fetch;
   users: UserRepository;
   shoppingList: ShoppingListRepository;
   settings: SettingsRepository;
@@ -41,7 +43,8 @@ export interface AppDependencies {
 /** CSP for the Angular app: no inline scripts; inline styles are needed for component styles. */
 const CONTENT_SECURITY_POLICY = {
   defaultSrc: ["'self'"],
-  scriptSrc: ["'self'"],
+  // pdf.js decodes some image formats in flyer PDFs with WebAssembly (no JavaScript eval).
+  scriptSrc: ["'self'", "'wasm-unsafe-eval'"],
   styleSrc: ["'self'", "'unsafe-inline'"],
   // Product images are hotlinked from the stores' websites.
   imgSrc: ["'self'", 'data:', 'https:'],
@@ -62,6 +65,7 @@ export async function buildApp({
   repository,
   history,
   flyers,
+  fetchFlyerFile,
   users,
   shoppingList,
   settings,
@@ -118,7 +122,11 @@ export async function buildApp({
   await app.register(offerRoutes, { repository });
   await app.register(compareRoutes, { repository });
   await app.register(historyRoutes, { repository, history });
-  await app.register(flyerRoutes, { flyers });
+  await app.register(flyerRoutes, {
+    flyers,
+    userAgent: env.SCRAPER_USER_AGENT,
+    ...(fetchFlyerFile && { fetch: fetchFlyerFile }),
+  });
   await app.register(shoppingListRoutes, { shoppingList, sharedLists: env.SHARED_LISTS });
   await app.register(settingsRoutes, { settings });
   await app.register(adminRoutes, {

@@ -1,7 +1,6 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
 import type { FlyerSummary } from '../../core/api/models';
 import { translocoTesting } from '../../../testing/transloco-testing';
 import { FlyerLinks } from './flyer-links';
@@ -57,10 +56,17 @@ const flyers: FlyerSummary[] = [
 describe('FlyerLinks', () => {
   let http: HttpTestingController;
 
+  // jsdom has no modal dialogs.
+  beforeAll(() => {
+    HTMLDialogElement.prototype.showModal ??= function (this: HTMLDialogElement) {
+      this.open = true;
+    };
+  });
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [FlyerLinks, translocoTesting()],
-      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
+      providers: [provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
     http = TestBed.inject(HttpTestingController);
   });
@@ -98,10 +104,10 @@ describe('FlyerLinks', () => {
     chip('Lidl').click();
     await fixture.whenStable();
 
-    const covers = [...element.querySelectorAll<HTMLAnchorElement>('.covers a')];
-    expect(covers.map((a) => a.getAttribute('href'))).toEqual([
-      '/letak/lidl-lidlov-katalog-2026-kw45',
-      '/letak/lidl-lidlov-katalog-2026-kw46',
+    const covers = [...element.querySelectorAll<HTMLButtonElement>('.covers button.cover')];
+    expect(covers.map((c) => c.querySelector('.title')?.textContent)).toEqual([
+      'Lidlov katalog od 5. 11.',
+      'Lidlov katalog od 12. 11.',
     ]);
     expect(covers[0]!.querySelector('.meta')?.textContent?.trim()).toBe('5. 11. – 11. 11.');
     expect(chip('Lidl').getAttribute('aria-expanded')).toBe('true');
@@ -111,20 +117,27 @@ describe('FlyerLinks', () => {
     expect(element.querySelector('.covers')).toBeNull();
   });
 
-  it('opens PDFs in a new tab and links a store with one outside flyer directly', async () => {
+  it('opens a flyer in a popup instead of leaving the app, PDFs too', async () => {
     const { fixture, element, chip } = await render(flyers);
+
+    chip('Tuš').click();
+    await fixture.whenStable();
+    expect(element.querySelector('.covers a')).toBeNull();
+    element.querySelector<HTMLButtonElement>('.covers button.cover')!.click();
+    await fixture.whenStable();
+
+    const dialog = element.querySelector('app-flyer-dialog');
+    expect(dialog).not.toBeNull();
+    http.expectOne('/api/flyers/tus-569');
+  });
+
+  it('links Hofer to its website, the one store that cannot be shown in the app', async () => {
+    const { chip } = await render(flyers);
 
     expect(chip('Hofer').getAttribute('href')).toBe(
       'https://www.hofer.si/aktualni-letaki-in-brosure',
     );
-
-    chip('Tuš').click();
-    await fixture.whenStable();
-    const pdf = element.querySelector<HTMLAnchorElement>('.covers a')!;
-    expect(pdf.getAttribute('href')).toBe('https://www.tus.si/app/uploads/catalogues/a44.pdf');
-    expect(pdf.target).toBe('_blank');
-    expect(pdf.querySelector('.meta')?.textContent).toContain('do 10. 11.');
-    expect(pdf.querySelector('.meta')?.textContent).toContain('PDF');
+    expect(chip('Hofer').getAttribute('target')).toBe('_blank');
   });
 
   it('falls back to the stores’ flyer pages when the app has no flyers', async () => {

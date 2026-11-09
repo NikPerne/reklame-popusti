@@ -35,11 +35,11 @@
       @for (flyer of s.flyers; track flyer.id) {
         <li>
           @if (opensInApp(flyer)) {
-            <a class="cover" [routerLink]="['/letak', flyer.id]">
+            <button type="button" class="cover" (click)="openFlyer.set(flyer.id)">
               <ng-container
                 *ngTemplateOutlet="cover; context: { $implicit: flyer, external: false }"
               />
-            </a>
+            </button>
           } @else {
             <a
               class="cover"
@@ -72,12 +72,13 @@
       } @else if (flyer.validFrom) {
         {{ t('from', { date: flyer.validFrom | shortDate: lang() }) }}
       }
-      @if (flyer.viewer === 'pdf') {
-        · PDF
-      }
       @if (external) {
         <span aria-hidden="true">↗</span>
       }
     </span>
   </ng-template>
 </section>
+
+@if (openFlyer(); as id) {
+  <app-flyer-dialog [id]="id" (closed)="openFlyer.set(null)" />
+}

@@ -74,6 +74,13 @@
 .cover {
   display: grid;
   gap: 0.125rem;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
   color: var(--text);
   text-decoration: none;
 

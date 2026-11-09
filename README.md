@@ -14,7 +14,7 @@ Search for a product such as `kava` or `pralni prašek` and see every current of
 - **Product page** (`/izdelek/:id`, tap a product's name): the offer, plus the same kind of product in all stores, compared per unit like the price comparison, and its **price history**: a chart of the store's price over time (sale prices in red), the lowest and highest price and when it was last cheaper. The type comes from the matching quick pick, otherwise it is guessed from the name (the type word most common among products of that category, e.g. "maslo" from "Slovensko surovo maslo").
 - **Same product across stores**: offers sharing a barcode (Mercator, Spar, Tuš) are shown as one result, cheapest first, with "Tudi: Spar 1,99 € · Tuš 2,09 €".
 - **Shopping list**: a **+** on every offer; the list is grouped by store with subtotals, items are crossed off in the shop, and it syncs between devices (works offline).
-- **Flyers** (top of the start page): a chip per store opens its current flyers. Lidl's pages and the Spar, Mercator and Eurospin viewers are shown in the app (`/letak/:id`); Tuš flyers open as PDFs and Hofer on its website (letaki.hofer.si blocks the app and hofer.si forbids framing).
+- **Flyers** (top of the start page): a chip per store shows its current flyers, and a flyer opens in a popup in the app: Lidl's pages, the Spar, Mercator and Eurospin viewers, and Tuš's PDFs (drawn with pdf.js, loaded in ranges through the server). Only Hofer opens on its website (letaki.hofer.si blocks the app and hofer.si forbids framing). `/letak/:id` shows one flyer on its own page.
 - **Start page**: "Novo ta teden" and "Kmalu poteče" rows; next week's offers on request.
 - **Settings**: preferred stores (the default filter) and hidden categories, synced between devices.
 - **Barcode scanner** (📷 in the header): scan a product in the shop to see its price in all stores, offers and everyday prices.
@@ -140,6 +140,7 @@ All responses are JSON. Offer lists return `{ items, total, page, pageSize }`; o
 | `GET /api/offers/:id/history`           | session              | The offer's price over time in its store (`points`, `summary`)                 |
 | `GET /api/flyers`                       | session              | Current flyers of every store (without pages)                                  |
 | `GET /api/flyers/:id`                   | session              | One flyer, with its page images for the in-app viewer                          |
+| `GET /api/flyers/:id/pdf`               | session              | A PDF flyer (Tuš), passed through from the store with `Range` support          |
 | `GET /api/stores`                       | session              | All stores, with the result of their last refresh                              |
 | `GET /api/categories`                   | session              | Categories that have offers, with counts                                       |
 | `GET /api/shopping-list`                | session              | The account's (or shared) list: `{ items, sharedWith }`                        |

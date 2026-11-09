@@ -20,6 +20,17 @@ const httpsUrl = z.url({ protocol: /^https$/ });
 const onHosts = (hosts: readonly string[]) =>
   httpsUrl.refine((url) => hosts.includes(new URL(url).hostname), 'host not allowed');
 
+/** Whether a PDF or page image may be read from this address (also checked before proxying). */
+export function isFlyerFileUrl(url: string | undefined): url is string {
+  if (!url) return false;
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'https:' && FILE_HOSTS.includes(parsed.hostname);
+  } catch {
+    return false;
+  }
+}
+
 export const flyerPageSchema = z.object({
   image: onHosts(FILE_HOSTS),
   /** A larger version for zooming in. */

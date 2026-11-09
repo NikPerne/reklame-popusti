@@ -3,9 +3,12 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
+    "prestart": "node scripts/copy-pdfjs.mjs",
     "start": "ng serve",
+    "prebuild": "node scripts/copy-pdfjs.mjs",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
+    "pretest": "node scripts/copy-pdfjs.mjs",
     "test": "ng test --watch=false",
     "test:watch": "ng test",
     "lint": "ng lint"
@@ -22,6 +25,7 @@
     "@jsverse/transloco": "^8.4.0",
     "@zxing/browser": "^0.2.1",
     "@zxing/library": "^0.23.0",
+    "pdfjs-dist": "6.5.438",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },

@@ -247,6 +247,8 @@ export interface TestApp {
   repository: FakeOfferRepository;
   history: FakePriceHistoryRepository;
   flyers: FakeFlyerRepository;
+  /** Answers the flyer PDF requests; replace it in a test. */
+  fetchFlyerFile: typeof globalThis.fetch;
   users: FakeUserRepository;
   shoppingList: FakeShoppingListRepository;
   settings: FakeSettingsRepository;
@@ -271,6 +273,7 @@ export async function buildTestApp(env?: Env, clientRoot?: string): Promise<Test
     repository,
     history,
     flyers,
+    fetchFlyerFile: () => Promise.reject(new Error('no network in tests')),
     users,
     shoppingList,
     settings,
@@ -281,6 +284,7 @@ export async function buildTestApp(env?: Env, clientRoot?: string): Promise<Test
     repository,
     history,
     flyers,
+    fetchFlyerFile: (input, init) => result.fetchFlyerFile(input, init),
     users,
     shoppingList,
     settings,

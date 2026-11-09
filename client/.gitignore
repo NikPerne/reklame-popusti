@@ -42,3 +42,6 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
+
+# pdf.js files, copied from pdfjs-dist by scripts/copy-pdfjs.mjs
+/public/pdfjs

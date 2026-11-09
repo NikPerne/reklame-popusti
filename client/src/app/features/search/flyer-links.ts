@@ -1,13 +1,13 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { RouterLink } from '@angular/router';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { catchError, of } from 'rxjs';
 import type { FlyerSummary, StoreId } from '../../core/api/models';
 import { OffersApi } from '../../core/api/offers-api';
 import type { Language } from '../../core/i18n/language';
 import { ShortDatePipe } from '../../shared/format';
+import { FlyerDialog } from '../flyer/flyer-dialog';
 import { STORE_NAMES } from './offer-card';
 
 /**
@@ -23,17 +23,17 @@ export const FLYER_URLS: Partial<Record<StoreId, string>> = {
   eurospin: 'https://www.eurospin.si/letak/',
 };
 
-/** Flyers shown in the app open on /letak/:id; PDFs and links open in a new tab. */
-export const opensInApp = (flyer: FlyerSummary) =>
-  flyer.viewer === 'pages' || flyer.viewer === 'embed';
+/** Everything but Hofer's link opens in a popup in the app. */
+export const opensInApp = (flyer: FlyerSummary) => flyer.viewer !== 'link';
 
 /**
  * The start page's top row: a chip per store; tapping one shows that store's current flyers
- * as covers. A store with a single flyer that can't be shown in the app links straight to it.
+ * as covers, and a cover opens the flyer in a popup. Hofer, whose flyers can't be shown in the
+ * app, links to its website.
  */
 @Component({
   selector: 'app-flyer-links',
-  imports: [TranslocoDirective, RouterLink, NgTemplateOutlet, ShortDatePipe],
+  imports: [TranslocoDirective, NgTemplateOutlet, ShortDatePipe, FlyerDialog],
   templateUrl: './flyer-links.html',
   styleUrl: './flyer-links.scss',
 })
@@ -67,6 +67,8 @@ export class FlyerLinks {
   );
 
   protected readonly opensInApp = opensInApp;
+  /** The flyer shown in the popup. */
+  protected readonly openFlyer = signal<string | null>(null);
 
   protected toggle(store: StoreId): void {
     this.selected.update((current) => (current === store ? null : store));
