@@ -1,0 +1,90 @@
+.page {
+  display: grid;
+  gap: var(--space-3);
+  max-width: 56rem;
+  margin: 0 auto;
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+  padding-left: var(--space-3);
+  border-left: 4px solid var(--store-color, var(--muted));
+
+  @each $store in mercator, lidl, hofer, spar, eurospin, tus {
+    &[data-store='#{$store}'] {
+      --store-color: var(--store-#{$store});
+    }
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 1.3rem;
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+.store {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--store-color, var(--muted));
+}
+
+.dates {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.source {
+  font-size: 0.9rem;
+  color: var(--accent);
+}
+
+.pages {
+  display: grid;
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  img {
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius);
+    background: var(--surface-muted);
+    box-shadow: var(--shadow);
+  }
+}
+
+.zoom {
+  justify-self: end;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.viewer {
+  width: 100%;
+  // The page minus the app header, so the store's viewer fills the screen.
+  height: calc(100dvh - 9rem);
+  min-height: 28rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.hint {
+  margin: 0;
+  color: var(--muted);
+}

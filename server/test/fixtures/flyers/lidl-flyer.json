@@ -1,0 +1,41 @@
+{
+  "success": true,
+  "flyer": {
+    "id": "01a187fd-7d57-7ac8-baa0-6f40fdb9a787",
+    "name": "Lidlov katalog",
+    "title": "od 5. 11.",
+    "status": "current",
+    "thumbnailUrl": "https://imgproxy.leaflets.schwarz/HjEx5mg2IplBq0UO4hX7xWd--CjSybLNpDaFuG9fECU/rs:fit:400:400:1/g:no/czM6Ly9sZWFmbGV0cy9pbWFnZXMvMDFhMTg3ZmQtN2Q1Ny03YWM4LWJhYTAtNmY0MGZkYjlhNzg3L3BhZ2UtMDFfNDY2MGQyOTA4ODliYThhZWE5MzVlYjQxZTZhNGY2ODEucG5n.jpg",
+    "flyerUrlAbsolute": "https://www.lidl.si/l/sl/katalog/lidlov-katalog-2026-kw45/ar/0?lf=HHZ",
+    "startDate": "2026-11-02",
+    "endDate": "2026-11-11",
+    "offerStartDate": "2026-11-05",
+    "offerEndDate": "2026-11-11",
+    "pages": [
+      {
+        "number": 1,
+        "width": 1416,
+        "height": 2400,
+        "image": "https://imgproxy.leaflets.schwarz/7EqPZNn-aw0xV-0cuGLIM3cjFTW57RwlYM86GEA0F6E/rs:fit:1200:1200:1/g:no/czM6Ly9sZWFmbGV0cy9pbWFnZXMvMDFhMTg3ZmQtN2Q1Ny03YWM4LWJhYTAtNmY0MGZkYjlhNzg3L3BhZ2UtMDFfNDY2MGQyOTA4ODliYThhZWE5MzVlYjQxZTZhNGY2ODEucG5n.jpg",
+        "zoom": "https://imgproxy.leaflets.schwarz/hFQr7QGDEXAVqac1U8TlVsb7K3T97v93_uY8DJk8FZs/rs:fit:2400:2400:1/g:no/czM6Ly9sZWFmbGV0cy9pbWFnZXMvMDFhMTg3ZmQtN2Q1Ny03YWM4LWJhYTAtNmY0MGZkYjlhNzg3L3BhZ2UtMDFfNDY2MGQyOTA4ODliYThhZWE5MzVlYjQxZTZhNGY2ODEucG5n.jpg",
+        "thumbnail": "https://imgproxy.leaflets.schwarz/HjEx5mg2IplBq0UO4hX7xWd--CjSybLNpDaFuG9fECU/rs:fit:400:400:1/g:no/czM6Ly9sZWFmbGV0cy9pbWFnZXMvMDFhMTg3ZmQtN2Q1Ny03YWM4LWJhYTAtNmY0MGZkYjlhNzg3L3BhZ2UtMDFfNDY2MGQyOTA4ODliYThhZWE5MzVlYjQxZTZhNGY2ODEucG5n.jpg"
+      },
+      {
+        "number": 2,
+        "width": 1416,
+        "height": 2400,
+        "image": "https://imgproxy.leaflets.schwarz/PQaM4lz-UtEhoSJcvNhno6XbqdzQamoiU-vP2Mglwqw/rs:fit:1200:1200:1/g:no/czM6Ly9sZWFmbGV0cy9pbWFnZXMvMDFhMTg3ZmQtN2Q1Ny03YWM4LWJhYTAtNmY0MGZkYjlhNzg3L3BhZ2UtMDJfODIyZjFmMWI3NWQyYjI3MmJjZTAzOTU3YWM3OTExNDQucG5n.jpg",
+        "zoom": "https://imgproxy.leaflets.schwarz/EfiRQ_-5LZW5pRzL4JTe1pbY1l-heDj4KnWp7PyC1TQ/rs:fit:2400:2400:1/g:no/czM6Ly9sZWFmbGV0cy9pbWFnZXMvMDFhMTg3ZmQtN2Q1Ny03YWM4LWJhYTAtNmY0MGZkYjlhNzg3L3BhZ2UtMDJfODIyZjFmMWI3NWQyYjI3MmJjZTAzOTU3YWM3OTExNDQucG5n.jpg",
+        "thumbnail": "https://imgproxy.leaflets.schwarz/pwgwIu-E--_LXMJxEvjNzWjHhRdR_fElbfBljcw_n9o/rs:fit:400:400:1/g:no/czM6Ly9sZWFmbGV0cy9pbWFnZXMvMDFhMTg3ZmQtN2Q1Ny03YWM4LWJhYTAtNmY0MGZkYjlhNzg3L3BhZ2UtMDJfODIyZjFmMWI3NWQyYjI3MmJjZTAzOTU3YWM3OTExNDQucG5n.jpg"
+      },
+      {
+        "number": 3,
+        "width": 1416,
+        "height": 2400,
+        "image": "https://imgproxy.leaflets.schwarz/LBtAEG87OqvPn-bNW7eA4nW2j4o2FWICgQUFFHGbRmc/rs:fit:1200:1200:1/g:no/czM6Ly9sZWFmbGV0cy9pbWFnZXMvMDFhMTg3ZmQtN2Q1Ny03YWM4LWJhYTAtNmY0MGZkYjlhNzg3L3BhZ2UtMDNfNTdhNTMzZTgwOGY3MjNjNWQ4ZjViYWU4MGI2Zjc2OTgucG5n.jpg",
+        "zoom": "https://imgproxy.leaflets.schwarz/HMxk4hsYb70FNbJwqRXgpvBMGfbmXiyZhycoSmunyvk/rs:fit:2400:2400:1/g:no/czM6Ly9sZWFmbGV0cy9pbWFnZXMvMDFhMTg3ZmQtN2Q1Ny03YWM4LWJhYTAtNmY0MGZkYjlhNzg3L3BhZ2UtMDNfNTdhNTMzZTgwOGY3MjNjNWQ4ZjViYWU4MGI2Zjc2OTgucG5n.jpg",
+        "thumbnail": "https://imgproxy.leaflets.schwarz/islHsGDML93EqWf9X0MpGT47jY2KpE64IffeBOEXB2A/rs:fit:400:400:1/g:no/czM6Ly9sZWFmbGV0cy9pbWFnZXMvMDFhMTg3ZmQtN2Q1Ny03YWM4LWJhYTAtNmY0MGZkYjlhNzg3L3BhZ2UtMDNfNTdhNTMzZTgwOGY3MjNjNWQ4ZjViYWU4MGI2Zjc2OTgucG5n.jpg"
+      }
+    ]
+  }
+}

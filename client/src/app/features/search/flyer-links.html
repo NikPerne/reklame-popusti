@@ -1,19 +1,83 @@
 <section class="flyers" *transloco="let t; prefix: 'flyers'">
   <h2>{{ t('title') }}</h2>
-  <ul>
-    @for (flyer of flyers; track flyer.store) {
+  <ul class="stores">
+    @for (s of stores(); track s.store) {
       <li>
-        <a
-          [href]="flyer.url"
-          [attr.data-store]="flyer.store"
-          target="_blank"
-          rel="noopener noreferrer"
-          [attr.aria-label]="t('open', { store: flyer.name })"
-        >
-          <span class="name">{{ flyer.name }}</span>
-          <span class="label">{{ t('label') }} <span aria-hidden="true">↗</span></span>
-        </a>
+        @if (s.externalUrl) {
+          <a
+            class="chip"
+            [href]="s.externalUrl"
+            [attr.data-store]="s.store"
+            target="_blank"
+            rel="noopener noreferrer"
+            [attr.aria-label]="t('open', { store: s.name })"
+          >
+            {{ s.name }} <span aria-hidden="true">↗</span>
+          </a>
+        } @else {
+          <button
+            type="button"
+            class="chip"
+            [attr.data-store]="s.store"
+            [class.active]="selected() === s.store"
+            [attr.aria-expanded]="selected() === s.store"
+            (click)="toggle(s.store)"
+          >
+            {{ s.name }} <span class="count">{{ s.flyers.length }}</span>
+          </button>
+        }
       </li>
     }
   </ul>
+
+  @if (selectedStore(); as s) {
+    <ul class="covers" [attr.aria-label]="t('storeFlyers', { store: s.name })">
+      @for (flyer of s.flyers; track flyer.id) {
+        <li>
+          @if (opensInApp(flyer)) {
+            <a class="cover" [routerLink]="['/letak', flyer.id]">
+              <ng-container
+                *ngTemplateOutlet="cover; context: { $implicit: flyer, external: false }"
+              />
+            </a>
+          } @else {
+            <a
+              class="cover"
+              [href]="flyer.url ?? flyer.sourceUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <ng-container
+                *ngTemplateOutlet="cover; context: { $implicit: flyer, external: true }"
+              />
+            </a>
+          }
+        </li>
+      }
+    </ul>
+  }
+
+  <ng-template #cover let-flyer let-external="external">
+    <span class="image" [attr.data-store]="flyer.store">
+      @if (flyer.coverUrl) {
+        <img [src]="flyer.coverUrl" alt="" loading="lazy" referrerpolicy="no-referrer" />
+      }
+    </span>
+    <span class="title">{{ flyer.title }}</span>
+    <span class="meta">
+      @if (flyer.validFrom && flyer.validTo) {
+        {{ flyer.validFrom | shortDate: lang() }} – {{ flyer.validTo | shortDate: lang() }}
+      } @else if (flyer.validTo) {
+        {{ t('until', { date: flyer.validTo | shortDate: lang() }) }}
+      } @else if (flyer.validFrom) {
+        {{ t('from', { date: flyer.validFrom | shortDate: lang() }) }}
+      }
+      @if (flyer.viewer === 'pdf') {
+        · PDF
+      }
+      @if (external) {
+        <span aria-hidden="true">↗</span>
+      }
+    </span>
+  </ng-template>
 </section>

@@ -1,0 +1,73 @@
+<section class="page" *transloco="let t; prefix: 'flyers'">
+  @switch (status()) {
+    @case ('loading') {
+      <p class="hint" role="status">{{ t('loading') }}</p>
+    }
+    @case ('not-found') {
+      <p class="hint">{{ t('notFound') }}</p>
+      <a routerLink="/">{{ t('back') }}</a>
+    }
+    @case ('error') {
+      <p class="hint" role="alert">{{ t('error') }}</p>
+    }
+    @case ('ok') {
+      @if (flyer(); as flyer) {
+        <header class="head" [attr.data-store]="flyer.store">
+          <div>
+            <p class="store">{{ storeNames[flyer.store] }}</p>
+            <h1>{{ flyer.title }}</h1>
+            @if (flyer.validFrom && flyer.validTo) {
+              <p class="dates">
+                {{ flyer.validFrom | shortDate: lang() }} – {{ flyer.validTo | shortDate: lang() }}
+              </p>
+            }
+          </div>
+          <a class="source" [href]="flyer.sourceUrl" target="_blank" rel="noopener noreferrer">
+            {{ t('openOnSite') }} <span aria-hidden="true">↗</span>
+          </a>
+        </header>
+
+        @if (flyer.viewer === 'pages' && flyer.pages?.length) {
+          <ol class="pages">
+            @for (page of flyer.pages; track $index) {
+              <li>
+                <img
+                  [src]="page.image"
+                  [attr.width]="page.width ?? null"
+                  [attr.height]="page.height ?? null"
+                  [alt]="t('page', { n: $index + 1, count: flyer.pages!.length })"
+                  [attr.loading]="$index < 2 ? 'eager' : 'lazy'"
+                  decoding="async"
+                  referrerpolicy="no-referrer"
+                />
+                <a
+                  class="zoom"
+                  [href]="page.zoom ?? page.image"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {{ t('page', { n: $index + 1, count: flyer.pages!.length }) }} · {{ t('zoom') }}
+                </a>
+              </li>
+            }
+          </ol>
+        } @else if (frameUrl(); as url) {
+          <iframe
+            class="viewer"
+            [src]="url"
+            [title]="flyer.title"
+            allow="fullscreen"
+            allowfullscreen
+            referrerpolicy="no-referrer"
+          ></iframe>
+        } @else {
+          <p class="hint">
+            <a [href]="flyer.sourceUrl" target="_blank" rel="noopener noreferrer">
+              {{ t('openOnSite') }} ↗
+            </a>
+          </p>
+        }
+      }
+    }
+  }
+</section>

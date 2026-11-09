@@ -7,6 +7,8 @@ import { RefreshTrigger, type RefreshSummary } from './jobs/refresh-runner.js';
 import type { Logger } from './lib/logger.js';
 import { authPlugin } from './plugins/auth.js';
 import { clientAppPlugin } from './plugins/client-app.js';
+import { EMBED_HOSTS } from './domain/flyer.js';
+import type { FlyerRepository } from './repositories/flyer-repository.js';
 import type { OfferRepository } from './repositories/offer-repository.js';
 import type { PriceHistoryRepository } from './repositories/price-history-repository.js';
 import type { SettingsRepository } from './repositories/settings-repository.js';
@@ -15,6 +17,7 @@ import type { UserRepository } from './repositories/user-repository.js';
 import { adminRoutes } from './routes/admin.js';
 import { authRoutes } from './routes/auth.js';
 import { compareRoutes } from './routes/compare.js';
+import { flyerRoutes } from './routes/flyers.js';
 import { healthRoutes } from './routes/health.js';
 import { historyRoutes } from './routes/history.js';
 import { offerRoutes } from './routes/offers.js';
@@ -25,6 +28,7 @@ export interface AppDependencies {
   env: Env;
   repository: OfferRepository;
   history: PriceHistoryRepository;
+  flyers: FlyerRepository;
   users: UserRepository;
   shoppingList: ShoppingListRepository;
   settings: SettingsRepository;
@@ -42,6 +46,8 @@ const CONTENT_SECURITY_POLICY = {
   // Product images are hotlinked from the stores' websites.
   imgSrc: ["'self'", 'data:', 'https:'],
   connectSrc: ["'self'"],
+  // Flyer viewers shown in the app (see EMBED_HOSTS in domain/flyer.ts).
+  frameSrc: EMBED_HOSTS.map((host) => `https://${host}`),
   fontSrc: ["'self'"],
   manifestSrc: ["'self'"],
   workerSrc: ["'self'"],
@@ -55,6 +61,7 @@ export async function buildApp({
   env,
   repository,
   history,
+  flyers,
   users,
   shoppingList,
   settings,
@@ -111,6 +118,7 @@ export async function buildApp({
   await app.register(offerRoutes, { repository });
   await app.register(compareRoutes, { repository });
   await app.register(historyRoutes, { repository, history });
+  await app.register(flyerRoutes, { flyers });
   await app.register(shoppingListRoutes, { shoppingList, sharedLists: env.SHARED_LISTS });
   await app.register(settingsRoutes, { settings });
   await app.register(adminRoutes, {

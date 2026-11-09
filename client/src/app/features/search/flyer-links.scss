@@ -11,10 +11,10 @@
   }
 }
 
-ul {
+.stores,
+.covers {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: minmax(6.5rem, 1fr);
   gap: var(--space-2);
   margin: 0;
   padding: 0 0 var(--space-1);
@@ -23,33 +23,94 @@ ul {
   list-style: none;
 }
 
-a {
-  display: grid;
-  gap: 0.125rem;
-  min-height: 3.25rem;
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius);
-  background: var(--store-color, var(--muted));
-  color: #fff;
-  text-decoration: none;
+.stores {
+  grid-auto-columns: max-content;
+}
 
+.covers {
+  grid-auto-columns: 8.5rem;
+  scroll-snap-type: x proximity;
+
+  li {
+    scroll-snap-align: start;
+  }
+}
+
+[data-store] {
   @each $store in mercator, lidl, hofer, spar, eurospin, tus {
     &[data-store='#{$store}'] {
       --store-color: var(--store-#{$store});
     }
   }
+}
 
-  &:hover,
-  &:focus-visible {
-    filter: brightness(1.1);
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 2.5rem;
+  padding: 0 var(--space-3);
+  border: 2px solid var(--store-color, var(--muted));
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+
+  &.active {
+    background: var(--store-color, var(--muted));
+    color: #fff;
+  }
+
+  .count {
+    font-size: 0.75rem;
+    font-weight: 500;
+    opacity: 0.8;
   }
 }
 
-.name {
-  font-weight: 700;
-}
+.cover {
+  display: grid;
+  gap: 0.125rem;
+  color: var(--text);
+  text-decoration: none;
 
-.label {
-  font-size: 0.8rem;
-  opacity: 0.9;
+  .image {
+    display: block;
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    border-radius: var(--radius);
+    border-top: 4px solid var(--store-color, var(--muted));
+    background: var(--surface-muted);
+    box-shadow: var(--shadow);
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top;
+  }
+
+  .title {
+    display: -webkit-box;
+    overflow: hidden;
+    font-size: 0.85rem;
+    font-weight: 600;
+    line-height: 1.25;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .meta {
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  &:hover .title,
+  &:focus-visible .title {
+    text-decoration: underline;
+  }
 }

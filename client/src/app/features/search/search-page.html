@@ -1,6 +1,6 @@
 <ng-container *transloco="let t">
   @if (!params().q) {
-    <app-flyer-links />
+    <app-flyer-links [lang]="lang()" />
   }
 
   <form class="search-bar" role="search" (submit)="$event.preventDefault()">

@@ -35,6 +35,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/product/product-page').then((m) => m.ProductPage),
   },
   {
+    path: 'letak/:id',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/flyer/flyer-page').then((m) => m.FlyerPage),
+  },
+  {
     path: 'skeniraj',
     canActivate: [authGuard],
     loadComponent: () => import('./features/scanner/scanner-page').then((m) => m.ScannerPage),

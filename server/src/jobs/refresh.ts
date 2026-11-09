@@ -13,6 +13,9 @@ import {
   PriceHistoryModel,
 } from '../repositories/price-history-repository.js';
 import { createHttpClient } from '../scraping/create-http-client.js';
+import { flyerSources } from '../flyers/flyer-sources.js';
+import { FlyerModel, MongoFlyerRepository } from '../repositories/flyer-repository.js';
+import { refreshFlyers } from './flyer-refresh.js';
 import { runRefresh } from './refresh-runner.js';
 
 loadDotEnvFile();
@@ -26,19 +29,24 @@ try {
     OfferModel.syncIndexes(),
     StoreStatusModel.syncIndexes(),
     PriceHistoryModel.syncIndexes(),
+    FlyerModel.syncIndexes(),
   ]);
 
+  const http = createHttpClient(env);
   const summary = await runRefresh({
     adapters,
     // The search mode only affects reads, so the default is fine for the job.
     repository: new MongoOfferRepository('atlas'),
     history: new MongoPriceHistoryRepository(),
-    http: createHttpClient(env),
+    http,
     log,
     ...(env.REFRESH_ONLY_STALE_HOURS !== undefined && {
       onlyStaleAfterHours: env.REFRESH_ONLY_STALE_HOURS,
     }),
   });
+
+  // A cheap read of each store's flyer list; failures are logged but don't fail the run.
+  await refreshFlyers({ sources: flyerSources, repository: new MongoFlyerRepository(), http, log });
 
   const failed = summary.results.filter((r) => !r.ok);
   log.info(

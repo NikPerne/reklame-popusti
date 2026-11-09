@@ -9,6 +9,8 @@ import { DEFAULT_SETTINGS, type Settings } from '../src/domain/settings.js';
 import type { ShoppingItem } from '../src/domain/shopping-list.js';
 import type { User } from '../src/domain/account.js';
 import type { PricePoint } from '../src/domain/price-history.js';
+import type { Flyer } from '../src/domain/flyer.js';
+import type { FlyerRepository, FlyerSummary } from '../src/repositories/flyer-repository.js';
 import type { PriceHistoryRepository } from '../src/repositories/price-history-repository.js';
 import type { SettingsRepository } from '../src/repositories/settings-repository.js';
 import type { UserRepository } from '../src/repositories/user-repository.js';
@@ -221,10 +223,30 @@ export class FakePriceHistoryRepository implements PriceHistoryRepository {
   }
 }
 
+export class FakeFlyerRepository implements FlyerRepository {
+  flyers: Flyer[] = [];
+
+  async replaceStore(store: StoreId, flyers: readonly Flyer[]): Promise<void> {
+    this.flyers = [...this.flyers.filter((f) => f.store !== store), ...flyers];
+  }
+
+  async list(): Promise<FlyerSummary[]> {
+    return this.flyers.map(({ pages, ...rest }) => ({
+      ...rest,
+      ...(pages && { pageCount: pages.length }),
+    }));
+  }
+
+  async findById(id: string): Promise<Flyer | undefined> {
+    return this.flyers.find((f) => f.id === id);
+  }
+}
+
 export interface TestApp {
   app: FastifyInstance;
   repository: FakeOfferRepository;
   history: FakePriceHistoryRepository;
+  flyers: FakeFlyerRepository;
   users: FakeUserRepository;
   shoppingList: FakeShoppingListRepository;
   settings: FakeSettingsRepository;
@@ -234,6 +256,7 @@ export interface TestApp {
 export async function buildTestApp(env?: Env, clientRoot?: string): Promise<TestApp> {
   const repository = new FakeOfferRepository();
   const history = new FakePriceHistoryRepository();
+  const flyers = new FakeFlyerRepository();
   const users = new FakeUserRepository();
   // One account exists from the start; tests sign up others through the API.
   await users.create({
@@ -247,6 +270,7 @@ export async function buildTestApp(env?: Env, clientRoot?: string): Promise<Test
     app: undefined as unknown as FastifyInstance,
     repository,
     history,
+    flyers,
     users,
     shoppingList,
     settings,
@@ -256,6 +280,7 @@ export async function buildTestApp(env?: Env, clientRoot?: string): Promise<Test
     env: env ?? testEnv(),
     repository,
     history,
+    flyers,
     users,
     shoppingList,
     settings,

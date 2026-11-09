@@ -215,7 +215,16 @@
   },
   "flyers": {
     "title": "Aktualni letaki",
-    "label": "Letak",
-    "open": "{{ store }}: aktualni letaki (odpre se spletna stran trgovine)"
+    "open": "{{ store }}: aktualni letaki (odpre se spletna stran trgovine)",
+    "storeFlyers": "Letaki: {{ store }}",
+    "until": "do {{ date }}",
+    "from": "od {{ date }}",
+    "loading": "Nalagam letak …",
+    "notFound": "Tega letaka ni več.",
+    "error": "Letaka ni bilo mogoče naložiti.",
+    "back": "Nazaj na začetno stran",
+    "openOnSite": "Odpri na strani trgovine",
+    "page": "Stran {{ n }} od {{ count }}",
+    "zoom": "povečaj"
   }
 }

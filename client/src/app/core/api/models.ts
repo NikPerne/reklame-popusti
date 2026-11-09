@@ -168,3 +168,27 @@ export interface PriceHistory {
     lastLower?: { price: number; on: string };
   } | null;
 }
+
+/** How a flyer is shown: our page viewer, the store's viewer in a frame, a PDF or a link. */
+export type FlyerViewer = 'pages' | 'embed' | 'pdf' | 'link';
+
+/** GET /api/flyers: a store's current flyer, without its pages. */
+export interface FlyerSummary {
+  id: string;
+  store: StoreId;
+  title: string;
+  validFrom?: string;
+  validTo?: string;
+  coverUrl?: string;
+  /** The flyer on the store's website. */
+  sourceUrl: string;
+  viewer: FlyerViewer;
+  /** The frame (`embed`), the file (`pdf`) or the page (`link`). */
+  url?: string;
+  pageCount?: number;
+}
+
+/** GET /api/flyers/:id: one flyer, with its page images for the `pages` viewer. */
+export interface Flyer extends FlyerSummary {
+  pages?: { image: string; zoom?: string; width?: number; height?: number }[];
+}

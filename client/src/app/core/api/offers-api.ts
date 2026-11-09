@@ -5,6 +5,8 @@ import type {
   CategoryCount,
   ComparePreset,
   Comparison,
+  Flyer,
+  FlyerSummary,
   OfferPage,
   PriceHistory,
   RelatedOffers,
@@ -41,6 +43,15 @@ export class OffersApi {
 
   stores(): Observable<StoreInfo[]> {
     return this.http.get<StoreInfo[]>('/api/stores');
+  }
+
+  /** Every store's current flyers (the start page's top row). */
+  flyers(): Observable<FlyerSummary[]> {
+    return this.http.get<FlyerSummary[]>('/api/flyers');
+  }
+
+  flyer(id: string): Observable<Flyer> {
+    return this.http.get<Flyer>(`/api/flyers/${encodeURIComponent(id)}`);
   }
 
   categories(): Observable<CategoryCount[]> {

@@ -215,7 +215,16 @@
   },
   "flyers": {
     "title": "Current flyers",
-    "label": "Flyer",
-    "open": "{{ store }}: current flyers (opens the store website)"
+    "open": "{{ store }}: current flyers (opens the store website)",
+    "storeFlyers": "Flyers: {{ store }}",
+    "until": "until {{ date }}",
+    "from": "from {{ date }}",
+    "loading": "Loading the flyer …",
+    "notFound": "This flyer is no longer available.",
+    "error": "The flyer could not be loaded.",
+    "back": "Back to the start page",
+    "openOnSite": "Open on the store website",
+    "page": "Page {{ n }} of {{ count }}",
+    "zoom": "zoom"
   }
 }
