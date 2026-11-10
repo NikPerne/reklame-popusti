@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { buildPipeline, buildTextFilter } from '../../src/repositories/mongo-offer-repository.js';
+import {
+  buildPipeline,
+  buildSearchStage,
+  buildTextFilter,
+} from '../../src/repositories/mongo-offer-repository.js';
 import type { OfferQuery } from '../../src/repositories/offer-repository.js';
 
 const now = new Date('2026-10-26T00:00:00Z');
@@ -23,9 +27,8 @@ describe('buildPipeline', () => {
   it('starts with $search in atlas mode and sorts by search score for relevance', () => {
     const pipeline = buildPipeline({ ...base, text: 'kava', sort: 'relevance' }, 'atlas');
 
-    expect(pipeline[0]).toMatchObject({
-      $search: { index: 'default', text: { query: 'kava' } },
-    });
+    expect(pipeline[0]).toEqual(buildSearchStage('kava'));
+    expect(pipeline[0]).toHaveProperty('$search.index', 'default');
     expect(pipeline).toContainEqual({ $addFields: { _score: { $meta: 'searchScore' } } });
     expect(pipeline).toContainEqual({ $sort: { _score: -1, _id: 1 } });
   });
@@ -92,6 +95,54 @@ describe('buildPipeline', () => {
     expect(pipeline.at(-1)).toMatchObject({
       $facet: { items: [{ $skip: 20 }, { $limit: 10 }, expect.anything()] },
     });
+  });
+});
+
+describe('buildSearchStage (atlas search mode)', () => {
+  type Clause = Record<string, Record<string, unknown>>;
+  const stage = (text: string) =>
+    buildSearchStage(text).$search as {
+      compound: { must: { compound: { should: Clause[] } }[]; should?: Clause[] };
+    };
+
+  it('needs every word, each as itself, a longer word or another ending', () => {
+    const { compound } = stage('Rdeče  VINO');
+
+    expect(compound.must).toHaveLength(2);
+    const [first] = compound.must;
+    expect(first?.compound.should).toEqual([
+      { text: { query: 'rdece', path: 'productName', score: { boost: { value: 3 } } } },
+      { text: { query: 'rdece', path: ['brand', 'sourceCategory'] } },
+      {
+        wildcard: {
+          query: 'rdece*',
+          path: ['productName', 'brand', 'sourceCategory'],
+          allowAnalyzedField: true,
+          score: { constant: { value: 1 } },
+        },
+      },
+      {
+        text: {
+          query: 'rdece',
+          path: ['productName', 'brand', 'sourceCategory'],
+          // Only the last letter may differ: "maslo" finds "masla", not "masso".
+          fuzzy: { maxEdits: 1, prefixLength: 4 },
+          score: { constant: { value: 1 } },
+        },
+      },
+    ]);
+    expect(compound.should?.[0]).toMatchObject({ phrase: { query: 'rdece vino' } });
+  });
+
+  it('has no loose ending match for short words and no phrase for one word', () => {
+    const { compound } = stage('sir');
+
+    expect(compound.must[0]?.compound.should.map((c) => Object.keys(c)[0])).toEqual([
+      'text',
+      'text',
+      'wildcard',
+    ]);
+    expect(compound.should).toBeUndefined();
   });
 });
 

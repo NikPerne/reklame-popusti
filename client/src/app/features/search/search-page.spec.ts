@@ -116,6 +116,20 @@ describe('SearchPage', () => {
     expect(element.querySelectorAll('app-offer-card')).toHaveLength(1);
   });
 
+  it('says what was searched instead of a misspelled search', async () => {
+    const { fixture, element } = await create();
+    expectOffers({ page: '1' }).flush(makePage([]));
+    await fixture.whenStable();
+    queryParams.next({ q: 'malso' });
+    await fixture.whenStable();
+    expectOffers({ q: 'malso' }).flush({ ...makePage([makeOffer()], 1), correctedQuery: 'maslo' });
+    await fixture.whenStable();
+
+    expect(element.querySelector('.corrected')?.textContent?.trim()).toBe(
+      'Prikazujem rezultate za »maslo«.',
+    );
+  });
+
   it('shows the start page rows only without a search', async () => {
     const { fixture, element } = await create();
     expectOffers({ page: '1' }).flush(makePage([]));

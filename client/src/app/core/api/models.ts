@@ -89,6 +89,8 @@ export interface Offer {
 export interface OfferPage {
   items: Offer[];
   total: number;
+  /** What was searched instead of a misspelled search ("maslo" for "malso"). */
+  correctedQuery?: string;
   page: number;
   pageSize: number;
 }
@@ -130,6 +132,8 @@ export interface Comparison {
   total: number;
   /** Matches without a unit price, or in another unit. */
   notComparable: number;
+  /** What was compared instead of a misspelled search. */
+  correctedQuery?: string;
 }
 
 /** A ready-made comparison (quick pick); `id` is the translation key under `compare.presets`. */
@@ -143,7 +147,13 @@ export interface ComparePreset {
 export interface RelatedOffers {
   offer: Offer;
   /** The type the offer was compared as; null when none could be found in its name. */
-  query: { text: string; exclude: string[]; presetId?: string } | null;
+  query: {
+    text: string;
+    exclude: string[];
+    presetId?: string;
+    /** Set when the type was guessed: only this category is compared. */
+    category?: CategoryId;
+  } | null;
   comparison: Comparison | null;
 }
 

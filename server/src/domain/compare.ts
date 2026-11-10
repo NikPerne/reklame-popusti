@@ -77,11 +77,44 @@ export interface TypeQuery {
 }
 
 /**
- * A search word matches a name word that starts with it and has at most two more letters, for
- * Slovenian endings ("jogurt" ~ "jogurti"), but not a longer derived word ("riž" ≠ "riževa").
+ * Endings of the same word in Slovenian ("jogurt" ~ "jogurti", "jogurtov"; "jajc" ~ "jajca",
+ * "jajce"). Anything else is another word: "sir" is not "sirup", "riž" not "riževa".
+ */
+const INFLECTIONS = new Set([
+  '',
+  'a',
+  'e',
+  'i',
+  'o',
+  'u',
+  'om',
+  'em',
+  'ov',
+  'ev',
+  'ih',
+  'ah',
+  'am',
+  'mi',
+  'ja',
+  'je',
+  'ji',
+  'jo',
+  'ju',
+  'jem',
+  'jev',
+  'ovi',
+  'evi',
+  'ove',
+  'eve',
+]);
+
+/**
+ * A search word matches a name word that is the same word with another ending: the search word's
+ * last vowel may change ("jajca" ~ "jajce", "mleko" ~ "mleka") and an ending may be added.
  */
 function sameWord(word: string, term: string): boolean {
-  return word.startsWith(term) && word.length - term.length <= 2;
+  const stem = term.length >= 4 && /[aeiou]$/.test(term) ? term.slice(0, -1) : term;
+  return word.startsWith(stem) && INFLECTIONS.has(word.slice(stem.length));
 }
 
 export function matchesProductType(productName: string, query: TypeQuery): boolean {

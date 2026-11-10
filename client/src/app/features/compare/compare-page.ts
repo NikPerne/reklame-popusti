@@ -9,11 +9,15 @@ import { LanguageService } from '../../core/i18n/language';
 import { SettingsService } from '../../core/settings/settings-service';
 import { ComparisonView } from './comparison-view';
 
-/** The comparison, kept in the URL: `?q=maslo&exclude=arasidov&skip=<offer ids>`. */
+/**
+ * The comparison, kept in the URL: `?q=maslo&exclude=arasidov&skip=<offer ids>`, and `category`
+ * when it came from a product page (a guessed type is compared within the product's category).
+ */
 interface CompareState {
   q: string;
   exclude: string[];
   skip: string[];
+  category?: string;
 }
 
 const MIN_QUERY_LENGTH = 2;
@@ -23,7 +27,13 @@ function list(map: ParamMap, key: string): string[] {
 }
 
 function parseState(map: ParamMap): CompareState {
-  return { q: (map.get('q') ?? '').trim(), exclude: list(map, 'exclude'), skip: list(map, 'skip') };
+  const category = map.get('category');
+  return {
+    q: (map.get('q') ?? '').trim(),
+    exclude: list(map, 'exclude'),
+    skip: list(map, 'skip'),
+    ...(category && { category }),
+  };
 }
 
 type Status = 'idle' | 'loading' | 'ok' | 'error';
@@ -87,6 +97,7 @@ export class ComparePage {
     const params: Record<string, string> = { q: state.q };
     if (state.exclude.length) params['exclude'] = state.exclude.join(',');
     if (state.skip.length) params['skip'] = state.skip.join(',');
+    if (state.category) params['category'] = state.category;
     if (stores.length) params['store'] = stores.join(',');
     try {
       const result = await firstValueFrom(this.api.compare(params));
@@ -104,6 +115,7 @@ export class ComparePage {
         q: state.q || null,
         exclude: state.exclude.join(',') || null,
         skip: state.skip.join(',') || null,
+        category: state.category ?? null,
       },
     });
   }

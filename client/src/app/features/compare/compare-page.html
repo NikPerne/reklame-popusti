@@ -40,6 +40,9 @@
     }
     @case ('ok') {
       @if (result(); as r) {
+        @if (r.correctedQuery) {
+          <p class="note">{{ t('search.corrected', { q: r.correctedQuery }) }}</p>
+        }
         <app-comparison-view
           [comparison]="r"
           [lang]="lang()"

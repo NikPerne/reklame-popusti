@@ -4,3 +4,4 @@ coverage
 .angular
 package-lock.json
 server/test/fixtures
+client/public/pdfjs

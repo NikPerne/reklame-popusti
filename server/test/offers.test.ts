@@ -56,6 +56,21 @@ describe('offer endpoints', () => {
     expect((await get('/api/offers?deals=some')).statusCode).toBe(400);
   });
 
+  it('searches what a misspelled search most likely meant, and says so', async () => {
+    const body = (await get('/api/offers?q=Pralni%20prasel')).json<{
+      correctedQuery?: string;
+      total: number;
+    }>();
+
+    expect(body.correctedQuery).toBe('pralni prasek');
+    expect(t.repository.queries.at(-1)?.text).toBe('pralni prasek');
+    expect(body.total).toBe(1);
+
+    const exact = (await get('/api/offers?q=prasek')).json<{ correctedQuery?: string }>();
+    expect(exact.correctedQuery).toBeUndefined();
+    expect(t.repository.queries.at(-1)?.text).toBe('prasek');
+  });
+
   it('sorts by relevance when searching and by discount otherwise', async () => {
     await get('/api/offers?q=kava');
     expect(t.repository.queries.at(-1)?.sort).toBe('relevance');

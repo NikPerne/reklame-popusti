@@ -31,6 +31,7 @@
     "placeholder": "Išči izdelek, npr. kava ali pralni prašek",
     "label": "Iskanje",
     "clear": "Počisti iskanje",
+    "corrected": "Prikazujem rezultate za »{{ q }}«.",
     "results": "{{ count }} ponudb",
     "topDeals": "Največji popusti",
     "noResults": "Ni ponudb, ki bi ustrezale iskanju.",

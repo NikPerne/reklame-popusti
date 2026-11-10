@@ -69,6 +69,12 @@
   color: var(--muted);
 }
 
+.corrected {
+  margin: 0.25rem 0 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
 .results {
   display: grid;
   grid-template-columns: minmax(0, 1fr);

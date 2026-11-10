@@ -38,6 +38,16 @@ describe('matchesProductType', () => {
   it('allows Slovenian endings but not longer derived words', () => {
     expect(matchesProductType('Jogurti, sadni, 4 x 150 g', { text: 'jogurt' })).toBe(true);
     expect(matchesProductType('Riževa čokolada, 200 g', { text: 'riz' })).toBe(false);
+    expect(matchesProductType('Jajce M, 10 kosov', { text: 'jajca' })).toBe(true);
+    expect(matchesProductType('Trajno mleka, 1 l', { text: 'mleko' })).toBe(true);
+  });
+
+  it('does not take a different word that starts the same for the type', () => {
+    expect(matchesProductType('Sirup bezgov, 1 l', { text: 'sir' })).toBe(false);
+    expect(matchesProductType('Sirni namaz, 150 g', { text: 'sir' })).toBe(false);
+    expect(matchesProductType('Kisla smetana, 20 %', { text: 'kis' })).toBe(false);
+    expect(matchesProductType('Sir Edamec, 400 g', { text: 'sir' })).toBe(true);
+    expect(matchesProductType('Siri, narezani, 3 x 100 g', { text: 'sir' })).toBe(true);
   });
 
   it('leaves out excluded words anywhere in the name', () => {

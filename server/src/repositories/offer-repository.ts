@@ -1,5 +1,6 @@
 import type { CategoryId } from '../domain/categories.js';
 import type { Offer } from '../domain/offer.js';
+import type { Vocabulary } from '../domain/spelling.js';
 import type { StoreId } from '../domain/stores.js';
 
 export const OFFER_SORTS = [
@@ -72,6 +73,8 @@ export interface StoreStatus {
 export interface CandidateQuery {
   text: string;
   stores?: StoreId[];
+  /** Only offers in this category (comparisons guessed from a product's name). */
+  category?: CategoryId;
   now: Date;
   limit: number;
 }
@@ -89,6 +92,8 @@ export interface OfferRepository {
    * unsorted, at most `limit`), as candidates for the price comparison.
    */
   findCandidates(query: CandidateQuery): Promise<OfferView[]>;
+  /** How many current offers contain each word, for spelling correction (may be cached). */
+  vocabulary(): Promise<Vocabulary>;
   /** One offer by its id (as in OfferView), or undefined. */
   findById(id: string): Promise<OfferView | undefined>;
   /** Names of all offers in a category, to learn which words name product types. */

@@ -56,8 +56,10 @@ export class ProductPage {
 
   /** Query parameters to open this comparison on the comparison page (to adjust it). */
   protected compareParams(query: NonNullable<RelatedOffers['query']>): Record<string, string> {
-    return query.exclude.length
-      ? { q: query.text, exclude: query.exclude.join(',') }
-      : { q: query.text };
+    return {
+      q: query.text,
+      ...(query.exclude.length && { exclude: query.exclude.join(',') }),
+      ...(query.category && { category: query.category }),
+    };
   }
 }

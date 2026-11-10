@@ -5,6 +5,7 @@ import type { StoreId } from '../domain/stores.js';
 import { OfferModel, StoreStatusModel } from '../db/models.js';
 import searchIndex from '../db/atlas-search-index.json' with { type: 'json' };
 import { computeGroups } from '../domain/grouping.js';
+import { searchWords, type Vocabulary } from '../domain/spelling.js';
 import type {
   CandidateQuery,
   OfferAlternative,
@@ -109,22 +110,72 @@ export function buildSort(query: OfferQuery, mode: SearchMode): SortSpec {
   }
 }
 
+/**
+ * One search word, matched in any searched field: the word itself (best in the product name), a
+ * longer word starting with it ("jog" → "jogurt", "maslo" → "maslom"), or a different last letter
+ * or two ("jajca" → "jajce", "mleko" → "mleka"). Misspellings are corrected before the search
+ * (see SpellChecker), so there is no general fuzzy match: it also matched unrelated words one
+ * letter away ("maslo" → "masso") and ranked the rarer ones first.
+ */
+function wordClause(word: string): Record<string, unknown> {
+  const constant = { constant: { value: 1 } };
+  const should: Record<string, unknown>[] = [
+    { text: { query: word, path: 'productName', score: { boost: { value: 3 } } } },
+    { text: { query: word, path: ['brand', 'sourceCategory'] } },
+    {
+      wildcard: {
+        query: `${word}*`,
+        path: SEARCHED_FIELDS,
+        allowAnalyzedField: true,
+        score: constant,
+      },
+    },
+  ];
+  if (word.length >= 4) {
+    should.push({
+      text: {
+        query: word,
+        path: SEARCHED_FIELDS,
+        fuzzy: { maxEdits: 1, prefixLength: word.length - 1 },
+        score: constant,
+      },
+    });
+  }
+  return { compound: { should, minimumShouldMatch: 1 } };
+}
+
+/** Atlas Search: every word must match; names with the words together rank higher. */
+export function buildSearchStage(text: string): PipelineStage.Search {
+  const words = searchWords(text);
+  return {
+    $search: {
+      index: searchIndex.name,
+      compound: {
+        must: words.map(wordClause),
+        ...(words.length > 1 && {
+          should: [
+            {
+              phrase: {
+                query: words.join(' '),
+                path: 'productName',
+                slop: 2,
+                score: { boost: { value: 2 } },
+              },
+            },
+          ],
+        }),
+      },
+    },
+  };
+}
+
 export function buildPipeline(query: OfferQuery, mode: SearchMode): PipelineStage[] {
   const pipeline: PipelineStage[] = [];
   const match = buildFilter(query);
 
   if (query.text) {
     if (mode === 'atlas') {
-      pipeline.push({
-        $search: {
-          index: searchIndex.name,
-          text: {
-            query: query.text,
-            path: SEARCHED_FIELDS,
-            fuzzy: { maxEdits: 1, prefixLength: 2 },
-          },
-        },
-      });
+      pipeline.push(buildSearchStage(query.text));
     } else {
       Object.assign(match, buildTextFilter(query.text));
     }
@@ -201,8 +252,40 @@ function toView({ _id, alsoAt, ...rest }: OfferDoc): OfferView {
   };
 }
 
+/** The words change only with a refresh (once a day, from another process). */
+const VOCABULARY_TTL_MS = 30 * 60_000;
+
 export class MongoOfferRepository implements OfferRepository {
+  private vocabularyCache: { at: number; words: Promise<Vocabulary> } | undefined;
+
   constructor(private readonly searchMode: SearchMode) {}
+
+  vocabulary(): Promise<Vocabulary> {
+    const cached = this.vocabularyCache;
+    if (cached && Date.now() - cached.at < VOCABULARY_TTL_MS) return cached.words;
+    const words = this.loadVocabulary();
+    this.vocabularyCache = { at: Date.now(), words };
+    // A failed load is retried on the next search.
+    words.catch(() => {
+      if (this.vocabularyCache?.words === words) this.vocabularyCache = undefined;
+    });
+    return words;
+  }
+
+  private async loadVocabulary(): Promise<Vocabulary> {
+    const rows = await OfferModel.aggregate<{ _id: string; count: number }>([
+      {
+        $project: {
+          _id: 0,
+          words: { $regexFindAll: { input: '$searchText', regex: '[a-z0-9]+' } },
+        },
+      },
+      { $project: { words: { $setUnion: ['$words.match'] } } },
+      { $unwind: '$words' },
+      { $group: { _id: '$words', count: { $sum: 1 } } },
+    ]);
+    return new Map(rows.map((row) => [row._id, row.count]));
+  }
 
   async find(query: OfferQuery): Promise<OfferPage> {
     const [result] = await OfferModel.aggregate<{ items: OfferDoc[]; total: { count: number }[] }>(
@@ -214,11 +297,22 @@ export class MongoOfferRepository implements OfferRepository {
     };
   }
 
-  async findCandidates({ text, stores, now, limit }: CandidateQuery): Promise<OfferView[]> {
+  async findCandidates({
+    text,
+    stores,
+    category,
+    now,
+    limit,
+  }: CandidateQuery): Promise<OfferView[]> {
     // A plain word match on searchText, also with Atlas Search: the comparison needs every
     // product containing the words, not the best-scoring fuzzy matches.
     const docs = await OfferModel.find(
-      { $and: [buildFilter({ now, ...(stores && { stores }) }), buildTextFilter(text)] },
+      {
+        $and: [
+          buildFilter({ now, ...(stores && { stores }), ...(category && { category }) }),
+          buildTextFilter(text),
+        ],
+      },
       { searchText: 0, expiresAt: 0, groupKey: 0 },
     )
       .limit(limit)

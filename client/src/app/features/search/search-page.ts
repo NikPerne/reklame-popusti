@@ -78,6 +78,8 @@ export class SearchPage {
   protected readonly params = signal<SearchParams>(EMPTY_SEARCH);
   protected readonly items = signal<Offer[]>([]);
   protected readonly total = signal(0);
+  /** What the server searched instead of a misspelled search. */
+  protected readonly correctedQuery = signal<string | undefined>(undefined);
   protected readonly page = signal(1);
   protected readonly status = signal<LoadStatus>('loading');
   /** The free API server sleeps when idle; the first request can take up to a minute. */
@@ -149,6 +151,7 @@ export class SearchPage {
           request.page === 1 ? result.items : [...items, ...result.items],
         );
         this.total.set(result.total);
+        this.correctedQuery.set(result.correctedQuery);
         this.page.set(request.page);
         this.status.set('ready');
       });

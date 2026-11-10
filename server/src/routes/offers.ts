@@ -1,7 +1,8 @@
-import type { FastifyPluginAsync } from 'fastify';
+import type { FastifyBaseLogger, FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
 import { CATEGORY_IDS } from '../domain/categories.js';
 import { EAN_PATTERN } from '../domain/offer.js';
+import { spellCheckerFor } from '../domain/spelling.js';
 import { STORE_IDS, STORES } from '../domain/stores.js';
 import { parseOrBadRequest } from '../lib/validation.js';
 import {
@@ -79,28 +80,47 @@ export const offerRoutes: FastifyPluginAsync<{ repository: OfferRepository }> = 
   app,
   { repository },
 ) => {
+  /**
+   * One page of offers. A misspelled search ("malso") is searched as what was most likely meant
+   * ("maslo"), returned as `correctedQuery` so the app can say so.
+   */
+  const search = async (query: OfferQuery, log: FastifyBaseLogger) => {
+    let correctedQuery: string | undefined;
+    if (query.text) {
+      try {
+        correctedQuery = spellCheckerFor(await repository.vocabulary()).correct(query.text);
+      } catch (err) {
+        log.warn({ err }, 'spelling correction failed; searching as typed');
+      }
+    }
+    const page = await repository.find(correctedQuery ? { ...query, text: correctedQuery } : query);
+    return {
+      ...page,
+      page: query.page,
+      pageSize: query.pageSize,
+      ...(correctedQuery && { correctedQuery }),
+    };
+  };
+
   /** Search and filter offers across all stores, e.g. `?q=kava&minDiscount=30&sort=price`. */
   app.get('/api/offers', async (request) => {
     const input = parseOrBadRequest(offerQuerySchema, request.query);
     const query = toOfferQuery(input, new Date());
-    const page = await repository.find(query);
-    return { ...page, page: query.page, pageSize: query.pageSize };
+    return search(query, request.log);
   });
 
   app.get('/api/stores/:store/offers', async (request) => {
     const { store } = parseOrBadRequest(storeParamsSchema, request.params);
     const input = parseOrBadRequest(offerQuerySchema.omit({ store: true }), request.query);
     const query = toOfferQuery({ ...input, store: [store] }, new Date());
-    const page = await repository.find(query);
-    return { ...page, page: query.page, pageSize: query.pageSize };
+    return search(query, request.log);
   });
 
   app.get('/api/categories/:category/offers', async (request) => {
     const { category } = parseOrBadRequest(categoryParamsSchema, request.params);
     const input = parseOrBadRequest(offerQuerySchema.omit({ category: true }), request.query);
     const query = toOfferQuery({ ...input, category }, new Date());
-    const page = await repository.find(query);
-    return { ...page, page: query.page, pageSize: query.pageSize };
+    return search(query, request.log);
   });
 
   /** Stores with the result of their last refresh. */

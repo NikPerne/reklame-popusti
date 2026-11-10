@@ -116,7 +116,7 @@ describe('ComparePage', () => {
     element.querySelector<HTMLButtonElement>('.chip')!.click();
 
     expect(navigate).toHaveBeenCalledWith([], {
-      queryParams: { q: 'maslo', exclude: 'arasidov,kakav', skip: null },
+      queryParams: { q: 'maslo', exclude: 'arasidov,kakav', skip: null, category: null },
     });
   });
 
@@ -142,7 +142,7 @@ describe('ComparePage', () => {
     element.querySelector<HTMLButtonElement>('.all .remove')!.click();
 
     expect(navigate).toHaveBeenCalledWith([], {
-      queryParams: { q: 'maslo', exclude: null, skip: 'l1' },
+      queryParams: { q: 'maslo', exclude: null, skip: 'l1', category: null },
     });
   });
 
@@ -154,6 +154,28 @@ describe('ComparePage', () => {
     await fixture.whenStable();
 
     expect(element.querySelector('.ranking .add')?.textContent?.trim()).toBe('✓');
+  });
+
+  it('says what was compared instead of a misspelled product', async () => {
+    const { fixture, text } = await open('/primerjava?q=malso');
+    await answer(fixture, { ...comparison, correctedQuery: 'maslo' });
+
+    expect(text('.note')[0]).toBe('Prikazujem rezultate za »maslo«.');
+  });
+
+  it('keeps a product page’s category when removing a match', async () => {
+    const { fixture } = await open('/primerjava?q=krema&category=sladko-slano');
+    const request = http.expectOne((r) => r.url === '/api/compare');
+    expect(request.request.params.get('category')).toBe('sladko-slano');
+    request.flush(comparison);
+    await settle();
+    await fixture.whenStable();
+
+    const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+    (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('.remove')?.click();
+    expect(navigate).toHaveBeenCalledWith([], {
+      queryParams: expect.objectContaining({ q: 'krema', category: 'sladko-slano' }) as unknown,
+    });
   });
 
   it('says so when nothing matches', async () => {

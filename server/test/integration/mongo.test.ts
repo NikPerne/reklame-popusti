@@ -148,6 +148,30 @@ describe('MongoOfferRepository (real MongoDB)', () => {
     ).toEqual([]);
   });
 
+  it('counts the offers containing each word, for spelling correction', async () => {
+    const words = await new MongoOfferRepository('basic').vocabulary();
+
+    // Two listings of "Trajno mleko, 1 l"; each offer counts a word once.
+    expect(words.get('mleko')).toBe(2);
+    expect(words.get('trajno')).toBe(2);
+    expect(words.get('majica')).toBe(1);
+    expect([...words.keys()].every((w) => /^[a-z0-9]+$/.test(w))).toBe(true);
+  });
+
+  it('limits comparison candidates to a category', async () => {
+    expect(
+      await repository.findCandidates({ text: 'mleko', category: 'pijace', now, limit: 50 }),
+    ).toEqual([]);
+    expect(
+      await repository.findCandidates({
+        text: 'mleko',
+        category: 'mlecni-izdelki',
+        now,
+        limit: 50,
+      }),
+    ).toHaveLength(2);
+  });
+
   it('finds one offer by id and lists the names in a category', async () => {
     const [first] = (await repository.find(query({ text: 'majica' }))).items;
 

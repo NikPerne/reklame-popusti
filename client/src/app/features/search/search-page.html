@@ -80,6 +80,9 @@
         }
         {{ t('search.results', { count: total() }) }}
       </h2>
+      @if (params().q && correctedQuery(); as corrected) {
+        <p class="corrected">{{ t('search.corrected', { q: corrected }) }}</p>
+      }
     }
   </div>
 

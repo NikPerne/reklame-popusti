@@ -89,11 +89,22 @@ export class FakeOfferRepository implements OfferRepository {
     return this.offers
       .filter((o) => words.every((w) => o.searchText.includes(w)))
       .filter((o) => !query.stores || query.stores.includes(o.store))
+      .filter((o) => !query.category || o.category === query.category)
       .slice(0, query.limit)
       .map(({ searchText: _s, expiresAt: _e, groupKey: _g, ...rest }) => ({
         id: `${rest.store}:${rest.externalId}`,
         ...rest,
       }));
+  }
+
+  async vocabulary(): Promise<Map<string, number>> {
+    const counts = new Map<string, number>();
+    for (const offer of this.offers) {
+      for (const word of new Set(offer.searchText.split(/[^a-z0-9]+/).filter(Boolean))) {
+        counts.set(word, (counts.get(word) ?? 0) + 1);
+      }
+    }
+    return counts;
   }
 
   async findById(id: string): Promise<OfferView | undefined> {

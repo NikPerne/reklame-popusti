@@ -1,6 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
-import type { CategoryId } from '../domain/categories.js';
+import { CATEGORY_IDS, type CategoryId } from '../domain/categories.js';
 import {
   compareByType,
   countTypeWords,
@@ -9,6 +9,7 @@ import {
   type TypeWordCounts,
 } from '../domain/compare.js';
 import { COMPARE_PRESETS, presetFor } from '../domain/compare-presets.js';
+import { spellCheckerFor } from '../domain/spelling.js';
 import { STORE_IDS } from '../domain/stores.js';
 import { parseOrBadRequest } from '../lib/validation.js';
 import type { OfferRepository, OfferView } from '../repositories/offer-repository.js';
@@ -43,6 +44,8 @@ const compareQuerySchema = z.object({
   store: list(STORE_IDS.length, 20)
     .pipe(z.array(z.enum(STORE_IDS)))
     .optional(),
+  /** Only products in this category (a type guessed on the product page). */
+  category: z.enum(CATEGORY_IDS).optional(),
 });
 
 /**
@@ -54,11 +57,16 @@ export const compareRoutes: FastifyPluginAsync<{ repository: OfferRepository }> 
   { repository },
 ) => {
   const compare = async (
-    query: TypeQuery & { skip?: string[]; stores?: (typeof STORE_IDS)[number][] },
+    query: TypeQuery & {
+      skip?: string[];
+      stores?: (typeof STORE_IDS)[number][];
+      category?: CategoryId;
+    },
   ) => {
     const candidates = await repository.findCandidates({
       text: query.text,
       ...(query.stores && { stores: query.stores }),
+      ...(query.category && { category: query.category }),
       now: new Date(),
       limit: MAX_CANDIDATES,
     });
@@ -79,24 +87,37 @@ export const compareRoutes: FastifyPluginAsync<{ repository: OfferRepository }> 
     return counts;
   };
 
-  /** What kind of product an offer is: its ready-made comparison, else a guessed type word. */
+  /**
+   * What kind of product an offer is: its ready-made comparison, else a guessed type word. A
+   * guessed type is only compared within the offer's category: the same word names unrelated
+   * things elsewhere ("krema" for hands or a chocolate spread, "mleko" for the body).
+   */
   const typeQueryFor = async (
     offer: OfferView,
-  ): Promise<(TypeQuery & { presetId?: string }) | undefined> => {
+  ): Promise<(TypeQuery & { presetId?: string; category?: CategoryId }) | undefined> => {
     const preset = presetFor(offer.productName);
     if (preset) return { text: preset.q, exclude: preset.exclude, presetId: preset.id };
     const text = deriveTypeQuery(offer.productName, offer.brand, await countsFor(offer.category));
-    return text ? { text, exclude: [] } : undefined;
+    return text ? { text, exclude: [], category: offer.category } : undefined;
   };
 
   app.get('/api/compare', async (request) => {
     const input = parseOrBadRequest(compareQuerySchema, request.query);
-    return compare({
-      text: input.q,
+    // "malso" compares butter; the app shows what was compared.
+    let correctedQuery: string | undefined;
+    try {
+      correctedQuery = spellCheckerFor(await repository.vocabulary()).correct(input.q);
+    } catch (err) {
+      request.log.warn({ err }, 'spelling correction failed; comparing as typed');
+    }
+    const comparison = await compare({
+      text: correctedQuery ?? input.q,
       ...(input.exclude && { exclude: input.exclude }),
       ...(input.skip && { skip: input.skip }),
       ...(input.store && { stores: input.store }),
+      ...(input.category && { category: input.category }),
     });
+    return { ...comparison, ...(correctedQuery && { correctedQuery }) };
   });
 
   /** The ready-made comparisons (quick picks); labels are translated in the web app. */

@@ -31,6 +31,7 @@
     "placeholder": "Search a product, e.g. coffee or detergent",
     "label": "Search",
     "clear": "Clear search",
+    "corrected": "Showing results for “{{ q }}”.",
     "results": "{{ count }} offers",
     "topDeals": "Biggest discounts",
     "noResults": "No offers match your search.",
